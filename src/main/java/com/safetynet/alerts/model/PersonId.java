@@ -1,9 +1,14 @@
 package com.safetynet.alerts.model;
 
-import javax.persistence.Embeddable;
+import lombok.Data;
+
 import java.io.Serializable;
 
-@Embeddable
+
+//TOASK comment faire avec EmbeddedId pour charger le fichier JSON ?
+// @Embeddable
+
+@Data
 public class PersonId implements Serializable {
 
     private String firstName;

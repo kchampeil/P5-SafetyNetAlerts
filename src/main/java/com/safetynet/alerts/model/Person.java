@@ -2,7 +2,6 @@ package com.safetynet.alerts.model;
 
 import lombok.Data;
 
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -12,17 +11,25 @@ import java.time.LocalDate;
 
 @Data
 @Entity
+@IdClass(PersonId.class)
 @Table(name = "persons")
 public class Person {
 
-    @EmbeddedId
-    private PersonId personId;
+    //TOASK comment faire avec EmbeddedId pour charger le fichier JSON ?
+    // @EmbeddedId
+    // private PersonId personId;
+
+    @Id
+    private String firstName;
+
+    @Id
+    private String lastName;
 
     private String address;
 
     private String city;
 
-    private int zip;
+    private String zip;
 
     private String phone;
 
