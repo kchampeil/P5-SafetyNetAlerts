@@ -1,5 +1,7 @@
 package com.safetynet.alerts.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.model.FireStation;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -30,163 +31,160 @@ public class JsonParserService {
     @Value("${data.inputFilePath}")
     private String dataInputFilePath;
 
+
     /**
      * read information in the data.json file
      */
     public void readDataFromJsonFile() {
 
-
 // IN-PROGRESS
 
         // read JSON file
-        System.out.println("---------------- Reading JSON file --------------------"); //TTR
+        System.out.println("=== Reading JSON file ==="); //TTR
         try {
 
-            //JSONParser jsonParser = new JSONParser();
-            //create JsonParser object
-            //TTR celui là ne fonctionne pas
-            //TTR celui là ne fonctionne pas-fin
-
-            //TTR ceux-là fonctionnent
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
-            //InputStream jsonData = JsonParserService.class.getClassLoader().getResourceAsStream(this.dataInputFilePath);
-            //read json file data to String
-            //byte[] jsonData = Files.readAllBytes(Paths.get(this.dataInputFilePath));
-            //TTR ceux-là fonctionnent-fin
 
-            //JsonParser jsonParser = new JsonFactory().createParser(fileInputStream);
-
-            //create ObjectMapper instance
             ObjectMapper objectMapper = new ObjectMapper();
-
-            /*TTR celui là ne fonctionne pas
-            List<Person> listOfPersons = objectMapper.readValue(jsonData, new TypeReference<List<Person>>() {});
-            //List<Person> listOfPersons = objectMapper.readValue(jsonData, List.class);
-            System.out.println("List using TypeReference: " + listOfPersons);
-            TTR celui là ne fonctionne pas */
-
-            //TTR celui là fonctionne avec byte[] jsonData
             JsonNode rootNode = objectMapper.readTree(jsonData);
-            System.out.println(rootNode.getNodeType()); //TTR
 
-            JsonNode personNode = rootNode.path("persons");
-            System.out.println(personNode.getNodeType()); //TTR
+            //read persons
+            System.out.println("\n \n ***** Beginning of reading Persons in file *****"); //TTR
+            List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
+            System.out.println("***** End of reading Persons in file *****"); //TTR
 
-            Iterator<JsonNode> elements = personNode.elements();
+            //read fire stations
+            System.out.println("\n \n ***** Beginning of reading fire stations in file *****"); //TTR
+            List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
+            System.out.println("***** End of reading fire stations in file *****"); //TTR
 
-            while (elements.hasNext()) {
-                JsonNode person = elements.next();
-                System.out.println("person = " + person);
-            }
-            //TTR celui là fonctionne-fin
+            //read medical records
+            System.out.println("\n \n ***** Beginning of reading medical records in file *****"); //TTR
+            List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
+            System.out.println("***** End of reading medical records in file *****"); //TTR
 
-            System.out.println("---------------- End of Reading JSON file --------------------"); //TTR
+            System.out.println("\n === End of Reading JSON file ==="); //TTR
 
- /*       } catch (JsonParseException jsonParseException) {
-            System.out.println(jsonParseException);
- */
-        } catch (IOException ioException) {
-            //TODO gestion de l'exception à revoir
-            System.out.println(ioException);
-
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
 
         }
-
-        //InputStream fileInputStream = getClass().getClassLoader().getResourceAsStream("data.json");
-                            /*FileReader fileReader = new FileReader("C:\\Git\\P5-SafetyNetAlertsAPI\\src\\main\\resources\\data.json");
-                            JSONObject jsonObject = (JSONObject) jsonParser.parse(fileReader);
-
-                            JSONArray jsonArray = (JSONArray) jsonObject.get("persons");
-                            Iterator i = jsonArray.iterator();
-
-                            ObjectMapper objectMapper = new ObjectMapper();
-                            while (i.hasNext()) {
-                                System.out.println(" " + i.next());
-                            }*/
-        //person.setZip(objectMapper.readValue(jsonArray));
-
-                        /*Person person = new Person();
-                        while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-                            String name = jsonParser.getCurrentName();
-                            if ("zip".equals(name)) {
-                                jsonParser.nextToken();
-                                person.setZip(jsonParser.getValueAsString());
-                                System.out.println(person.getZip());
-                            } else if ("address".equals(name)) {
-                                jsonParser.nextToken();
-                                person.setAddress(jsonParser.getValueAsString());
-                                System.out.println(person.getAddress());
-                            } else if ("email".equals(name)) {
-                                jsonParser.nextToken();
-                                person.setEmail(jsonParser.getValueAsString());
-                                System.out.println(person.getEmail());
-                            }*/
-        //Person person = objectMapper.readValue(fileInputStream, Person.class);
-
-            /*for (int i=0;i<array.length();i++)
-            {
-                String firstName = array.getJSONObject(i).getString("firstName");
-                String lastName = array.getJSONObject(i).getString("lastName");
-
-            }*/
-
-        //create JsonParser object
-        //JsonParser jsonParser = new JsonFactory().createParser(new File("data.json"));
-
-        //TODO close à revoir
-        // jsonParser.close();
-
-
-        //create ObjectMapper instance
-        //ObjectMapper objectMapper = new ObjectMapper();
-
-        //convert json string to object
-        //Person person = objectMapper.readValue(jsonData, Person.class);
-
-        //read persons
-        //List<Person> listOfPersons = readPersonsFromJsonFile();
-
-        //read fire stations
-        //List<FireStation> listOfFireStations = readFireStationsFromJsonFile();
-        //read medical records
-        //List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile();
-
-
     }
+
 
     /**
      * read the persons in the JSON file
      *
+     * @param rootNode of the JSON file
      * @return a list of Person
      */
-    private List<Person> readPersonsFromJsonFile() {
-        //create ObjectMapper instance
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        //Person testPerson = objectMapper.readValue();
+    private List<Person> readPersonsFromJsonFile(JsonNode rootNode) {
+
         List<Person> listOfPersonsInFile = new ArrayList<>();
+
+        try {
+
+            //create ObjectMapper instance
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            //identify the node "persons"
+            JsonNode personNode = rootNode.path("persons");
+
+            //get all values of persons in the List listOfPersonsInFile
+            listOfPersonsInFile = objectMapper.readValue(personNode.toString(), new TypeReference<List<Person>>() {
+            });
+
+            //TTR
+            System.out.println("\n ---------- first person read in file ----------");
+            System.out.println("getFirstName : " + listOfPersonsInFile.get(0).getFirstName());
+            System.out.println("getLastName : " + listOfPersonsInFile.get(0).getLastName());
+            System.out.println("getBirthDate : " + listOfPersonsInFile.get(0).getBirthDate());
+            System.out.println("getAge : " + listOfPersonsInFile.get(0).getAge());
+            System.out.println("getEmail : " + listOfPersonsInFile.get(0).getEmail());
+            System.out.println("getAddress : " + listOfPersonsInFile.get(0).getAddress());
+            System.out.println("getZip : " + listOfPersonsInFile.get(0).getZip());
+            System.out.println("getCity : " + listOfPersonsInFile.get(0).getCity());
+            System.out.println("getPhone : " + listOfPersonsInFile.get(0).getPhone());
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         return listOfPersonsInFile;
     }
+
 
     /**
      * read the fire stations in the JSON file
      *
+     * @param rootNode of the JSON file
      * @return a list of FireStation
      */
-    private List<FireStation> readFireStationsFromJsonFile() {
+    private List<FireStation> readFireStationsFromJsonFile(JsonNode rootNode) {
+
         List<FireStation> listOfFireStationsInFile = new ArrayList<>();
+
+        try {
+
+            //create ObjectMapper instance
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            //identify the node "firestations"
+            JsonNode fireStationNode = rootNode.path("firestations");
+
+            //get all values of persons in the List listOfFireStationsInFile
+            listOfFireStationsInFile = objectMapper.readValue(fireStationNode.toString(), new TypeReference<List<FireStation>>() {
+            });
+
+            //TTR
+            System.out.println("\n ---------- first fire station read in file ----------");
+            System.out.println("getAddress : " + listOfFireStationsInFile.get(0).getAddress());
+            System.out.println("getStationNumber : " + listOfFireStationsInFile.get(0).getStationNumber());
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
         return listOfFireStationsInFile;
     }
+
 
     /**
      * read the medical records in the JSON file
      *
+     * @param rootNode of the JSON file
      * @return a list of MedicalRecord
      */
-    private List<MedicalRecord> readMedicalRecordsFromJsonFile() {
+    private List<MedicalRecord> readMedicalRecordsFromJsonFile(JsonNode rootNode) {
+
         List<MedicalRecord> listOfMedicalRecordsInFile = new ArrayList<>();
+
+        try {
+
+            //create ObjectMapper instance
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            //identify the node "medicalrecords"
+            JsonNode medicalRecordNode = rootNode.path("medicalrecords");
+
+            //get all values of persons in the List listOfMedicalRecordsInFile
+            listOfMedicalRecordsInFile = objectMapper.readValue(medicalRecordNode.toString(), new TypeReference<List<MedicalRecord>>() {
+            });
+
+            //TTR
+            System.out.println("\n ---------- first medical record in file ----------");
+            System.out.println("getFirstName : " + listOfMedicalRecordsInFile.get(0).getFirstName());
+            System.out.println("getLastName : " + listOfMedicalRecordsInFile.get(0).getLastName());
+            System.out.println("getBirthDate : " + listOfMedicalRecordsInFile.get(0).getBirthDate());
+            System.out.println("getMedications : " + listOfMedicalRecordsInFile.get(0).getMedications());
+            System.out.println("getAllergies : " + listOfMedicalRecordsInFile.get(0).getAllergies());
+            System.out.println("1er medication : " + listOfMedicalRecordsInFile.get(0).getMedications().get(0));
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
         return listOfMedicalRecordsInFile;
     }
 }
-
-
