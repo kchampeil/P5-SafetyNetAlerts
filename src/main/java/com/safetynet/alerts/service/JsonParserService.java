@@ -41,8 +41,6 @@ public class JsonParserService implements IFileParserService {
      */
     public void readDataFromFile() {
 
-// IN-PROGRESS
-
         // read JSON file
         System.out.println("=== Reading JSON file ==="); //TTR
         try {

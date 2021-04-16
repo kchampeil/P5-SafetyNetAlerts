@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class MedicalRecordService implements IMedicalRecordService {
 
-    private static final Logger logger = LogManager.getLogger(PersonService.class);
+    private static final Logger logger = LogManager.getLogger(MedicalRecordService.class);
 
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
@@ -27,7 +27,6 @@ public class MedicalRecordService implements IMedicalRecordService {
      */
     @Override
     public boolean savelistOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords) {
-        if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
             try {
                 medicalRecordRepository.saveAll(listOfMedicalRecords);
                 return true;
@@ -35,8 +34,5 @@ public class MedicalRecordService implements IMedicalRecordService {
                 logger.error("error when saving the list of medical records in DB : " + e.getMessage() + "\n");
                 return false;
             }
-        } else {
-            return false;
-        }
     }
 }

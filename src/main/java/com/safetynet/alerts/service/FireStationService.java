@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class FireStationService implements IFireStationService {
 
-    private static final Logger logger = LogManager.getLogger(PersonService.class);
+    private static final Logger logger = LogManager.getLogger(FireStationService.class);
 
     @Autowired
     FireStationRepository fireStationRepository;
@@ -26,7 +26,6 @@ public class FireStationService implements IFireStationService {
      */
     @Override
     public boolean savelistOfFireStations(List<FireStation> listOfFireStations) {
-        if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
             try {
                 fireStationRepository.saveAll(listOfFireStations);
                 return true;
@@ -34,8 +33,5 @@ public class FireStationService implements IFireStationService {
                 logger.error("error when saving the list of fire stations in DB : " + e.getMessage() + "\n");
                 return false;
             }
-        } else {
-            return false;
-        }
     }
 }
