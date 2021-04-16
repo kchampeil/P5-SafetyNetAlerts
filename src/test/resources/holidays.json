@@ -1,0 +1,10 @@
+{
+  "countries": [
+    { "continent":"Asia", "country":"Thailand" },
+    { "continent":"America", "country":"USA" }
+  ],
+  "cities": [
+    { "country":"Thailand", "city":"Bangkok" },
+    { "country":"USA", "city":"New York" }
+  ]
+}

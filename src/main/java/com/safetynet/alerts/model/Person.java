@@ -2,6 +2,7 @@ package com.safetynet.alerts.model;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -20,9 +21,11 @@ public class Person {
     // private PersonId personId;
 
     @Id
+    @Column(name="first_name")
     private String firstName;
 
     @Id
+    @Column(name="last_name")
     private String lastName;
 
     private String address;

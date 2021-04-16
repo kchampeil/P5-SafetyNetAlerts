@@ -17,10 +17,9 @@ public class FireStation {
     @Id
     @JsonProperty("station")
     private Integer stationNumber;
-    //TODO revoir le modèle station au lieu de stationNumber
 
     //@ElementCollection
     //private List<String> address;
-    //TODO revoir le modèle
+    //TODO revoir le modèle dans doc une ligne par address et pas une liste d'adresse associée à la station
     private String address;
 }
