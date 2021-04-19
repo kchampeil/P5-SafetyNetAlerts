@@ -47,46 +47,51 @@ public class JsonParserService implements IFileParserService {
 
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(jsonData);
+            if (jsonData != null) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(jsonData);
 
-            //read persons and save person data in DB
-            System.out.println("\n \n ***** Beginning of reading Persons in file *****"); //TTR
-            List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
-            System.out.println("***** End of reading Persons in file *****"); //TTR
+                //read persons and save person data in DB
+                System.out.println("\n \n ***** Beginning of reading Persons in file *****"); //TTR
+                List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
+                System.out.println("***** End of reading Persons in file *****"); //TTR
 
-            if (listOfPersons != null && !listOfPersons.isEmpty()) {
-                personService.saveListOfPersons(listOfPersons);
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    personService.saveListOfPersons(listOfPersons);
+                } else {
+                    System.out.println("no person data found in file"); //TTR
+                    logger.error("no person data found in file " + this.dataInputFilePath + "\n");
+                }
+
+                //read fire stations and save fire station data in DB
+                System.out.println("\n \n ***** Beginning of reading fire stations in file *****"); //TTR
+                List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
+                System.out.println("***** End of reading fire stations in file *****"); //TTR
+
+                if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
+                    fireStationService.savelistOfFireStations(listOfFireStations);
+                } else {
+                    System.out.println("no fire station data found in file"); //TTR
+                    logger.error("no fire station data found in file " + this.dataInputFilePath + "\n");
+                }
+
+                //read medical records and save medical record data in DB
+                System.out.println("\n \n ***** Beginning of reading medical records in file *****"); //TTR
+                List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
+                System.out.println("***** End of reading medical records in file *****"); //TTR
+
+                if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
+                    medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords);
+                } else {
+                    System.out.println("no medical record data found in file");//TTR
+                    logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
+                }
+
+                System.out.println("\n === End of Reading JSON file ==="); //TTR
             } else {
-                System.out.println("no person data found in file"); //TTR
-                logger.error("no person data found in file : \n");
+                System.out.println("input data file " + this.dataInputFilePath + "not found : \n");//TTR
+                logger.error("input data file " + this.dataInputFilePath + "not found : \n");
             }
-
-            //read fire stations and save fire station data in DB
-            System.out.println("\n \n ***** Beginning of reading fire stations in file *****"); //TTR
-            List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
-            System.out.println("***** End of reading fire stations in file *****"); //TTR
-
-            if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
-                fireStationService.savelistOfFireStations(listOfFireStations);
-            } else {
-                System.out.println("no fire station data found in file"); //TTR
-                logger.error("no fire station data found in file : \n");
-            }
-
-            //read medical records and save medical record data in DB
-            System.out.println("\n \n ***** Beginning of reading medical records in file *****"); //TTR
-            List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
-            System.out.println("***** End of reading medical records in file *****"); //TTR
-
-            if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
-                medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords);
-            } else {
-                System.out.println("no medical record data found in file");//TTR
-                logger.error("no medical record data found in file : \n");
-            }
-
-            System.out.println("\n === End of Reading JSON file ==="); //TTR
 
         } catch (IOException e) {
             e.printStackTrace();
