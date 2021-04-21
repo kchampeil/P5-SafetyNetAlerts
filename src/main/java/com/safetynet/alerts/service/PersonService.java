@@ -21,17 +21,33 @@ public class PersonService implements IPersonService {
 
     /**
      * save a list of persons in DB
+     *
      * @param listOfPersons list to be saved in DB
      * @return true if data saved, else false
      */
     @Override
     public boolean saveListOfPersons(List<Person> listOfPersons) {
-             try {
-                personRepository.saveAll(listOfPersons);
-                return true;
-            } catch (IllegalArgumentException e) {
-                logger.error("error when saving the list of persons in DB : " + e.getMessage() + "\n");
-                return false;
-            }
+        try {
+            personRepository.saveAll(listOfPersons);
+            return true;
+        } catch (IllegalArgumentException illegalArgumentException) {
+            logger.error("error when saving the list of persons in DB : " + illegalArgumentException.getMessage() + "\n");
+            return false;
+        }
+    }
+
+
+    /**
+     * allow getting the list of all persons found in DB
+     * @return a list of Person
+     */
+    @Override
+    public Iterable<Person> getAllPersons() {
+        try {
+            return personRepository.findAll();
+        } catch (Exception exception) {
+            logger.error("error when getting the list of persons " + exception.getMessage() + "\n");
+            return null;
+        }
     }
 }

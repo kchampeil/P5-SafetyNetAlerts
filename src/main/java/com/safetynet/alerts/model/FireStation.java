@@ -3,7 +3,6 @@ package com.safetynet.alerts.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,11 +16,9 @@ public class FireStation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column("fire_station_id")
     private Long fireStationId;
 
     @JsonProperty("station")
-    @Column("station_number")
     private Integer stationNumber;
 
     //@ElementCollection

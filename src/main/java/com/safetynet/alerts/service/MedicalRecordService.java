@@ -35,4 +35,19 @@ public class MedicalRecordService implements IMedicalRecordService {
                 return false;
             }
     }
+
+
+    /**
+     * allow getting the list of all medical records found in DB
+     * @return a list of MedicalRecord
+     */
+    @Override
+    public Iterable<MedicalRecord> getAllMedicalRecords() {
+        try {
+            return medicalRecordRepository.findAll();
+        } catch (Exception exception) {
+            logger.error("error when getting the list of medical records " + exception.getMessage() + "\n");
+            return null;
+        }
+    }
 }

@@ -12,4 +12,10 @@ public interface IPersonService {
      * @return true if data saved, else false
      */
     boolean saveListOfPersons(List<Person> listOfPersons);
+
+    /**
+     * allow getting the list of all persons found in DB
+     * @return a list of Person
+     */
+    Iterable<Person> getAllPersons();
 }

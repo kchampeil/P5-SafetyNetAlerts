@@ -34,4 +34,19 @@ public class FireStationService implements IFireStationService {
                 return false;
             }
     }
+
+
+    /**
+     * allow getting the list of all fire stations found in DB
+     * @return a list of FireStation
+     */
+    @Override
+    public Iterable<FireStation> getAllFireStations() {
+        try {
+            return fireStationRepository.findAll();
+        } catch (Exception exception) {
+            logger.error("error when getting the list of fire stations " + exception.getMessage() + "\n");
+            return null;
+        }
+    }
 }

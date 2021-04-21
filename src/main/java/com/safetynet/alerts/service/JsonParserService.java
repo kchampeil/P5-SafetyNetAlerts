@@ -52,9 +52,9 @@ public class JsonParserService implements IFileParserService {
                 JsonNode rootNode = objectMapper.readTree(jsonData);
 
                 //read persons and save person data in DB
-                System.out.println("\n \n ***** Beginning of reading Persons in file *****"); //TTR
+                logger.info("\n \n ***** Beginning of reading Persons in file *****");
                 List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
-                System.out.println("***** End of reading Persons in file *****"); //TTR
+                logger.info("***** End of reading Persons in file *****");
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
                     personService.saveListOfPersons(listOfPersons);
@@ -64,9 +64,9 @@ public class JsonParserService implements IFileParserService {
                 }
 
                 //read fire stations and save fire station data in DB
-                System.out.println("\n \n ***** Beginning of reading fire stations in file *****"); //TTR
+                logger.info("\n \n ***** Beginning of reading FireStations in file *****");
                 List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
-                System.out.println("***** End of reading fire stations in file *****"); //TTR
+                logger.info("***** End of reading FireStations in file *****");
 
                 if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
                     fireStationService.savelistOfFireStations(listOfFireStations);
@@ -76,9 +76,9 @@ public class JsonParserService implements IFileParserService {
                 }
 
                 //read medical records and save medical record data in DB
-                System.out.println("\n \n ***** Beginning of reading medical records in file *****"); //TTR
+                logger.info("\n \n ***** Beginning of reading MedicalRecords in file *****");
                 List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
-                System.out.println("***** End of reading medical records in file *****"); //TTR
+                logger.info("***** End of reading MedicalRecords in file *****");
 
                 if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
                     medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords);

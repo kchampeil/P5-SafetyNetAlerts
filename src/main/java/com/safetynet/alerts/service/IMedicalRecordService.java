@@ -12,4 +12,10 @@ public interface IMedicalRecordService {
      * @return true if data saved, else false
      */
     boolean savelistOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords);
+
+    /**
+     * allow getting the list of all medical records found in DB
+     * @return a list of MedicalRecord
+     */
+    Iterable<MedicalRecord> getAllMedicalRecords();
 }

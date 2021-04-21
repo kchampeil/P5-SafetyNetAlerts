@@ -2,7 +2,6 @@ package com.safetynet.alerts.model;
 
 import lombok.Data;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,13 +17,10 @@ public class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column("person_id")
     private Long personId;
 
-    @Column("first_name")
     private String firstName;
 
-    @Column("last_name")
     private String lastName;
 
     private String address;
@@ -37,7 +33,6 @@ public class Person {
 
     private String email;
 
-    @Column("birth_date")
     private LocalDate birthDate;
 
     @Transient
