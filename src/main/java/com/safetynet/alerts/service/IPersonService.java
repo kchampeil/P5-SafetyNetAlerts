@@ -18,4 +18,11 @@ public interface IPersonService {
      * @return a list of Person
      */
     Iterable<Person> getAllPersons();
+
+    /**
+     * allow getting the list of all citizens' emails for a given city found in DB
+     * @param cityName of the city we want citizens' emails
+     * @return a list of emails
+     */
+    List<String> getAllEmailsByCity(String cityName);
 }

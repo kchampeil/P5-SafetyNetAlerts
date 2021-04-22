@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -39,6 +40,7 @@ public class PersonService implements IPersonService {
 
     /**
      * allow getting the list of all persons found in DB
+     *
      * @return a list of Person
      */
     @Override
@@ -46,7 +48,48 @@ public class PersonService implements IPersonService {
         try {
             return personRepository.findAll();
         } catch (Exception exception) {
-            logger.error("error when getting the list of persons " + exception.getMessage() + "\n");
+            logger.error("error when getting the list of all persons " + exception.getMessage() + "\n");
+            return null;
+        }
+    }
+
+
+    /**
+     * allow getting the list of all citizens' emails for a given city found in DB
+     *
+     * @param cityName of the city we want citizens' emails
+     * @return a list of emails
+     */
+    @Override
+    public List<String> getAllEmailsByCity(String cityName) {
+        if (cityName != null && !cityName.equals("")) {
+            try {
+                List<String> listOfEmails = new ArrayList<>();
+
+                //get the list of persons living in the city called cityName
+                List<Person> listOfPersons = personRepository.findAllByCity(cityName);
+
+                //for each person, if listOfEmails does not already contains his email, add the email in the list
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    logger.info(listOfPersons.size() + " persons found for the city : " + cityName);
+                    for (Person person : listOfPersons) {
+                        if (!listOfEmails.contains(person.getEmail())) {
+                            listOfEmails.add(person.getEmail());
+                        }
+                    }
+                    logger.info(listOfEmails.size() + " distinct emails found for the city : " + cityName);
+                    return listOfEmails;
+                } else {
+                    logger.error("no person found for city " + cityName + ", cannot return the list of emails");
+                    return null;
+                }
+
+            } catch (Exception exception) {
+                logger.error("error when getting the list of emails for city " + cityName + " : " + exception.getMessage());
+                return null;
+            }
+        } else {
+            logger.error("a city name must be specified to get the list of emails");
             return null;
         }
     }

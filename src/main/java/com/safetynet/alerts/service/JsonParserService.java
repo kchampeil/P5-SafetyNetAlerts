@@ -87,7 +87,7 @@ public class JsonParserService implements IFileParserService {
                     logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
                 }
 
-                System.out.println("\n === End of Reading JSON file ==="); //TTR
+                System.out.println("\n === End of Reading JSON file ===\n\n"); //TTR
             } else {
                 System.out.println("input data file " + this.dataInputFilePath + "not found : \n");//TTR
                 logger.error("input data file " + this.dataInputFilePath + "not found : \n");
@@ -126,8 +126,8 @@ public class JsonParserService implements IFileParserService {
             System.out.println("\n ---------- first person read in file ----------");
             System.out.println("getFirstName : " + listOfPersonsInFile.get(0).getFirstName());
             System.out.println("getLastName : " + listOfPersonsInFile.get(0).getLastName());
-            System.out.println("getBirthDate : " + listOfPersonsInFile.get(0).getBirthDate());
-            System.out.println("getAge : " + listOfPersonsInFile.get(0).getAge());
+            //System.out.println("getBirthDate : " + listOfPersonsInFile.get(0).getBirthDate());
+            //System.out.println("getAge : " + listOfPersonsInFile.get(0).getAge());
             System.out.println("getEmail : " + listOfPersonsInFile.get(0).getEmail());
             System.out.println("getAddress : " + listOfPersonsInFile.get(0).getAddress());
             System.out.println("getZip : " + listOfPersonsInFile.get(0).getZip());

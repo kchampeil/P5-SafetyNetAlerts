@@ -33,9 +33,4 @@ public class Person {
 
     private String email;
 
-    private LocalDate birthDate;
-
-    @Transient
-    private Integer age;
-
 }

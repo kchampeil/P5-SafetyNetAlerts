@@ -29,4 +29,11 @@ class PersonControllerTest {
                 .andExpect(status().isOk());
                 //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest
     }
+
+    @Test
+    @DisplayName("GIVEN a city name WHEN asking for the lis of emails of all citizens THEN return status is ok")
+    void getAllEmailsByCityTest() throws Exception {
+        mockMvc.perform(get("/communityEmail"))
+                .andExpect(status().isOk());
+    }
 }
