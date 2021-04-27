@@ -6,11 +6,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class JsonParserServiceTest {
 
@@ -31,16 +33,15 @@ class JsonParserServiceTest {
     @DisplayName("GIVEN a correct and complete json file WHEN parsing the file THEN lists of persons, fire stations and medical records are saved")
     public void readDataFromFileTest_WithCorrectFile() {
         //GIVEN
-        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "complete_data.json");
+        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "test_complete_data.json");
 
         //WHEN
         jsonParserService.readDataFromFile();
 
         //THEN
-
         verify(personServiceMock, Mockito.times(1)).saveListOfPersons(anyList());
-        verify(fireStationServiceMock, Mockito.times(1)).savelistOfFireStations(anyList());
-        verify(medicalRecordServiceMock, Mockito.times(1)).savelistOfMedicalRecords(anyList());
+        verify(fireStationServiceMock, Mockito.times(1)).saveListOfFireStations(anyList());
+        verify(medicalRecordServiceMock, Mockito.times(1)).saveListOfMedicalRecords(anyList());
     }
 
 
@@ -48,16 +49,15 @@ class JsonParserServiceTest {
     @DisplayName("GIVEN an empty json file WHEN parsing the file THEN no data are saved")
     public void readDataFromFileTest_WithEmptyFile() {
         //GIVEN
-        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "empty_data.json");
+        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "test_empty_data.json");
 
         //WHEN
         jsonParserService.readDataFromFile();
 
         //THEN
-
         verify(personServiceMock, Mockito.times(0)).saveListOfPersons(anyList());
-        verify(fireStationServiceMock, Mockito.times(0)).savelistOfFireStations(anyList());
-        verify(medicalRecordServiceMock, Mockito.times(0)).savelistOfMedicalRecords(anyList());
+        verify(fireStationServiceMock, Mockito.times(0)).saveListOfFireStations(anyList());
+        verify(medicalRecordServiceMock, Mockito.times(0)).saveListOfMedicalRecords(anyList());
     }
 
 
@@ -72,24 +72,24 @@ class JsonParserServiceTest {
 
         //THEN
         verify(personServiceMock, Mockito.times(0)).saveListOfPersons(anyList());
-        verify(fireStationServiceMock, Mockito.times(0)).savelistOfFireStations(anyList());
-        verify(medicalRecordServiceMock, Mockito.times(0)).savelistOfMedicalRecords(anyList());
+        verify(fireStationServiceMock, Mockito.times(0)).saveListOfFireStations(anyList());
+        verify(medicalRecordServiceMock, Mockito.times(0)).saveListOfMedicalRecords(anyList());
     }
 
 
     @Test
     @DisplayName("GIVEN a json file with a different structure WHEN parsing the file THEN an error is generated and no data are saved")
     public void readDataFromFileTest_WithUnknownStructure() {
-        //GIVEN data.inputFilePath= holidays.json
-        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "holidays.json");
+        //GIVEN
+        ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "test_holidays.json");
 
         //WHEN
         jsonParserService.readDataFromFile();
 
         //THEN
         verify(personServiceMock, Mockito.times(0)).saveListOfPersons(anyList());
-        verify(fireStationServiceMock, Mockito.times(0)).savelistOfFireStations(anyList());
-        verify(medicalRecordServiceMock, Mockito.times(0)).savelistOfMedicalRecords(anyList());
+        verify(fireStationServiceMock, Mockito.times(0)).saveListOfFireStations(anyList());
+        verify(medicalRecordServiceMock, Mockito.times(0)).saveListOfMedicalRecords(anyList());
     }
 
 }

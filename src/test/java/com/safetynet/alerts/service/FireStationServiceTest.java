@@ -67,7 +67,7 @@ class FireStationServiceTest {
             listOfFireStations.add(fireStation);
 
             //THEN
-            assertTrue(fireStationService.savelistOfFireStations(listOfFireStations));
+            assertTrue(fireStationService.saveListOfFireStations(listOfFireStations));
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
@@ -81,7 +81,7 @@ class FireStationServiceTest {
             when(fireStationRepositoryMock.saveAll(listOfFireStations)).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertFalse(fireStationService.savelistOfFireStations(listOfFireStations));
+            assertFalse(fireStationService.saveListOfFireStations(listOfFireStations));
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }

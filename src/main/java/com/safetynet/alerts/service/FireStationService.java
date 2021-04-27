@@ -25,7 +25,7 @@ public class FireStationService implements IFireStationService {
      * @return true if data saved, else false
      */
     @Override
-    public boolean savelistOfFireStations(List<FireStation> listOfFireStations) {
+    public boolean saveListOfFireStations(List<FireStation> listOfFireStations) {
             try {
                 fireStationRepository.saveAll(listOfFireStations);
                 return true;

@@ -11,7 +11,7 @@ public interface IMedicalRecordService {
      * @param listOfMedicalRecords list to be saved in DB
      * @return true if data saved, else false
      */
-    boolean savelistOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords);
+    boolean saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords);
 
     /**
      * allow getting the list of all medical records found in DB

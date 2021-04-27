@@ -69,7 +69,7 @@ class MedicalRecordServiceTest {
             listOfMedicalRecords.add(medicalRecord);
 
             //THEN
-            assertTrue(medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords));
+            assertTrue(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
@@ -83,7 +83,7 @@ class MedicalRecordServiceTest {
             when(medicalRecordRepositoryMock.saveAll(listOfMedicalRecords)).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertFalse(medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords));
+            assertFalse(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }

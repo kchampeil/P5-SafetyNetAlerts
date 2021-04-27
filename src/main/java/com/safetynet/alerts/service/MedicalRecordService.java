@@ -26,7 +26,7 @@ public class MedicalRecordService implements IMedicalRecordService {
      * @return true if data saved, else false
      */
     @Override
-    public boolean savelistOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords) {
+    public boolean saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords) {
             try {
                 medicalRecordRepository.saveAll(listOfMedicalRecords);
                 return true;

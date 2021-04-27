@@ -12,7 +12,7 @@ public interface IFireStationService {
      * @param listOfFireStations list to be saved in DB
      * @return true if data saved, else false
      */
-    boolean savelistOfFireStations(List<FireStation> listOfFireStations);
+    boolean saveListOfFireStations(List<FireStation> listOfFireStations);
 
 
     /**
