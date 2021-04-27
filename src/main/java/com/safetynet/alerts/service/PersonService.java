@@ -80,8 +80,8 @@ public class PersonService implements IPersonService {
                     logger.info(listOfEmails.size() + " distinct emails found for the city : " + cityName);
                     return listOfEmails;
                 } else {
-                    logger.error("no person found for city " + cityName + ", cannot return the list of emails");
-                    return null;
+                    logger.warn("no person found for city " + cityName + ", cannot return the list of emails");
+                    return listOfEmails;
                 }
 
             } catch (Exception exception) {

@@ -153,7 +153,7 @@ class PersonServiceTest {
             when(personRepositoryMock.findAllByCity("PST_city_not_in_repository")).thenReturn(new ArrayList<>());
 
             //THEN
-            assertThat(personService.getAllEmailsByCity("PST_city_not_in_repository")).isNull();
+            assertThat(personService.getAllEmailsByCity("PST_city_not_in_repository")).isEmpty();
             verify(personRepositoryMock, Mockito.times(1)).findAllByCity("PST_city_not_in_repository");
         }
 

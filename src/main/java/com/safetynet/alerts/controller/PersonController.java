@@ -5,6 +5,8 @@ import com.safetynet.alerts.service.IPersonService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +33,7 @@ public class PersonController {
         return personService.getAllPersons();
     }
 
+
     /**
      * Read - Get all emails for a given city
      *
@@ -38,9 +41,28 @@ public class PersonController {
      * @return - A list of emails
      */
     @GetMapping("/communityEmail")
-    public List<String> getAllEmailsByCity(@RequestParam("city") String cityName) {
-        logger.info("GET request on endpoint /communityEmail received for city " + cityName );
-        return personService.getAllEmailsByCity(cityName);
+    public ResponseEntity<List<String>> getAllEmailsByCity(@RequestParam("city") String cityName) {
+
+        logger.info("GET request on endpoint /communityEmail received for city " + cityName);
+
+        List<String> returnedListOfEmails = personService.getAllEmailsByCity(cityName);
+
+        if (returnedListOfEmails == null) {
+            logger.error("error when getting the list of emails for city " + cityName);
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+
+        } else {
+            if (returnedListOfEmails.isEmpty()) {
+                logger.warn("response to GET request on endpoint /communityEmail for city "
+                        + cityName + " is empty, no person found");
+                return new ResponseEntity<>(returnedListOfEmails, HttpStatus.NOT_FOUND);
+
+            } else {
+                logger.info("response to GET request on endpoint /communityEmail sent for city "
+                        + cityName + " with " + returnedListOfEmails.size() + " values");
+                return new ResponseEntity<>(returnedListOfEmails, HttpStatus.OK);
+            }
+        }
     }
 
 }

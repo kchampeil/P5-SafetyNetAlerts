@@ -32,6 +32,12 @@ public class JsonParserService implements IFileParserService {
     @Autowired
     private MedicalRecordService medicalRecordService;
 
+    /*TOASK mettre objectMapper plutôt dans le contexte que de le déclarer ensuite ?
+    @Autowired
+    private ObjectMapper objectMapper;
+
+     */
+
     @Value("${data.inputFilePath}")
     private String dataInputFilePath;
 
@@ -51,46 +57,58 @@ public class JsonParserService implements IFileParserService {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(jsonData);
 
-                //read persons and save person data in DB
-                logger.info("\n \n ***** Beginning of reading Persons in file *****");
-                List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
-                logger.info("***** End of reading Persons in file *****");
+                if (!rootNode.isEmpty()) {
 
-                if (listOfPersons != null && !listOfPersons.isEmpty()) {
-                    personService.saveListOfPersons(listOfPersons);
+                    //read medical records, save medical record data in DB
+                    // and get back the list of medical records with their IDs in DB
+                    logger.info("\n \n ***** Beginning of reading MedicalRecords in file *****");
+                    List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
+                    logger.info("***** End of reading MedicalRecords in file *****");
+
+                    if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
+                        medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
+                    } else {
+                        logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
+                    }
+
+                    //read fire stations and save fire station data in DB
+                    logger.info("\n \n ***** Beginning of reading FireStations in file *****");
+                    List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
+                    logger.info("***** End of reading FireStations in file *****");
+
+                    if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
+                        fireStationService.saveListOfFireStations(listOfFireStations);
+                    } else {
+                        logger.error("no fire station data found in file " + this.dataInputFilePath + "\n");
+                    }
+
+                    //read persons in Json file
+                    logger.info("\n \n ***** Beginning of reading Persons in file *****");
+                    List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
+                    logger.info("***** End of reading Persons in file *****");
+
+                    if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                        // map the persons with their medical record and with their fire station
+                    /*listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
+                    listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
+
+                     */
+
+                        //and save person data in DB
+                        logger.info("appel de saveall dans personrepository");
+                        personService.saveListOfPersons(listOfPersons);
+                        //IN-PROGRESS trouver origine erreur
+
+                    } else {
+                        logger.error("no person data found in file " + this.dataInputFilePath + "\n");
+                    }
+
+                    System.out.println("\n === End of Reading JSON file ===\n\n"); //TTR
                 } else {
-                    System.out.println("no person data found in file"); //TTR
-                    logger.error("no person data found in file " + this.dataInputFilePath + "\n");
+                    logger.error("input data file " + this.dataInputFilePath + " is empty");
                 }
-
-                //read fire stations and save fire station data in DB
-                logger.info("\n \n ***** Beginning of reading FireStations in file *****");
-                List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
-                logger.info("***** End of reading FireStations in file *****");
-
-                if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
-                    fireStationService.savelistOfFireStations(listOfFireStations);
-                } else {
-                    System.out.println("no fire station data found in file"); //TTR
-                    logger.error("no fire station data found in file " + this.dataInputFilePath + "\n");
-                }
-
-                //read medical records and save medical record data in DB
-                logger.info("\n \n ***** Beginning of reading MedicalRecords in file *****");
-                List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
-                logger.info("***** End of reading MedicalRecords in file *****");
-
-                if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
-                    medicalRecordService.savelistOfMedicalRecords(listOfMedicalRecords);
-                } else {
-                    System.out.println("no medical record data found in file");//TTR
-                    logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
-                }
-
-                System.out.println("\n === End of Reading JSON file ===\n\n"); //TTR
             } else {
-                System.out.println("input data file " + this.dataInputFilePath + "not found : \n");//TTR
-                logger.error("input data file " + this.dataInputFilePath + "not found : \n");
+                logger.error("input data file " + this.dataInputFilePath + " not found");
             }
 
         } catch (IOException e) {
@@ -126,8 +144,6 @@ public class JsonParserService implements IFileParserService {
             System.out.println("\n ---------- first person read in file ----------");
             System.out.println("getFirstName : " + listOfPersonsInFile.get(0).getFirstName());
             System.out.println("getLastName : " + listOfPersonsInFile.get(0).getLastName());
-            //System.out.println("getBirthDate : " + listOfPersonsInFile.get(0).getBirthDate());
-            //System.out.println("getAge : " + listOfPersonsInFile.get(0).getAge());
             System.out.println("getEmail : " + listOfPersonsInFile.get(0).getEmail());
             System.out.println("getAddress : " + listOfPersonsInFile.get(0).getAddress());
             System.out.println("getZip : " + listOfPersonsInFile.get(0).getZip());
@@ -147,7 +163,8 @@ public class JsonParserService implements IFileParserService {
      * @param rootNode of the JSON file
      * @return a list of FireStation
      */
-    private List<FireStation> readFireStationsFromJsonFile(JsonNode rootNode) {
+    private List<FireStation> readFireStationsFromJsonFile(JsonNode
+                                                                   rootNode) {
 
         List<FireStation> listOfFireStationsInFile = new ArrayList<>();
 
@@ -182,7 +199,8 @@ public class JsonParserService implements IFileParserService {
      * @param rootNode of the JSON file
      * @return a list of MedicalRecord
      */
-    private List<MedicalRecord> readMedicalRecordsFromJsonFile(JsonNode rootNode) {
+    private List<MedicalRecord> readMedicalRecordsFromJsonFile(JsonNode
+                                                                       rootNode) {
 
         List<MedicalRecord> listOfMedicalRecordsInFile = new ArrayList<>();
 
@@ -213,4 +231,59 @@ public class JsonParserService implements IFileParserService {
 
         return listOfMedicalRecordsInFile;
     }
+
+
+    /**
+     * for each Person in a list of persons, get the relative Medical Record in the given list of medical records
+     *
+     * @param listOfPersons        list of persons
+     * @param listOfMedicalRecords list of all medical records
+     * @return listOfPersons populated with relative medical records
+     */
+    /*private List<Person> mapMedicalRecordToPerson(List<Person> listOfPersons, List<MedicalRecord> listOfMedicalRecords) {
+        for (Person person : listOfPersons) {
+            for (MedicalRecord medicalRecord : listOfMedicalRecords) {
+                if (person.getFirstName().equals(medicalRecord.getFirstName())
+                        && person.getLastName().equals(medicalRecord.getLastName())) {
+                    person.setMedicalRecord(medicalRecord);
+                    break;
+                }
+            }
+            if (person.getMedicalRecord() == null) {
+                logger.warn("no medical record found for "
+                        + person.getFirstName() + " " + person.getLastName());
+            }
+        }
+        return listOfPersons;
+    }
+
+     */
+
+
+    /**
+     * for each Person in a list of persons,
+     * get the Fire Station they are attached to in the given list of fire stations
+     *
+     * @param listOfPersons      list of persons
+     * @param listOfFireStations list of all fire stations
+     * @return listOfPersons populated with the fire station they are attached to
+     */
+    /*private List<Person> mapFireStationToPerson(List<Person> listOfPersons, List<FireStation> listOfFireStations) {
+        for (Person person : listOfPersons) {
+            for (FireStation fireStation : listOfFireStations) {
+                if (person.getAddress().equals(fireStation.getAddress())) {
+                    person.setFireStation(fireStation);
+                    break;
+                }
+            }
+            if (person.getAddress() == null) {
+                logger.warn("no fire station found for "
+                        + person.getFirstName() + " " + person.getLastName()
+                        + " at " + person.getAddress());
+            }
+        }
+        return listOfPersons;
+    }
+
+     */
 }
