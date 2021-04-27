@@ -31,7 +31,6 @@ class FireStationControllerTest {
     @DisplayName("WHEN asking for the list of fire stations (GET) THEN return status is ok")
     void getAllFireStationsTest() throws Exception {
 
-        //IN-PROGRESS
         //TODO when(fireStationServiceMock.getAllFireStations()).thenReturn(any(List< FireStation >));
         mockMvc.perform(get("/firestations"))
                 .andExpect(status().isOk());

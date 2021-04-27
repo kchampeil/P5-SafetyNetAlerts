@@ -36,7 +36,6 @@
     { "address":"Test908 73rd St", "station":"1" },
     { "address":"Test112 Steppes Pl", "station":"4" },
     { "address":"Test947 E. Rose Dr", "station":"1" },
-    { "address":"Test748 Townings Dr", "station":"3" },
     { "address":"Test951 LoneTree Rd", "station":"2" }
   ],
   "medicalrecords": [

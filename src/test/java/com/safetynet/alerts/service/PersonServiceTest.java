@@ -59,7 +59,7 @@ class PersonServiceTest {
     class saveListOfPersonsTest {
         @Test
         @DisplayName("GIVEN a consistent list of persons " +
-                "THEN it is saved in DB and return code is true")
+                "THEN it is saved in repository and return code is true")
         public void saveListOfPersonsTest_WithConsistentList() {
             //GIVEN
             List<Person> listOfPersons = new ArrayList<>();
@@ -72,7 +72,7 @@ class PersonServiceTest {
 
         @Test
         @DisplayName("GIVEN an exception when processing " +
-                "THEN no data is saved in DB and return code is false")
+                "THEN no data is saved in repository and return code is false")
         public void saveListOfPersonsTest_WithException() {
             //GIVEN
             List<Person> listOfPersons = new ArrayList<>();
@@ -94,9 +94,9 @@ class PersonServiceTest {
     @DisplayName("getAllPersons tests")
     class GetAllPersonsTest {
         @Test
-        @DisplayName("GIVEN persons in DB WHEN processing a GET /persons request " +
+        @DisplayName("GIVEN persons in repository WHEN processing a GET /persons request " +
                 "THEN a list of persons is returned")
-        public void getAllPersonsTest_WithPersonDataInDb() {
+        public void getAllPersonsTest_WithPersonDataInRepository() {
             //GIVEN
             List<Person> expectedListOfPersons = new ArrayList<>();
             expectedListOfPersons.add(person);
@@ -129,10 +129,10 @@ class PersonServiceTest {
     @DisplayName("getAllEmailsByCity tests")
     class GetAllEmailsByCityTest {
         @Test
-        @DisplayName("GIVEN citizens' emails in DB for the requested city" +
+        @DisplayName("GIVEN citizens' emails in repository for the requested city" +
                 "WHEN processing a GET /communityEmail request " +
                 "THEN a list of citizens' emails is returned")
-        public void getAllEmailsByCityTest_WithInfoInDb() {
+        public void getAllEmailsByCityTest_WithInfoInRepository() {
             //GIVEN
             List<Person> listOfPersons = new ArrayList<>();
             listOfPersons.add(person);
@@ -145,16 +145,16 @@ class PersonServiceTest {
         }
 
         @Test
-        @DisplayName("GIVEN no citizens' emails in DB for the requested city " +
+        @DisplayName("GIVEN no citizens' emails in repository for the requested city " +
                 "WHEN processing a GET /communityEmail request " +
                 "THEN a list of citizens' emails is returned")
-        public void getAllEmailsByCityTest_WithNoInfoInDb() {
+        public void getAllEmailsByCityTest_WithNoInfoInRepository() {
             //GIVEN
-            when(personRepositoryMock.findAllByCity("PST_city_not_in_DB")).thenReturn(new ArrayList<>());
+            when(personRepositoryMock.findAllByCity("PST_city_not_in_repository")).thenReturn(new ArrayList<>());
 
             //THEN
-            assertThat(personService.getAllEmailsByCity("PST_city_not_in_DB")).isNull();
-            verify(personRepositoryMock, Mockito.times(1)).findAllByCity("PST_city_not_in_DB");
+            assertThat(personService.getAllEmailsByCity("PST_city_not_in_repository")).isNull();
+            verify(personRepositoryMock, Mockito.times(1)).findAllByCity("PST_city_not_in_repository");
         }
 
         @Test

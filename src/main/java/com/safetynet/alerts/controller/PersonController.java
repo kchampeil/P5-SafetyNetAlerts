@@ -35,7 +35,7 @@ public class PersonController {
      * Read - Get all emails for a given city
      *
      * @param cityName of the city we want citizens' emails
-     * @return - An Iterable object of emails
+     * @return - A list of emails
      */
     @GetMapping("/communityEmail")
     public List<String> getAllEmailsByCity(@RequestParam("city") String cityName) {

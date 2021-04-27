@@ -36,7 +36,6 @@
     { "address":"908 73rd St", "station":"1" },
     { "address":"112 Steppes Pl", "station":"4" },
     { "address":"947 E. Rose Dr", "station":"1" },
-    { "address":"748 Townings Dr", "station":"3" },
     { "address":"951 LoneTree Rd", "station":"2" }
   ],
   "medicalrecords": [

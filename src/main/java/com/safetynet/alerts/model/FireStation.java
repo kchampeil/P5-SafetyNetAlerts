@@ -25,4 +25,5 @@ public class FireStation {
     //private List<String> address;
     //TODO revoir le modèle dans doc une ligne par address et pas une liste d'adresse associée à la station
     private String address;
+
 }
