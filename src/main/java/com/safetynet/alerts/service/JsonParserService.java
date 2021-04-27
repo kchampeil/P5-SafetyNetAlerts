@@ -89,15 +89,13 @@ public class JsonParserService implements IFileParserService {
 
                     if (listOfPersons != null && !listOfPersons.isEmpty()) {
                         // map the persons with their medical record and with their fire station
-                    /*listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
-                    listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
+                        listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
+                        /*listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
 
-                     */
+                         */
 
                         //and save person data in DB
-                        logger.info("appel de saveall dans personrepository");
                         personService.saveListOfPersons(listOfPersons);
-                        //IN-PROGRESS trouver origine erreur
 
                     } else {
                         logger.error("no person data found in file " + this.dataInputFilePath + "\n");
@@ -240,7 +238,7 @@ public class JsonParserService implements IFileParserService {
      * @param listOfMedicalRecords list of all medical records
      * @return listOfPersons populated with relative medical records
      */
-    /*private List<Person> mapMedicalRecordToPerson(List<Person> listOfPersons, List<MedicalRecord> listOfMedicalRecords) {
+    private List<Person> mapMedicalRecordToPerson(List<Person> listOfPersons, List<MedicalRecord> listOfMedicalRecords) {
         for (Person person : listOfPersons) {
             for (MedicalRecord medicalRecord : listOfMedicalRecords) {
                 if (person.getFirstName().equals(medicalRecord.getFirstName())
@@ -256,8 +254,6 @@ public class JsonParserService implements IFileParserService {
         }
         return listOfPersons;
     }
-
-     */
 
 
     /**
