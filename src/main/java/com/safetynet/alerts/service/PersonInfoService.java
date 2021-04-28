@@ -27,6 +27,13 @@ public class PersonInfoService implements IPersonInfoService {
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
 
+    /**
+     * allow getting the list of person information found in repository
+     * for given firstname and lastname
+     * @param firstName
+     * @param lastName
+     * @return a list of person information
+     */
     @Override
     public List<PersonInfoDTO> getPersonInfoByFirstNameAndLastName(String firstName, String lastName) {
         if (firstName != null && !firstName.equals("")
@@ -35,6 +42,7 @@ public class PersonInfoService implements IPersonInfoService {
                 //get the list of persons with firstName and lastName
                 List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(firstName, lastName);
 
+                // and populate the listOfPersonInfoDTO
                 List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {

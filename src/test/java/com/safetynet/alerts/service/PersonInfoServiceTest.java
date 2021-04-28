@@ -90,7 +90,7 @@ class PersonInfoServiceTest {
      * ----------------------------------------------------------------------------------------------------------------------*/
     @Nested
     @DisplayName("getPersonInfoByFirstNameAndLastName tests")
-    class getPersonInfoByFirstNameAndLastNameTest {
+    class GetPersonInfoByFirstNameAndLastNameTest {
 
         @Test
         @DisplayName("GIVEN persons in repository for the requested firstname+lastname " +
@@ -115,7 +115,7 @@ class PersonInfoServiceTest {
         @Test
         @DisplayName("GIVEN firstname and lastname not found in repository " +
                 "WHEN getting person information on firstname+lastname " +
-                "THEN the returned list is null")
+                "THEN the returned list is empty")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoDataInRepository() {
 
             //GIVEN
