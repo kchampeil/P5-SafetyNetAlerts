@@ -30,8 +30,9 @@ public class PersonInfoService implements IPersonInfoService {
     /**
      * allow getting the list of person information found in repository
      * for given firstname and lastname
-     * @param firstName
-     * @param lastName
+     *
+     * @param firstName the firstname we want to get the person information from
+     * @param lastName the lastname we want to get the person information from
      * @return a list of person information
      */
     @Override
@@ -47,17 +48,8 @@ public class PersonInfoService implements IPersonInfoService {
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
 
-                    for (Person person : listOfPersons) {
-                        PersonInfoDTO personInfoDTO = new PersonInfoDTO();
-                        personInfoDTO.setLastName(person.getLastName());
-                        personInfoDTO.setAddress(person.getAddress());
-                        personInfoDTO.setEmail(person.getEmail());
-                        personInfoDTO.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-                        personInfoDTO.setMedications(person.getMedicalRecord().getMedications());
-                        personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
-
-                        listOfPersonInfoDTO.add(personInfoDTO);
-                    }
+                    listOfPersons.forEach(person
+                            -> listOfPersonInfoDTO.add(mapToPersonInfoDTO(person)));
 
                 } else {
                     logger.error("no person found for firstname " + firstName +
@@ -76,5 +68,23 @@ public class PersonInfoService implements IPersonInfoService {
             logger.error("firstname AND lastname must be specified to get the list of person information");
             return null;
         }
+    }
+
+    /**
+     * map the person information to the PersonInfoDTO
+     *
+     * @param person person information to be mapped to personInfoDTO
+     * @return a PersonInfoDTO
+     */
+    private PersonInfoDTO mapToPersonInfoDTO(Person person) {
+        PersonInfoDTO personInfoDTO = new PersonInfoDTO();
+        personInfoDTO.setLastName(person.getLastName());
+        personInfoDTO.setAddress(person.getAddress());
+        personInfoDTO.setEmail(person.getEmail());
+        personInfoDTO.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
+        personInfoDTO.setMedications(person.getMedicalRecord().getMedications());
+        personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
+
+        return personInfoDTO;
     }
 }

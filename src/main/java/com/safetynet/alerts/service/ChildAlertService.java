@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.safetynet.alerts.constants.ChildAlertConstants.MAX_AGE_FOR_CHILD_ALERT;
 
@@ -31,7 +32,8 @@ public class ChildAlertService implements IChildAlertService {
 
     /**
      * allow getting the list of child alert found in repository for given address
-     * @param address
+     *
+     * @param address the address we want to get the child alert from
      * @return a list of child alert
      */
     @Override
@@ -41,24 +43,22 @@ public class ChildAlertService implements IChildAlertService {
                 //get the list of persons living at this address
                 List<Person> listOfPersons = personRepository.findAllByAddress(address);
 
-                //and populate the listOfChildAlertDTO if at least one person is under the MAX_AGE_FOR_CHILD_ALERT
                 List<ChildAlertDTO> listOfChildAlertDTO = new ArrayList<>();
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
 
-                    for (Person person : listOfPersons) {
-                        int age = dateUtil.calculateAge(person.getMedicalRecord().getBirthDate());
+                    // filter on age under the MAX_AGE_FOR_CHILD_ALERT
+                    List<Person> listOfChildren = listOfPersons.stream()
+                            .filter(person -> dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()) <= MAX_AGE_FOR_CHILD_ALERT)
+                            .collect(Collectors.toList());
 
-                        if (age <= MAX_AGE_FOR_CHILD_ALERT) {
-                            ChildAlertDTO childAlertDTO = new ChildAlertDTO();
-                            childAlertDTO.setFirstName(person.getFirstName());
-                            childAlertDTO.setLastName(person.getLastName());
-                            childAlertDTO.setAge(age);
-                            childAlertDTO.setListOfOtherHouseholdMembers(
-                                    getListOfOtherHouseholdMembers(listOfPersons, person.getFirstName(), person.getLastName()));
-
-                            listOfChildAlertDTO.add(childAlertDTO);
-                        }
+                    // if at least one person is under the MAX_AGE_FOR_CHILD_ALERT, populate the listOfChildAlertDTO
+                    if (!listOfChildren.isEmpty()) {
+                        listOfChildren.forEach(child
+                                -> listOfChildAlertDTO.add(mapToChildrenAlertDTO(child, listOfPersons)));
+                    } else {
+                        logger.info("no child under " + MAX_AGE_FOR_CHILD_ALERT + " found for address " + address +
+                                ", list of child alert is empty");
                     }
 
                 } else {
@@ -79,6 +79,24 @@ public class ChildAlertService implements IChildAlertService {
     }
 
     /**
+     * map the child information to the ChildAlertDTO
+     *
+     * @param child         person information to be mapped to childAlertDTO
+     * @param listOfPersons list of person living at the address
+     * @return a ChildAlertDTO
+     */
+    private ChildAlertDTO mapToChildrenAlertDTO(Person child, List<Person> listOfPersons) {
+        ChildAlertDTO childAlertDTO = new ChildAlertDTO();
+        childAlertDTO.setFirstName(child.getFirstName());
+        childAlertDTO.setLastName(child.getLastName());
+        childAlertDTO.setAge(dateUtil.calculateAge(child.getMedicalRecord().getBirthDate()));
+        childAlertDTO.setListOfOtherHouseholdMembers(
+                getListOfOtherHouseholdMembers(listOfPersons, child.getFirstName(), child.getLastName()));
+
+        return childAlertDTO;
+    }
+
+    /**
      * return the list of household members for a given lastname
      * (assuming all household members have the same lastname...)
      *
@@ -88,13 +106,8 @@ public class ChildAlertService implements IChildAlertService {
      */
     private List<Person> getListOfOtherHouseholdMembers(List<Person> listOfPersons, String firstName, String lastName) {
 
-        List<Person> ListOfOtherHouseholdMembers = new ArrayList<>();
-
-        for (Person person : listOfPersons) {
-            if (person.getLastName().equals(lastName) && !person.getFirstName().equals(firstName)) {
-                ListOfOtherHouseholdMembers.add(person);
-            }
-        }
-        return ListOfOtherHouseholdMembers;
+        return listOfPersons.stream()
+                .filter(person -> person.getLastName().equals(lastName) && !person.getFirstName().equals(firstName))
+                .collect(Collectors.toList());
     }
 }

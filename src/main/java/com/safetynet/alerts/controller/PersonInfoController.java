@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 public class PersonInfoController {
+
     private static final Logger logger = LogManager.getLogger(PersonController.class);
 
     @Autowired
