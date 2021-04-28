@@ -4,6 +4,7 @@ import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.PersonRepository;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +20,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -119,7 +122,7 @@ class PersonInfoServiceTest {
             when(personRepositoryMock.findAllByFirstNameAndLastName("TestFirstName", "TestLastName")).thenReturn(null);
 
             //THEN
-            assertNull(personInfoService.getPersonInfoByFirstNameAndLastName("TestFirstName", "TestLastName"));
+            assertThat(personInfoService.getPersonInfoByFirstNameAndLastName("TestFirstName", "TestLastName")).isEmpty();
             verify(personRepositoryMock, Mockito.times(1)).findAllByFirstNameAndLastName("TestFirstName", "TestLastName");
         }
 
@@ -142,6 +145,21 @@ class PersonInfoServiceTest {
 
             assertNull(personInfoService.getPersonInfoByFirstNameAndLastName("", ""));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName("", "");
+
+        }
+
+        @Test
+        @DisplayName("GIVEN an exception when processing " +
+                "THEN no data is returned")
+        public void getPersonInfoByFirstNameAndLastNameTest_WithException() {
+            //GIVEN
+            when(personRepositoryMock.findAllByFirstNameAndLastName(anyString(), anyString()))
+                    .thenThrow(IllegalArgumentException.class);
+
+            //THEN
+            assertNull(personInfoService.getPersonInfoByFirstNameAndLastName("", ""));
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findAllByFirstNameAndLastName(anyString(), anyString());
 
         }
 

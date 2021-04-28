@@ -35,9 +35,9 @@ public class PersonInfoService implements IPersonInfoService {
                 //get the list of persons with firstName and lastName
                 List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(firstName, lastName);
 
-                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
 
-                    List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
 
                     for (Person person : listOfPersons) {
                         PersonInfoDTO personInfoDTO = new PersonInfoDTO();
@@ -51,14 +51,12 @@ public class PersonInfoService implements IPersonInfoService {
                         listOfPersonInfoDTO.add(personInfoDTO);
                     }
 
-                    return listOfPersonInfoDTO;
-
                 } else {
                     logger.error("no person found for firstname " + firstName +
                             " and lastname " + lastName +
-                            ", cannot return the list of person information");
-                    return null;
+                            ", list of person information is empty");
                 }
+                return listOfPersonInfoDTO;
 
             } catch (Exception exception) {
                 logger.error("error when getting the list of person information " +
