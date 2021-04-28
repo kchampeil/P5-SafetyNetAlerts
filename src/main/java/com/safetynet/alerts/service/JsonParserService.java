@@ -67,6 +67,7 @@ public class JsonParserService implements IFileParserService {
 
                     if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
                         medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
+                        listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.getAllMedicalRecords();
                     } else {
                         logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
                     }

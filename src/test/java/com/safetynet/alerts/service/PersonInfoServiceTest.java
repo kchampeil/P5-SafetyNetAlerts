@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ActiveProfiles("test")
 @SpringBootTest
 class PersonInfoServiceTest {
 
@@ -88,8 +90,8 @@ class PersonInfoServiceTest {
     class getPersonInfoByFirstNameAndLastNameTest {
 
         @Test
-        @DisplayName("GIVEN persons in DB for the requested firstname+lastname" +
-                "WHEN processing a GET /personInfo request on firstname+lastname " +
+        @DisplayName("GIVEN persons in repository for the requested firstname+lastname " +
+                "WHEN getting person information on firstname+lastname " +
                 "THEN a list of person information is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithConsistentList() {
             //GIVEN
@@ -108,8 +110,8 @@ class PersonInfoServiceTest {
         }
 
         @Test
-        @DisplayName("GIVEN firstname and lastname not found in repository" +
-                "WHEN processing a GET /personInfo request on firstname+lastname " +
+        @DisplayName("GIVEN firstname and lastname not found in repository " +
+                "WHEN getting person information on firstname+lastname " +
                 "THEN the returned list is null")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoDataInRepository() {
 
@@ -122,8 +124,8 @@ class PersonInfoServiceTest {
         }
 
         @Test
-        @DisplayName("GIVEN null firstname and lastname" +
-                "WHEN processing a GET /personInfo request on firstname+lastname " +
+        @DisplayName("GIVEN null firstname and lastname " +
+                "WHEN getting person information on firstname+lastname " +
                 "THEN the returned list is null and no request has been sent to repository")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNullRequestParameters() {
 
@@ -133,8 +135,8 @@ class PersonInfoServiceTest {
         }
 
         @Test
-        @DisplayName("GIVEN empty firstname and lastname" +
-                "WHEN processing a GET /personInfo request on firstname+lastname " +
+        @DisplayName("GIVEN empty firstname and lastname " +
+                "WHEN getting person information on firstname+lastname " +
                 "THEN the returned list is null and no request has been sent to repository")
         public void getPersonInfoByFirstNameAndLastNameTest_WithEmptyRequestParameters() {
 

@@ -36,7 +36,7 @@ public class Person {
 
     private String email;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "medicalRecordId")
     private MedicalRecord medicalRecord;
 
