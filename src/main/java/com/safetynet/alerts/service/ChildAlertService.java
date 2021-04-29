@@ -8,6 +8,7 @@ import com.safetynet.alerts.util.DateUtil;
 import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +48,12 @@ public class ChildAlertService implements IChildAlertService {
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
 
-                    // filter on age under the MAX_AGE_FOR_CHILD_ALERT
+                    // complete information with calculation of their age
+                    // and filter on age under the MAX_AGE_FOR_CHILD_ALERT
+                    listOfPersons.forEach(person ->
+                            person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate())));
                     List<Person> listOfChildren = listOfPersons.stream()
-                            .filter(person -> dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()) <= MAX_AGE_FOR_CHILD_ALERT)
+                            .filter(person -> person.getAge() <= MAX_AGE_FOR_CHILD_ALERT)
                             .collect(Collectors.toList());
 
                     // if at least one person is under the MAX_AGE_FOR_CHILD_ALERT, populate the listOfChildAlertDTO
@@ -86,10 +90,9 @@ public class ChildAlertService implements IChildAlertService {
      * @return a ChildAlertDTO
      */
     private ChildAlertDTO mapToChildrenAlertDTO(Person child, List<Person> listOfPersons) {
-        ChildAlertDTO childAlertDTO = new ChildAlertDTO();
-        childAlertDTO.setFirstName(child.getFirstName());
-        childAlertDTO.setLastName(child.getLastName());
-        childAlertDTO.setAge(dateUtil.calculateAge(child.getMedicalRecord().getBirthDate()));
+        ModelMapper modelMapper = new ModelMapper();
+
+        ChildAlertDTO childAlertDTO = modelMapper.map(child, ChildAlertDTO.class);
         childAlertDTO.setListOfOtherHouseholdMembers(
                 getListOfOtherHouseholdMembers(listOfPersons, child.getFirstName(), child.getLastName()));
 
