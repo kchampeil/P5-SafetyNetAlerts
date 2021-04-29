@@ -5,9 +5,11 @@ import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
+
 import lombok.Data;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +34,7 @@ public class PersonInfoService implements IPersonInfoService {
      * for given firstname and lastname
      *
      * @param firstName the firstname we want to get the person information from
-     * @param lastName the lastname we want to get the person information from
+     * @param lastName  the lastname we want to get the person information from
      * @return a list of person information
      */
     @Override
@@ -43,13 +45,15 @@ public class PersonInfoService implements IPersonInfoService {
                 //get the list of persons with firstName and lastName
                 List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(firstName, lastName);
 
+                // complete information with calculation of their age
                 // and populate the listOfPersonInfoDTO
                 List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
 
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
-
-                    listOfPersons.forEach(person
-                            -> listOfPersonInfoDTO.add(mapToPersonInfoDTO(person)));
+                    listOfPersons.forEach(person -> {
+                        person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
+                        listOfPersonInfoDTO.add(mapToPersonInfoDTO(person));
+                    });
 
                 } else {
                     logger.error("no person found for firstname " + firstName +
@@ -77,14 +81,12 @@ public class PersonInfoService implements IPersonInfoService {
      * @return a PersonInfoDTO
      */
     private PersonInfoDTO mapToPersonInfoDTO(Person person) {
-        PersonInfoDTO personInfoDTO = new PersonInfoDTO();
-        personInfoDTO.setLastName(person.getLastName());
-        personInfoDTO.setAddress(person.getAddress());
-        personInfoDTO.setEmail(person.getEmail());
-        personInfoDTO.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-        personInfoDTO.setMedications(person.getMedicalRecord().getMedications());
-        personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.typeMap(Person.class, PersonInfoDTO.class).addMappings(mapper -> {
+            mapper.map(src -> src.getMedicalRecord().getMedications(), PersonInfoDTO::setMedications);
+            mapper.map(src -> src.getMedicalRecord().getAllergies(), PersonInfoDTO::setAllergies);
+        });
 
-        return personInfoDTO;
+        return modelMapper.map(person, PersonInfoDTO.class);
     }
 }

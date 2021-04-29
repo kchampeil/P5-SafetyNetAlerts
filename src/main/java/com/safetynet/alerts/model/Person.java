@@ -11,6 +11,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 
 @Data
@@ -46,5 +47,8 @@ public class Person {
     private FireStation fireStation;
 
      */
+
+    @Transient
+    private int age;
 
 }
