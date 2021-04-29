@@ -149,7 +149,7 @@ class PersonServiceTest {
         @Test
         @DisplayName("GIVEN no citizens' emails in repository for the requested city " +
                 "WHEN processing a GET /communityEmail request " +
-                "THEN a list of citizens' emails is returned")
+                "THEN an empty list of citizens' emails is returned")
         public void getAllEmailsByCityTest_WithNoInfoInRepository() {
             //GIVEN
             when(personRepositoryMock.findAllByCity("PST_city_not_in_repository")).thenReturn(new ArrayList<>());
