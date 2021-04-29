@@ -2,7 +2,6 @@ package com.safetynet.alerts.model;
 
 import lombok.Data;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -41,12 +40,10 @@ public class Person {
     @JoinColumn(name = "medicalRecordId")
     private MedicalRecord medicalRecord;
 
-    /*
-    @ManyToOne(cascade = CascadeType.MERGE)
+    //@ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name="fireStationId")
     private FireStation fireStation;
-
-     */
 
     @Transient
     private int age;

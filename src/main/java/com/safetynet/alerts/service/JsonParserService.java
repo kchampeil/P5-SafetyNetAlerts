@@ -79,6 +79,7 @@ public class JsonParserService implements IFileParserService {
 
                     if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
                         fireStationService.saveListOfFireStations(listOfFireStations);
+                        listOfFireStations = (List<FireStation>) fireStationService.getAllFireStations();
                     } else {
                         logger.error("no fire station data found in file " + this.dataInputFilePath + "\n");
                     }
@@ -91,9 +92,7 @@ public class JsonParserService implements IFileParserService {
                     if (listOfPersons != null && !listOfPersons.isEmpty()) {
                         // map the persons with their medical record and with their fire station
                         listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
-                        /*listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
-
-                         */
+                        listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
 
                         //and save person data in DB
                         personService.saveListOfPersons(listOfPersons);
@@ -140,14 +139,14 @@ public class JsonParserService implements IFileParserService {
             });
 
             //TTR
-            System.out.println("\n ---------- first person read in file ----------");
-            System.out.println("getFirstName : " + listOfPersonsInFile.get(0).getFirstName());
-            System.out.println("getLastName : " + listOfPersonsInFile.get(0).getLastName());
-            System.out.println("getEmail : " + listOfPersonsInFile.get(0).getEmail());
-            System.out.println("getAddress : " + listOfPersonsInFile.get(0).getAddress());
-            System.out.println("getZip : " + listOfPersonsInFile.get(0).getZip());
-            System.out.println("getCity : " + listOfPersonsInFile.get(0).getCity());
-            System.out.println("getPhone : " + listOfPersonsInFile.get(0).getPhone());
+            System.out.println("\n ---------- first person read in file ----------"
+                    + "\ngetFirstName : " + listOfPersonsInFile.get(0).getFirstName()
+                    + "\ngetLastName : " + listOfPersonsInFile.get(0).getLastName()
+                    + "\ngetEmail : " + listOfPersonsInFile.get(0).getEmail()
+                    + "\ngetAddress : " + listOfPersonsInFile.get(0).getAddress()
+                    + "\ngetZip : " + listOfPersonsInFile.get(0).getZip()
+                    + "\ngetCity : " + listOfPersonsInFile.get(0).getCity()
+                    + "\ngetPhone : " + listOfPersonsInFile.get(0).getPhone());
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -180,9 +179,9 @@ public class JsonParserService implements IFileParserService {
             });
 
             //TTR
-            System.out.println("\n ---------- first fire station read in file ----------");
-            System.out.println("getAddress : " + listOfFireStationsInFile.get(0).getAddress());
-            System.out.println("getStationNumber : " + listOfFireStationsInFile.get(0).getStationNumber());
+            System.out.println("\n ---------- first fire station read in file ----------"
+                    + "\ngetAddress : " + listOfFireStationsInFile.get(0).getAddress()
+                    + "\ngetStationNumber : " + listOfFireStationsInFile.get(0).getStationNumber());
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -216,13 +215,13 @@ public class JsonParserService implements IFileParserService {
             });
 
             //TTR
-            System.out.println("\n ---------- first medical record in file ----------");
-            System.out.println("getFirstName : " + listOfMedicalRecordsInFile.get(0).getFirstName());
-            System.out.println("getLastName : " + listOfMedicalRecordsInFile.get(0).getLastName());
-            System.out.println("getBirthDate : " + listOfMedicalRecordsInFile.get(0).getBirthDate());
-            System.out.println("getMedications : " + listOfMedicalRecordsInFile.get(0).getMedications());
-            System.out.println("getAllergies : " + listOfMedicalRecordsInFile.get(0).getAllergies());
-            System.out.println("1er medication : " + listOfMedicalRecordsInFile.get(0).getMedications().get(0));
+            System.out.println("\n ---------- first medical record in file ----------"
+                    + "\ngetFirstName : " + listOfMedicalRecordsInFile.get(0).getFirstName()
+                    + "\ngetLastName : " + listOfMedicalRecordsInFile.get(0).getLastName()
+                    + "\ngetBirthDate : " + listOfMedicalRecordsInFile.get(0).getBirthDate()
+                    + "\ngetMedications : " + listOfMedicalRecordsInFile.get(0).getMedications()
+                    + "\ngetAllergies : " + listOfMedicalRecordsInFile.get(0).getAllergies()
+                    + "\n1er medication : " + listOfMedicalRecordsInFile.get(0).getMedications().get(0));
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -265,7 +264,7 @@ public class JsonParserService implements IFileParserService {
      * @param listOfFireStations list of all fire stations
      * @return listOfPersons populated with the fire station they are attached to
      */
-    /*private List<Person> mapFireStationToPerson(List<Person> listOfPersons, List<FireStation> listOfFireStations) {
+    private List<Person> mapFireStationToPerson(List<Person> listOfPersons, List<FireStation> listOfFireStations) {
         for (Person person : listOfPersons) {
             for (FireStation fireStation : listOfFireStations) {
                 if (person.getAddress().equals(fireStation.getAddress())) {
@@ -282,5 +281,4 @@ public class JsonParserService implements IFileParserService {
         return listOfPersons;
     }
 
-     */
 }
