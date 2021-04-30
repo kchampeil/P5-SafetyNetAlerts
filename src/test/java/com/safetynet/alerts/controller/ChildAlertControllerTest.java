@@ -1,7 +1,7 @@
 package com.safetynet.alerts.controller;
 
-import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.service.ChildAlertService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,10 +49,12 @@ class ChildAlertControllerTest {
             childAlertDTO.setFirstName("CACT_FirstName");
             childAlertDTO.setLastName("CACT_LastName");
             childAlertDTO.setAge(21);
-            Person parent = new Person();
+            HouseholdMemberDTO parent = new HouseholdMemberDTO();
             parent.setFirstName("CACT_FirstName_Parent");
             parent.setLastName(childAlertDTO.getLastName());
-            List<Person> householdMembers = new ArrayList<>();
+            parent.setEmail("CACT_email_Parent");
+            parent.setPhone("CACT_phone_Parent");
+            List<HouseholdMemberDTO> householdMembers = new ArrayList<>();
             householdMembers.add(parent);
             childAlertDTO.setListOfOtherHouseholdMembers(householdMembers);
             listOfChildAlertDTO.add(childAlertDTO);

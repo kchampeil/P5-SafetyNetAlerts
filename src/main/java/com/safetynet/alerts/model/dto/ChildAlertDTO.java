@@ -1,6 +1,5 @@
 package com.safetynet.alerts.model.dto;
 
-import com.safetynet.alerts.model.Person;
 import lombok.Data;
 
 import java.util.List;
@@ -14,5 +13,5 @@ public class ChildAlertDTO {
 
     private int age;
 
-    private List<Person> listOfOtherHouseholdMembers;
+    private List<HouseholdMemberDTO> listOfOtherHouseholdMembers;
 }

@@ -59,6 +59,7 @@ class ChildAlertServiceTest {
         hisParent.setFirstName("CAST_first_name_parent");
         hisParent.setLastName("CAST_last_name");
         hisParent.setEmail("CAST_email_parent");
+        hisParent.setPhone("CAST_phone_parent");
         hisParent.setAddress(aChild.getAddress());
 
         MedicalRecord medicalRecord2 = new MedicalRecord();
@@ -102,7 +103,8 @@ class ChildAlertServiceTest {
             assertEquals(1, returnedListOfChildAlert.size());
             assertEquals(aChild.getFirstName(), returnedListOfChildAlert.get(0).getFirstName());
             assertEquals(aChild.getLastName(), returnedListOfChildAlert.get(0).getLastName());
-            assertEquals(hisParent, returnedListOfChildAlert.get(0).getListOfOtherHouseholdMembers().get(0));
+            assertEquals(1, returnedListOfChildAlert.get(0).getListOfOtherHouseholdMembers().size());
+            assertEquals(hisParent.getFirstName(), returnedListOfChildAlert.get(0).getListOfOtherHouseholdMembers().get(0).getFirstName());
             verify(personRepositoryMock, Mockito.times(1)).findAllByAddress(aChild.getAddress());
 
         }

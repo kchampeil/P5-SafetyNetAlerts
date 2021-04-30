@@ -2,13 +2,11 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
-
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +20,7 @@ import static com.safetynet.alerts.constants.ChildAlertConstants.MAX_AGE_FOR_CHI
 @Slf4j
 @Service
 public class ChildAlertService implements IChildAlertService {
-    
+
     private static final DateUtil dateUtil = new DateUtil();
 
     @Autowired
@@ -107,10 +105,19 @@ public class ChildAlertService implements IChildAlertService {
      * @param lastName      the lastname we want to filter on
      * @return a list of persons having the same given lastname
      */
-    private List<Person> getListOfOtherHouseholdMembers(List<Person> listOfPersons, String firstName, String lastName) {
+    private List<HouseholdMemberDTO> getListOfOtherHouseholdMembers(List<Person> listOfPersons, String firstName, String lastName) {
 
-        return listOfPersons.stream()
+        List<Person> filteredListOfPersons = listOfPersons.stream()
                 .filter(person -> person.getLastName().equals(lastName) && !person.getFirstName().equals(firstName))
                 .collect(Collectors.toList());
+
+        List<HouseholdMemberDTO> listOfHouseholdMemberDTO = new ArrayList<>();
+        ModelMapper modelMapper = new ModelMapper();
+        filteredListOfPersons.forEach(person ->{
+            HouseholdMemberDTO householdMemberDTO = modelMapper.map(person,HouseholdMemberDTO.class);
+            listOfHouseholdMemberDTO.add(householdMemberDTO);
+        });
+
+        return listOfHouseholdMemberDTO;
     }
 }
