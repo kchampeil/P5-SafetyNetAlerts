@@ -40,7 +40,6 @@ public class Person {
     @JoinColumn(name = "medicalRecordId")
     private MedicalRecord medicalRecord;
 
-    //@ManyToOne(cascade = CascadeType.MERGE)
     @ManyToOne
     @JoinColumn(name="fireStationId")
     private FireStation fireStation;

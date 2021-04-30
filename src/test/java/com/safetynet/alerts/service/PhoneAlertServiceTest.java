@@ -74,7 +74,7 @@ class PhoneAlertServiceTest {
         @Test
         @DisplayName("GIVEN no citizens covered by the requested fire station found in repository " +
                 "WHEN asking for the phone number list " +
-                "THEN an empty list of citizens' phone numbers is returned")
+                "THEN the returned list is empty")
         public void getPhoneAlertByFireStationTest_WithNoInfoInRepository() {
             //GIVEN
             when(personRepositoryMock.findAllByFireStation_StationNumber(999)).thenReturn(new ArrayList<>());

@@ -5,7 +5,7 @@ import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
-import lombok.Data;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 import static com.safetynet.alerts.constants.ChildAlertConstants.MAX_AGE_FOR_CHILD_ALERT;
 
-@Data
 @Service
 public class ChildAlertService implements IChildAlertService {
 

@@ -2,7 +2,7 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.repository.PersonRepository;
-import lombok.Data;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 @Service
 public class PersonService implements IPersonService {
 

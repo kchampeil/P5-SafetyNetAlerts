@@ -30,7 +30,7 @@ public class PhoneAlertController {
 
         if (returnedListOfPhoneAlert == null) {
             logger.error("error when getting the phone alert for fire station n°" + stationNumber);
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
             if (returnedListOfPhoneAlert.isEmpty()) {

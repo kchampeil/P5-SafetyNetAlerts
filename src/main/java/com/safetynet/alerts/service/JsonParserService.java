@@ -32,11 +32,8 @@ public class JsonParserService implements IFileParserService {
     @Autowired
     private MedicalRecordService medicalRecordService;
 
-    /*TOASK mettre objectMapper plutôt dans le contexte que de le déclarer ensuite ?
     @Autowired
     private ObjectMapper objectMapper;
-
-     */
 
     @Value("${data.inputFilePath}")
     private String dataInputFilePath;
@@ -48,24 +45,23 @@ public class JsonParserService implements IFileParserService {
     public void readDataFromFile() {
 
         // read JSON file
-        System.out.println("=== Reading JSON file ==="); //TTR
+        logger.info(" Reading JSON file "); //TTR
         try {
 
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
 
             if (jsonData != null) {
-                ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(jsonData);
 
                 if (!rootNode.isEmpty()) {
 
                     //read medical records, save medical record data in DB
                     // and get back the list of medical records with their IDs in DB
-                    logger.info("\n \n ***** Beginning of reading MedicalRecords in file *****");
+                    logger.info(" reading MedicalRecords in file");
                     List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
-                    logger.info("***** End of reading MedicalRecords in file *****");
 
-                    if (listOfMedicalRecords != null && !listOfMedicalRecords.isEmpty()) {
+                    if (!listOfMedicalRecords.isEmpty()) {
+                        logger.info(listOfMedicalRecords.size() + " medical record(s) found");
                         medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
                         listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.getAllMedicalRecords();
                     } else {
@@ -73,11 +69,11 @@ public class JsonParserService implements IFileParserService {
                     }
 
                     //read fire stations and save fire station data in DB
-                    logger.info("\n \n ***** Beginning of reading FireStations in file *****");
+                    logger.info("reading FireStations in file");
                     List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
-                    logger.info("***** End of reading FireStations in file *****");
 
-                    if (listOfFireStations != null && !listOfFireStations.isEmpty()) {
+                    if (!listOfFireStations.isEmpty()) {
+                        logger.info(listOfFireStations.size() + " fire station(s) found");
                         fireStationService.saveListOfFireStations(listOfFireStations);
                         listOfFireStations = (List<FireStation>) fireStationService.getAllFireStations();
                     } else {
@@ -85,11 +81,12 @@ public class JsonParserService implements IFileParserService {
                     }
 
                     //read persons in Json file
-                    logger.info("\n \n ***** Beginning of reading Persons in file *****");
+                    logger.info("reading Persons in file");
                     List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
-                    logger.info("***** End of reading Persons in file *****");
 
-                    if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    if (!listOfPersons.isEmpty()) {
+                        logger.info(listOfPersons.size() + " person(s) found");
+
                         // map the persons with their medical record and with their fire station
                         listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
                         listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
@@ -101,7 +98,7 @@ public class JsonParserService implements IFileParserService {
                         logger.error("no person data found in file " + this.dataInputFilePath + "\n");
                     }
 
-                    System.out.println("\n === End of Reading JSON file ===\n\n"); //TTR
+                    logger.info(" End of Reading JSON file "); //TTR
                 } else {
                     logger.error("input data file " + this.dataInputFilePath + " is empty");
                 }
@@ -128,25 +125,12 @@ public class JsonParserService implements IFileParserService {
 
         try {
 
-            //create ObjectMapper instance
-            ObjectMapper objectMapper = new ObjectMapper();
-
             //identify the node "persons"
             JsonNode personNode = rootNode.path("persons");
 
             //get all values of persons in the List listOfPersonsInFile
             listOfPersonsInFile = objectMapper.readValue(personNode.toString(), new TypeReference<List<Person>>() {
             });
-
-            //TTR
-            System.out.println("\n ---------- first person read in file ----------"
-                    + "\ngetFirstName : " + listOfPersonsInFile.get(0).getFirstName()
-                    + "\ngetLastName : " + listOfPersonsInFile.get(0).getLastName()
-                    + "\ngetEmail : " + listOfPersonsInFile.get(0).getEmail()
-                    + "\ngetAddress : " + listOfPersonsInFile.get(0).getAddress()
-                    + "\ngetZip : " + listOfPersonsInFile.get(0).getZip()
-                    + "\ngetCity : " + listOfPersonsInFile.get(0).getCity()
-                    + "\ngetPhone : " + listOfPersonsInFile.get(0).getPhone());
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -161,27 +145,19 @@ public class JsonParserService implements IFileParserService {
      * @param rootNode of the JSON file
      * @return a list of FireStation
      */
-    private List<FireStation> readFireStationsFromJsonFile(JsonNode
-                                                                   rootNode) {
+    private List<FireStation> readFireStationsFromJsonFile(JsonNode rootNode) {
 
         List<FireStation> listOfFireStationsInFile = new ArrayList<>();
 
         try {
 
-            //create ObjectMapper instance
-            ObjectMapper objectMapper = new ObjectMapper();
-
             //identify the node "firestations"
             JsonNode fireStationNode = rootNode.path("firestations");
 
             //get all values of persons in the List listOfFireStationsInFile
-            listOfFireStationsInFile = objectMapper.readValue(fireStationNode.toString(), new TypeReference<List<FireStation>>() {
-            });
-
-            //TTR
-            System.out.println("\n ---------- first fire station read in file ----------"
-                    + "\ngetAddress : " + listOfFireStationsInFile.get(0).getAddress()
-                    + "\ngetStationNumber : " + listOfFireStationsInFile.get(0).getStationNumber());
+            listOfFireStationsInFile = objectMapper
+                    .readValue(fireStationNode.toString(), new TypeReference<List<FireStation>>() {
+                    });
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -197,31 +173,19 @@ public class JsonParserService implements IFileParserService {
      * @param rootNode of the JSON file
      * @return a list of MedicalRecord
      */
-    private List<MedicalRecord> readMedicalRecordsFromJsonFile(JsonNode
-                                                                       rootNode) {
+    private List<MedicalRecord> readMedicalRecordsFromJsonFile(JsonNode rootNode) {
 
         List<MedicalRecord> listOfMedicalRecordsInFile = new ArrayList<>();
 
         try {
 
-            //create ObjectMapper instance
-            ObjectMapper objectMapper = new ObjectMapper();
-
             //identify the node "medicalrecords"
             JsonNode medicalRecordNode = rootNode.path("medicalrecords");
 
             //get all values of persons in the List listOfMedicalRecordsInFile
-            listOfMedicalRecordsInFile = objectMapper.readValue(medicalRecordNode.toString(), new TypeReference<List<MedicalRecord>>() {
-            });
-
-            //TTR
-            System.out.println("\n ---------- first medical record in file ----------"
-                    + "\ngetFirstName : " + listOfMedicalRecordsInFile.get(0).getFirstName()
-                    + "\ngetLastName : " + listOfMedicalRecordsInFile.get(0).getLastName()
-                    + "\ngetBirthDate : " + listOfMedicalRecordsInFile.get(0).getBirthDate()
-                    + "\ngetMedications : " + listOfMedicalRecordsInFile.get(0).getMedications()
-                    + "\ngetAllergies : " + listOfMedicalRecordsInFile.get(0).getAllergies()
-                    + "\n1er medication : " + listOfMedicalRecordsInFile.get(0).getMedications().get(0));
+            listOfMedicalRecordsInFile = objectMapper
+                    .readValue(medicalRecordNode.toString(), new TypeReference<List<MedicalRecord>>() {
+                    });
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();

@@ -49,7 +49,7 @@ public class PersonController {
 
         if (returnedListOfEmails == null) {
             logger.error("error when getting the list of emails for city " + cityName);
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
             if (returnedListOfEmails.isEmpty()) {

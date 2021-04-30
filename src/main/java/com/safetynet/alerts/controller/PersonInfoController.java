@@ -37,7 +37,7 @@ public class PersonInfoController {
 
         if (returnedListOfPersonInfo == null) {
             logger.error("error when getting the person information for " + firstName + " " + lastName);
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
             if (returnedListOfPersonInfo.isEmpty()) {

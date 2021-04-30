@@ -36,7 +36,7 @@ public class ChildAlertController {
 
         if (returnedListOfChildAlert == null) {
             logger.error("error when getting the child alert for address " + address);
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
             if (returnedListOfChildAlert.isEmpty()) {
