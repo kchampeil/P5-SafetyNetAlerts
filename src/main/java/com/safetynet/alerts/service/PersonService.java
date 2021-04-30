@@ -3,6 +3,7 @@ package com.safetynet.alerts.service;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.repository.PersonRepository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PersonService implements IPersonService {
-
-    private static final Logger logger = LogManager.getLogger(PersonService.class);
 
     @Autowired
     private PersonRepository personRepository;
@@ -31,7 +31,7 @@ public class PersonService implements IPersonService {
             personRepository.saveAll(listOfPersons);
             return true;
         } catch (IllegalArgumentException illegalArgumentException) {
-            logger.error("error when saving the list of persons in DB : " + illegalArgumentException.getMessage() + "\n");
+            log.error("error when saving the list of persons in DB : " + illegalArgumentException.getMessage() + "\n");
             return false;
         }
     }
@@ -47,7 +47,7 @@ public class PersonService implements IPersonService {
         try {
             return personRepository.findAll();
         } catch (Exception exception) {
-            logger.error("error when getting the list of all persons " + exception.getMessage() + "\n");
+            log.error("error when getting the list of all persons " + exception.getMessage() + "\n");
             return null;
         }
     }
@@ -70,25 +70,25 @@ public class PersonService implements IPersonService {
 
                 //for each person, if listOfEmails does not already contains his email, add the email in the list
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
-                    logger.info(listOfPersons.size() + " persons found for the city : " + cityName);
+                    log.info(listOfPersons.size() + " persons found for the city : " + cityName);
                     for (Person person : listOfPersons) {
                         if (!listOfEmails.contains(person.getEmail())) {
                             listOfEmails.add(person.getEmail());
                         }
                     }
-                    logger.info(listOfEmails.size() + " distinct emails found for the city : " + cityName);
+                    log.info(listOfEmails.size() + " distinct emails found for the city : " + cityName);
                     return listOfEmails;
                 } else {
-                    logger.warn("no person found for city " + cityName + ", list of emails is empty");
+                    log.warn("no person found for city " + cityName + ", list of emails is empty");
                     return listOfEmails;
                 }
 
             } catch (Exception exception) {
-                logger.error("error when getting the list of emails for city " + cityName + " : " + exception.getMessage());
+                log.error("error when getting the list of emails for city " + cityName + " : " + exception.getMessage());
                 return null;
             }
         } else {
-            logger.error("a city name must be specified to get the list of emails");
+            log.error("a city name must be specified to get the list of emails");
             return null;
         }
     }

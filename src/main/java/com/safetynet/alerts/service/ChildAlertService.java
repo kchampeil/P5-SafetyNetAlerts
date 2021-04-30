@@ -6,6 +6,7 @@ import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -18,10 +19,10 @@ import java.util.stream.Collectors;
 
 import static com.safetynet.alerts.constants.ChildAlertConstants.MAX_AGE_FOR_CHILD_ALERT;
 
+@Slf4j
 @Service
 public class ChildAlertService implements IChildAlertService {
-
-    private static final Logger logger = LogManager.getLogger(PersonInfoService.class);
+    
     private static final DateUtil dateUtil = new DateUtil();
 
     @Autowired
@@ -60,23 +61,23 @@ public class ChildAlertService implements IChildAlertService {
                         listOfChildren.forEach(child
                                 -> listOfChildAlertDTO.add(mapToChildrenAlertDTO(child, listOfPersons)));
                     } else {
-                        logger.info("no child under " + MAX_AGE_FOR_CHILD_ALERT + " found for address " + address +
+                        log.info("no child under " + MAX_AGE_FOR_CHILD_ALERT + " found for address " + address +
                                 ", list of child alert is empty");
                     }
 
                 } else {
-                    logger.error("no person found for address " + address +
+                    log.error("no person found for address " + address +
                             ", list of child alert is empty");
                 }
                 return listOfChildAlertDTO;
 
             } catch (Exception exception) {
-                logger.error("error when getting the list of person information " +
+                log.error("error when getting the list of person information " +
                         "for address " + address + " : " + exception.getMessage());
                 return null;
             }
         } else {
-            logger.error("address must be specified to get the list of child alert");
+            log.error("address must be specified to get the list of child alert");
             return null;
         }
     }

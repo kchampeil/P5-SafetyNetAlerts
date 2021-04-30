@@ -6,6 +6,7 @@ import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -15,10 +16,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class PersonInfoService implements IPersonInfoService {
 
-    private static final Logger logger = LogManager.getLogger(PersonInfoService.class);
     private static final DateUtil dateUtil = new DateUtil();
 
     @Autowired
@@ -54,20 +55,20 @@ public class PersonInfoService implements IPersonInfoService {
                     });
 
                 } else {
-                    logger.error("no person found for firstname " + firstName +
+                    log.error("no person found for firstname " + firstName +
                             " and lastname " + lastName +
                             ", list of person information is empty");
                 }
                 return listOfPersonInfoDTO;
 
             } catch (Exception exception) {
-                logger.error("error when getting the list of person information " +
+                log.error("error when getting the list of person information " +
                         "for firstname " + firstName +
                         " and lastname " + lastName + " : " + exception.getMessage());
                 return null;
             }
         } else {
-            logger.error("firstname AND lastname must be specified to get the list of person information");
+            log.error("firstname AND lastname must be specified to get the list of person information");
             return null;
         }
     }

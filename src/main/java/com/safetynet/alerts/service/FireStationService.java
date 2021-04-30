@@ -3,6 +3,7 @@ package com.safetynet.alerts.service;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.repository.FireStationRepository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class FireStationService implements IFireStationService {
-
-    private static final Logger logger = LogManager.getLogger(FireStationService.class);
 
     @Autowired
     FireStationRepository fireStationRepository;
@@ -29,7 +29,7 @@ public class FireStationService implements IFireStationService {
                 fireStationRepository.saveAll(listOfFireStations);
                 return true;
             } catch (IllegalArgumentException e) {
-                logger.error("error when saving the list of fire stations in DB : " + e.getMessage() + "\n");
+                log.error("error when saving the list of fire stations in DB : " + e.getMessage() + "\n");
                 return false;
             }
     }
@@ -44,7 +44,7 @@ public class FireStationService implements IFireStationService {
         try {
             return fireStationRepository.findAll();
         } catch (Exception exception) {
-            logger.error("error when getting the list of fire stations " + exception.getMessage() + "\n");
+            log.error("error when getting the list of fire stations " + exception.getMessage() + "\n");
             return null;
         }
     }

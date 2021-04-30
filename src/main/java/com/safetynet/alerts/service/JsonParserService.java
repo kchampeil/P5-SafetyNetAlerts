@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +19,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class JsonParserService implements IFileParserService {
-
-    private static final Logger logger = LogManager.getLogger(JsonParserService.class);
-
+    
     @Autowired
     private PersonService personService;
 
@@ -45,7 +45,7 @@ public class JsonParserService implements IFileParserService {
     public void readDataFromFile() {
 
         // read JSON file
-        logger.info(" Reading JSON file "); //TTR
+        log.info(" Reading JSON file "); //TTR
         try {
 
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
@@ -57,35 +57,35 @@ public class JsonParserService implements IFileParserService {
 
                     //read medical records, save medical record data in DB
                     // and get back the list of medical records with their IDs in DB
-                    logger.info(" reading MedicalRecords in file");
+                    log.info(" reading MedicalRecords in file");
                     List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
 
                     if (!listOfMedicalRecords.isEmpty()) {
-                        logger.info(listOfMedicalRecords.size() + " medical record(s) found");
+                        log.info(listOfMedicalRecords.size() + " medical record(s) found");
                         medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
                         listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.getAllMedicalRecords();
                     } else {
-                        logger.error("no medical record data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no medical record data found in file " + this.dataInputFilePath + "\n");
                     }
 
                     //read fire stations and save fire station data in DB
-                    logger.info("reading FireStations in file");
+                    log.info("reading FireStations in file");
                     List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
 
                     if (!listOfFireStations.isEmpty()) {
-                        logger.info(listOfFireStations.size() + " fire station(s) found");
+                        log.info(listOfFireStations.size() + " fire station(s) found");
                         fireStationService.saveListOfFireStations(listOfFireStations);
                         listOfFireStations = (List<FireStation>) fireStationService.getAllFireStations();
                     } else {
-                        logger.error("no fire station data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no fire station data found in file " + this.dataInputFilePath + "\n");
                     }
 
                     //read persons in Json file
-                    logger.info("reading Persons in file");
+                    log.info("reading Persons in file");
                     List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
 
                     if (!listOfPersons.isEmpty()) {
-                        logger.info(listOfPersons.size() + " person(s) found");
+                        log.info(listOfPersons.size() + " person(s) found");
 
                         // map the persons with their medical record and with their fire station
                         listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
@@ -95,15 +95,15 @@ public class JsonParserService implements IFileParserService {
                         personService.saveListOfPersons(listOfPersons);
 
                     } else {
-                        logger.error("no person data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no person data found in file " + this.dataInputFilePath + "\n");
                     }
 
-                    logger.info(" End of Reading JSON file "); //TTR
+                    log.info(" End of Reading JSON file "); //TTR
                 } else {
-                    logger.error("input data file " + this.dataInputFilePath + " is empty");
+                    log.error("input data file " + this.dataInputFilePath + " is empty");
                 }
             } else {
-                logger.error("input data file " + this.dataInputFilePath + " not found");
+                log.error("input data file " + this.dataInputFilePath + " not found");
             }
 
         } catch (IOException e) {
@@ -212,7 +212,7 @@ public class JsonParserService implements IFileParserService {
                 }
             }
             if (person.getMedicalRecord() == null) {
-                logger.warn("no medical record found for "
+                log.warn("no medical record found for "
                         + person.getFirstName() + " " + person.getLastName());
             }
         }
@@ -237,7 +237,7 @@ public class JsonParserService implements IFileParserService {
                 }
             }
             if (person.getAddress() == null) {
-                logger.warn("no fire station found for "
+                log.warn("no fire station found for "
                         + person.getFirstName() + " " + person.getLastName()
                         + " at " + person.getAddress());
             }

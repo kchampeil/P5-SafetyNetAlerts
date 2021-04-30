@@ -3,6 +3,7 @@ package com.safetynet.alerts.service;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class MedicalRecordService implements IMedicalRecordService {
-
-    private static final Logger logger = LogManager.getLogger(MedicalRecordService.class);
 
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
@@ -30,7 +30,7 @@ public class MedicalRecordService implements IMedicalRecordService {
                 medicalRecordRepository.saveAll(listOfMedicalRecords);
                 return true;
             } catch (IllegalArgumentException e) {
-                logger.error("error when saving the list of medical records in DB : " + e.getMessage() + "\n");
+                log.error("error when saving the list of medical records in DB : " + e.getMessage() + "\n");
                 return false;
             }
     }
@@ -45,7 +45,7 @@ public class MedicalRecordService implements IMedicalRecordService {
         try {
             return medicalRecordRepository.findAll();
         } catch (Exception exception) {
-            logger.error("error when getting the list of medical records " + exception.getMessage() + "\n");
+            log.error("error when getting the list of medical records " + exception.getMessage() + "\n");
             return null;
         }
     }

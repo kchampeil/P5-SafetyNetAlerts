@@ -1,6 +1,7 @@
 package com.safetynet.alerts.controller;
 
 import com.safetynet.alerts.service.IPhoneAlertService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 public class PhoneAlertController {
-
-    private static final Logger logger = LogManager.getLogger(PersonController.class);
 
     @Autowired
     IPhoneAlertService phoneAlertService;
@@ -23,23 +23,23 @@ public class PhoneAlertController {
     @GetMapping("/phoneAlert")
     public ResponseEntity<List<String>> getPhoneAlertByFireStation(@RequestParam("firestation") Integer stationNumber) {
 
-        logger.info("GET request on endpoint /phoneAlert received for fire station n°: " + stationNumber);
+        log.info("GET request on endpoint /phoneAlert received for fire station n°: " + stationNumber);
 
         List<String> returnedListOfPhoneAlert
                 = phoneAlertService.getPhoneAlertByFireStation(stationNumber);
 
         if (returnedListOfPhoneAlert == null) {
-            logger.error("error when getting the phone alert for fire station n°" + stationNumber);
+            log.error("error when getting the phone alert for fire station n°" + stationNumber);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
             if (returnedListOfPhoneAlert.isEmpty()) {
-                logger.warn("response to GET request on endpoint /phoneAlert for fire station n°"
+                log.warn("response to GET request on endpoint /phoneAlert for fire station n°"
                         + stationNumber + " is empty, no phone information found");
                 return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.NOT_FOUND);
 
             } else {
-                logger.info("response to GET request on endpoint /phoneAlert sent for for fire station n° "
+                log.info("response to GET request on endpoint /phoneAlert sent for for fire station n° "
                         + stationNumber + " with " + returnedListOfPhoneAlert.size() + " values");
                 return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.OK);
             }
