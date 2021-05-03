@@ -43,7 +43,7 @@ public class JsonParserService implements IFileParserService {
     public void readDataFromFile() {
 
         // read JSON file
-        log.info(" Reading JSON file "); //TTR
+        log.info(" Reading JSON file ");
         try {
 
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
@@ -96,7 +96,7 @@ public class JsonParserService implements IFileParserService {
                         log.error("no person data found in file " + this.dataInputFilePath + "\n");
                     }
 
-                    log.info(" End of Reading JSON file "); //TTR
+                    log.info(" End of Reading JSON file ");
                 } else {
                     log.error("input data file " + this.dataInputFilePath + " is empty");
                 }

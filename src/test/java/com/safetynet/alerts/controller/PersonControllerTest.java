@@ -1,5 +1,6 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.controller.PersonController;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
@@ -37,7 +38,7 @@ class PersonControllerTest {
 
     @Test
     @DisplayName("WHEN asking for the list of persons (GET) THEN return status is ok")
-    void getAllPersonsTest() throws Exception {
+    public void getAllPersonsTest() throws Exception {
         mockMvc.perform(get("/persons"))
                 .andExpect(status().isOk());
         //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest ?
@@ -54,7 +55,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN a city name known in the repository" +
                 " WHEN asking for the list of emails of all citizens" +
                 " THEN return status is ok and the result is filled with emails")
-        void getAllEmailsByCityTest_WithResultsForCity() throws Exception {
+        public void getAllEmailsByCityTest_WithResultsForCity() throws Exception {
             // GIVEN
             List<String> listOfEmails = new ArrayList<>();
             listOfEmails.add("email1@test.com");
@@ -73,7 +74,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN a city name not known in the repository" +
                 " WHEN asking for the list of emails of all citizens" +
                 " THEN return status is not found but the result is empty")
-        void getAllEmailsByCityTest_WithNoResultsForCity() throws Exception {
+        public void getAllEmailsByCityTest_WithNoResultsForCity() throws Exception {
             // GIVEN
             List<String> listOfEmails = new ArrayList<>();
             when(personServiceMock.getAllEmailsByCity("CityTestNotKnown")).thenReturn(listOfEmails);
@@ -89,7 +90,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN no city name as input" +
                 " WHEN asking for the list of emails of all citizens" +
                 " THEN return status is bad request and the result is null")
-        void getAllEmailsByCityTest_WithNoCityAsInput() throws Exception {
+        public void getAllEmailsByCityTest_WithNoCityAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getAllEmailsByCity(anyString())).thenReturn(null);
 
@@ -110,7 +111,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN persons in repository for the requested firstname+lastname " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
                 "THEN a list of person information is returned")
-        void getPersonInfoByFirstNameAndLastNameTest_WithResults() throws Exception {
+        public void getPersonInfoByFirstNameAndLastNameTest_WithResults() throws Exception {
             // GIVEN
             List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
             PersonInfoDTO personInfoDTO = new PersonInfoDTO();
@@ -183,7 +184,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN children in repository for the requested address " +
                 "WHEN processing a GET /childAlert request on address " +
                 "THEN a list of child alert is returned")
-        void getChildAlertByAddressTest_WithResults() throws Exception {
+        public void getChildAlertByAddressTest_WithResults() throws Exception {
             // GIVEN
             List<ChildAlertDTO> listOfChildAlertDTO = new ArrayList<>();
             ChildAlertDTO childAlertDTO = new ChildAlertDTO();
@@ -249,12 +250,12 @@ class PersonControllerTest {
      * ----------------------------------------------------------------------------------------------------------------------*/
     @Nested
     @DisplayName("getPhoneAlertByFireStation tests")
-    class GetPhoneAlertByFireStation {
+    class GetPhoneAlertByFireStationTest {
         @Test
         @DisplayName("GIVEN persons in repository living at one address covered by the requested fire station " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
                 "THEN a list of phone number is returned")
-        void getPhoneAlertByFireStationTest_WithResults() throws Exception {
+        public void getPhoneAlertByFireStationTest_WithResults() throws Exception {
             // GIVEN
             List<String > listOfPhoneNumbers = new ArrayList<>();
             listOfPhoneNumbers.add("33-1 23 45 67 89");
@@ -274,7 +275,7 @@ class PersonControllerTest {
 
 
         @Test
-        @DisplayName("GIVEN no person found for requested fire station number not found in repository " +
+        @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
                 "THEN the returned list is null")
         public void getPhoneAlertByFireStationTest_WithNoResults() throws Exception{

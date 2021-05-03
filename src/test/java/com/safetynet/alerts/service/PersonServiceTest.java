@@ -1,5 +1,6 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
@@ -16,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,10 +42,6 @@ class PersonServiceTest {
 
     private Person person;
 
-    private final static LocalDate ADULT_BIRTHDATE = LocalDate.of(1999, 9, 9);
-    private final static LocalDate CHILD_BIRTHDATE = LocalDate.of(2019, 1, 1);
-    private final static int ADULT_AGE = 21;
-
     @BeforeAll
     private static void setUp() {
 
@@ -64,7 +60,7 @@ class PersonServiceTest {
         MedicalRecord medicalRecord = new MedicalRecord();
         medicalRecord.setFirstName(person.getFirstName());
         medicalRecord.setLastName(person.getLastName());
-        medicalRecord.setBirthDate(ADULT_BIRTHDATE);
+        medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
 
         List<String> medications = new ArrayList<>();
         medications.add("PST_medications_1");
@@ -235,7 +231,7 @@ class PersonServiceTest {
             PersonInfoDTO personInfoDTO = new PersonInfoDTO();
             personInfoDTO.setLastName(person.getLastName());
             personInfoDTO.setAddress(person.getAddress());
-            personInfoDTO.setAge(ADULT_AGE);
+            personInfoDTO.setAge(TestConstants.ADULT_AGE);
             personInfoDTO.setEmail(person.getEmail());
             personInfoDTO.setMedications(person.getMedicalRecord().getMedications());
             personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
@@ -327,7 +323,7 @@ class PersonServiceTest {
             MedicalRecord medicalRecord = new MedicalRecord();
             medicalRecord.setFirstName(aChild.getFirstName());
             medicalRecord.setLastName(aChild.getLastName());
-            medicalRecord.setBirthDate(CHILD_BIRTHDATE);
+            medicalRecord.setBirthDate(TestConstants.CHILD_BIRTHDATE);
             aChild.setMedicalRecord(medicalRecord);
             
             listOfPerson.add(aChild);
@@ -342,12 +338,9 @@ class PersonServiceTest {
             MedicalRecord medicalRecord2 = new MedicalRecord();
             medicalRecord2.setFirstName(hisParent.getFirstName());
             medicalRecord2.setLastName(hisParent.getLastName());
-            medicalRecord2.setBirthDate(ADULT_BIRTHDATE);
+            medicalRecord2.setBirthDate(TestConstants.ADULT_BIRTHDATE);
             hisParent.setMedicalRecord(medicalRecord2);
             listOfPerson.add(hisParent);
-
-            // TTR List<ChildAlertDTO> expectedListOfChildAlert = new ArrayList<>();
-            //TTR expectedListOfChildAlert.add(personInfoDTO);
 
             when(personRepositoryMock.findAllByAddress(aChild.getAddress())).thenReturn(listOfPerson);
 

@@ -24,7 +24,7 @@ class MedicalRecordControllerTest {
 
     @Test
     @DisplayName("WHEN asking for the list of medical records (GET) THEN return status is ok")
-    void getAllMedicalRecordsTest() throws Exception {
+    public void getAllMedicalRecordsTest() throws Exception {
         mockMvc.perform(get("/medicalrecords"))
                 .andExpect(status().isOk());
         //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest

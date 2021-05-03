@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.FireStation;
+import com.safetynet.alerts.model.dto.FireDTO;
 
 import java.util.List;
 
@@ -19,4 +20,10 @@ public interface IFireStationService {
      * @return a list of FireStation
      */
     Iterable<FireStation> getAllFireStations();
+
+    /**
+     * allow getting the list of persons for a given address with its fire station number, found in DB
+     * @return the fire station coverage for the address
+     */
+    FireDTO getFireStationCoverageByAddress(String address);
 }
