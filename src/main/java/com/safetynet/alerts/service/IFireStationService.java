@@ -1,7 +1,6 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.FireStation;
-import com.safetynet.alerts.model.Person;
 
 import java.util.List;
 

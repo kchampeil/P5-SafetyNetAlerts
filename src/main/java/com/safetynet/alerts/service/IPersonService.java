@@ -1,6 +1,8 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.Person;
+import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.PersonInfoDTO;
 
 import java.util.List;
 
@@ -25,4 +27,31 @@ public interface IPersonService {
      * @return a list of emails
      */
     List<String> getAllEmailsByCity(String cityName);
+
+    /**
+     * allow getting the list of person information found in repository
+     * for given firstname and lastname
+     * If other persons have the same lastname, they will be in the list.
+     *
+     * @param firstName the firstname we want to get the person information from
+     * @param lastName the lastname we want to get the person information from
+     * @return a list of person information
+     */
+    List<PersonInfoDTO> getPersonInfoByFirstNameAndLastName(String firstName, String lastName);
+
+    /**
+     * allow getting the list of child alert found in repository for given address
+     * @param address the address we want to get the child alert from
+     * @return a list of child alert
+     */
+    List<ChildAlertDTO> getChildAlertByAddress(String address);
+
+    /**
+     * allow getting the list of all phone numbers for citizens
+     * covered by a given fire station found in repository
+     *
+     * @param stationNumber the fire station number we want to get the citizen' phone numbers from
+     * @return a list of phone numbers
+     */
+    List<String> getPhoneAlertByFireStation(Integer stationNumber);
 }
