@@ -2,6 +2,8 @@ package com.safetynet.alerts.controller;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+
+import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.IPersonService;
 import lombok.extern.slf4j.Slf4j;
@@ -134,6 +136,12 @@ public class PersonController {
     }
 
 
+    /**
+     * Read - Get unique phone numbers of people covered by a given fire station
+     *
+     * @param stationNumber of the fire station
+     * @return - A list of phone numbers
+     */
     @GetMapping("/phoneAlert")
     public ResponseEntity<List<String>> getPhoneAlertByFireStation(@RequestParam("firestation") Integer stationNumber) {
 
@@ -156,6 +164,41 @@ public class PersonController {
                 log.info("response to GET request on endpoint /phoneAlert sent for for fire station n° "
                         + stationNumber + " with " + returnedListOfPhoneAlert.size() + " values");
                 return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.OK);
+            }
+        }
+    }
+
+
+    /**
+     * Read - Get person information about people covered by a given fire station
+     * and the number of adults and children concerned
+     *
+     * @param stationNumber the station number of the fire station we want to get the information from
+     * @return - A FireStationCoverageDTO filled with information
+     */
+    @GetMapping("/firestation")
+    public ResponseEntity<FireStationCoverageDTO> getFireStationCoverageByAddress(@RequestParam("stationNumber") Integer stationNumber) {
+
+        log.info("GET request on endpoint /firestation received for fire station n°: " + stationNumber);
+
+        FireStationCoverageDTO fireStationCoverageDTO
+                = personService.getFireStationCoverageByStationNumber(stationNumber);
+
+        if (fireStationCoverageDTO==null) {
+            log.error("error when getting the fire station coverage for fire station n°: " + stationNumber);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        } else {
+
+            if (fireStationCoverageDTO.getPersonCoveredContactsDTOList()==null) {
+                log.warn("response to GET request on endpoint /firestation for fire station n°: "
+                        + stationNumber + " is empty, no fire station coverage information found");
+                return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.NOT_FOUND);
+
+            } else {
+                log.info("response to GET request on endpoint /firestation sent for for fire station n°: "
+                        + stationNumber + " with " + fireStationCoverageDTO.getPersonCoveredContactsDTOList().size() + " values");
+                return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.OK);
             }
         }
     }

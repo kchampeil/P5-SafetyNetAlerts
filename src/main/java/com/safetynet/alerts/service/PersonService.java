@@ -2,10 +2,11 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
+import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.PersonRepository;
-
 import com.safetynet.alerts.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -247,8 +248,8 @@ public class PersonService implements IPersonService {
 
         List<HouseholdMemberDTO> listOfHouseholdMemberDTO = new ArrayList<>();
         ModelMapper modelMapper = new ModelMapper();
-        filteredListOfPersons.forEach(person ->{
-            HouseholdMemberDTO householdMemberDTO = modelMapper.map(person,HouseholdMemberDTO.class);
+        filteredListOfPersons.forEach(person -> {
+            HouseholdMemberDTO householdMemberDTO = modelMapper.map(person, HouseholdMemberDTO.class);
             listOfHouseholdMemberDTO.add(householdMemberDTO);
         });
 
@@ -298,6 +299,70 @@ public class PersonService implements IPersonService {
             }
         } else {
             log.error("a fire station number must be specified to get the list of phone numbers");
+            return null;
+        }
+    }
+
+    /**
+     * allow getting the list of information of all citizens
+     * covered by a given fire station found in repository
+     * completed with a count of adults and children
+     *
+     * @param stationNumber the fire station number we want to get the citizen' information from
+     * @return a list of information of all citizens covered by a given fire station found in repository
+     * completed with a count of adults and children
+     */
+    @Override
+    public FireStationCoverageDTO getFireStationCoverageByStationNumber(Integer stationNumber) {
+        if (stationNumber != null) {
+            try {
+                FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
+                int numberOfAdults = 0;
+                int numberOfChildren = 0;
+
+                //get the list of persons living in the area of the fire station
+                List<Person> listOfPersons = personRepository.findAllByFireStation_StationNumber(stationNumber);
+
+                //for each person, contact information are added in the list (after mapping)
+                //and count of adults/children is incremented
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    log.info(listOfPersons.size() + " persons found for the area covered by fire station n°: " + stationNumber);
+
+                    List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
+
+                    for (Person person : listOfPersons) {
+                        ModelMapper modelMapper = new ModelMapper();
+                        PersonCoveredContactsDTO personCoveredContactsDTO = modelMapper.map(person, PersonCoveredContactsDTO.class);
+                        listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO);
+
+                        if (dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()) <= MAX_AGE_FOR_CHILD_ALERT) {
+                            numberOfChildren++;
+                        } else {
+                            numberOfAdults++;
+                        }
+                    }
+
+                    fireStationCoverageDTO.setPersonCoveredContactsDTOList(listOfPersonCoveredContactsDTO);
+                    fireStationCoverageDTO.setNumberOfAdults(numberOfAdults);
+                    fireStationCoverageDTO.setNumberOfChildren(numberOfChildren);
+                    log.info(listOfPersonCoveredContactsDTO.size()
+                            + " persons found for the area covered by fire station n°: " + stationNumber
+                            + " of which " + numberOfAdults + " adults and " + numberOfChildren + " children");
+                } else {
+                    log.warn("no person found in the area covered by fire station n°: "
+                            + stationNumber
+                            + ", list of person information is empty");
+                }
+                return fireStationCoverageDTO;
+
+
+            } catch (Exception exception) {
+                log.error("error when getting the list of person information for the area covered by fire station n°: "
+                        + stationNumber + " : " + exception.getMessage());
+                return null;
+            }
+        } else {
+            log.error("a fire station number must be specified to get the list of person information");
             return null;
         }
     }

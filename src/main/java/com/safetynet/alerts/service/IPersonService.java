@@ -2,6 +2,7 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 
 import java.util.List;
@@ -10,6 +11,7 @@ public interface IPersonService {
 
     /**
      * save a list of persons in DB
+     *
      * @param listOfPersons list to be saved in DB
      * @return true if data saved, else false
      */
@@ -17,12 +19,14 @@ public interface IPersonService {
 
     /**
      * allow getting the list of all persons found in DB
+     *
      * @return a list of Person
      */
     Iterable<Person> getAllPersons();
 
     /**
      * allow getting the list of all citizens' emails for a given city found in DB
+     *
      * @param cityName of the city we want citizens' emails
      * @return a list of emails
      */
@@ -34,13 +38,14 @@ public interface IPersonService {
      * If other persons have the same lastname, they will be in the list.
      *
      * @param firstName the firstname we want to get the person information from
-     * @param lastName the lastname we want to get the person information from
+     * @param lastName  the lastname we want to get the person information from
      * @return a list of person information
      */
     List<PersonInfoDTO> getPersonInfoByFirstNameAndLastName(String firstName, String lastName);
 
     /**
      * allow getting the list of child alert found in repository for given address
+     *
      * @param address the address we want to get the child alert from
      * @return a list of child alert
      */
@@ -54,4 +59,15 @@ public interface IPersonService {
      * @return a list of phone numbers
      */
     List<String> getPhoneAlertByFireStation(Integer stationNumber);
+
+    /**
+     * allow getting the list of information of all citizens
+     * covered by a given fire station found in repository
+     * completed with a count of adults and children
+     *
+     * @param stationNumber the fire station number we want to get the citizen' information from
+     * @return a list of information of all citizens covered by a given fire station found in repository
+     * completed with a count of adults and children
+     */
+    FireStationCoverageDTO getFireStationCoverageByStationNumber(Integer stationNumber);
 }

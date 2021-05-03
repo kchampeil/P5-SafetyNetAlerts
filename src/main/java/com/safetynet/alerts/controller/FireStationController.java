@@ -31,6 +31,13 @@ public class FireStationController {
     }
 
 
+    /**
+     * Read - Get person information about people living at the given address
+     * and the number of the fire station covering this address
+     *
+     * @param address the address we want to get the information from
+     * @return - A FireDTO filled with information
+     */
     @GetMapping("/fire")
     public ResponseEntity<FireDTO> getFireStationCoverageByAddress(@RequestParam String address) {
 
@@ -44,7 +51,7 @@ public class FireStationController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-            log.info(String.valueOf(fireDTO.getPersonCoveredDTOList()));
+
             if (fireDTO.getPersonCoveredDTOList()==null) {
                 log.warn("response to GET request on endpoint /fire for address: "
                         + address + " is empty, no fire station coverage information found");

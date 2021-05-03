@@ -4,6 +4,7 @@ import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeAll;
@@ -325,7 +326,7 @@ class PersonServiceTest {
             medicalRecord.setLastName(aChild.getLastName());
             medicalRecord.setBirthDate(TestConstants.CHILD_BIRTHDATE);
             aChild.setMedicalRecord(medicalRecord);
-            
+
             listOfPerson.add(aChild);
 
             Person hisParent = new Person();
@@ -474,6 +475,97 @@ class PersonServiceTest {
 
             //THEN
             assertThat(personService.getPhoneAlertByFireStation(null)).isNull();
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
+        }
+
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  getFireStationCoverageByStationNumber tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("getFireStationCoverageByStationNumber tests")
+    class GetFireStationCoverageByStationNumberTest {
+        @Test
+        @DisplayName("GIVEN citizens covered by the requested fire station found in repository " +
+                "WHEN asking for the person information list " +
+                "THEN a list of citizens' information covered by the fire station " +
+                " and the number of adults and children is returned")
+        public void getFireStationCoverageByStationNumberTest_WithInfoInRepository() {
+            //GIVEN 3 persons of which 1 child
+            List<Person> listOfPersons = new ArrayList<>();
+
+            Person person1 = new Person();
+            person1.setFirstName("PST_first_name_1");
+            person1.setLastName("PST_last_name_1");
+            person1.setAddress("PST_Address_1");
+            person1.setPhone("33 1 23 45 67 89");
+            MedicalRecord medicalRecord1 = new MedicalRecord();
+            medicalRecord1.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            person1.setMedicalRecord(medicalRecord1);
+            listOfPersons.add(person1);
+
+            Person person2 = new Person();
+            person2.setFirstName("PST_first_name_2");
+            person2.setLastName("PST_last_name_2");
+            person2.setAddress("PST_Address_2");
+            person2.setPhone("33 1 98 76 54 32");
+            MedicalRecord medicalRecord2 = new MedicalRecord();
+            medicalRecord2.setBirthDate(TestConstants.CHILD_BIRTHDATE);
+            person2.setMedicalRecord(medicalRecord2);
+            listOfPersons.add(person2);
+
+            Person person3 = new Person();
+            person3.setFirstName("PST_first_name_3");
+            person3.setLastName("PST_last_name_3");
+            person3.setAddress(person2.getAddress());
+            person3.setPhone("33 1 99 99 99 99");
+            MedicalRecord medicalRecord3 = new MedicalRecord();
+            medicalRecord3.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            person3.setMedicalRecord(medicalRecord3);
+            listOfPersons.add(person3);
+
+            when(personRepositoryMock.findAllByFireStation_StationNumber(3)).thenReturn(listOfPersons);
+
+            //WHEN
+            FireStationCoverageDTO fireStationCoverageDTO = personService.getFireStationCoverageByStationNumber(3);
+
+            //THEN
+            assertEquals(3, fireStationCoverageDTO.getPersonCoveredContactsDTOList().size());
+            assertEquals(2,fireStationCoverageDTO.getNumberOfAdults());
+            assertEquals(1, fireStationCoverageDTO.getNumberOfChildren());
+            verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(3);
+        }
+
+        @Test
+        @DisplayName("GIVEN no citizens covered by the requested fire station found in repository " +
+                "WHEN asking for the person information list " +
+                "THEN the returned list is empty")
+        public void getFireStationCoverageByStationNumberTest_WithNoInfoInRepository() {
+            //GIVEN
+            when(personRepositoryMock.findAllByFireStation_StationNumber(999)).thenReturn(new ArrayList<>());
+
+            //WHEN
+            FireStationCoverageDTO fireStationCoverageDTO = personService.getFireStationCoverageByStationNumber(999);
+
+            //THEN
+            assertThat(fireStationCoverageDTO.getPersonCoveredContactsDTOList()).isNull();
+            assertEquals(0,fireStationCoverageDTO.getNumberOfAdults());
+            assertEquals(0,fireStationCoverageDTO.getNumberOfChildren());
+            verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(999);
+        }
+
+        @Test
+        @DisplayName("GIVEN a null fire station number " +
+                "WHEN asking for the person information list " +
+                "THEN no list is returned")
+        public void getFireStationCoverageByStationNumberTest_WithFireStationNumberNull() {
+            //GIVEN
+            when(personRepositoryMock.findAllByFireStation_StationNumber(null)).thenReturn(null);
+
+            //THEN
+            assertThat(personService.getFireStationCoverageByStationNumber(null)).isNull();
             verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
         }
 

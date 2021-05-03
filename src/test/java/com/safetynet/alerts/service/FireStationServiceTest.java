@@ -199,8 +199,10 @@ class FireStationServiceTest {
             when(personRepositoryMock.findAllByAddress("FSST_AddressTest")).thenReturn(listOfPersons);
             when(fireStationRepositoryMock.findByAddress("FSST_AddressTest")).thenReturn(fireStation);
 
-            //THEN
+            //WHEN
             FireDTO fireDTO = fireStationService.getFireStationCoverageByAddress("FSST_AddressTest");
+
+            //THEN
             assertEquals(2, fireDTO.getPersonCoveredDTOList().size());
             assertEquals(fireStation.getStationNumber(), fireDTO.getStationNumber());
             verify(personRepositoryMock, Mockito.times(1)).findAllByAddress("FSST_AddressTest");
@@ -221,8 +223,10 @@ class FireStationServiceTest {
             when(personRepositoryMock.findAllByAddress("FSST_AddressTestNotFound")).thenReturn(new ArrayList<>());
             when(fireStationRepositoryMock.findByAddress("FSST_AddressTestNotFound")).thenReturn(fireStation);
 
-            //THEN
+            //WHEN
             FireDTO fireDTO = fireStationService.getFireStationCoverageByAddress("FSST_AddressTestNotFound");
+
+            //THEN
             assertThat(fireDTO.getPersonCoveredDTOList()).isNull();
             assertEquals(fireStation.getStationNumber(), fireDTO.getStationNumber());
             verify(personRepositoryMock, Mockito.times(1)).findAllByAddress("FSST_AddressTestNotFound");

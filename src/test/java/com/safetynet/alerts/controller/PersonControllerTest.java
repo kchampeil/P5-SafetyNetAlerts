@@ -1,8 +1,9 @@
 package com.safetynet.alerts.controller;
 
-import com.safetynet.alerts.controller.PersonController;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
+import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
+import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -140,7 +143,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN firstname and lastname not found in repository " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
                 "THEN the returned list is null")
-        public void getPersonInfoByFirstNameAndLastNameTest_WithNoResults() throws Exception{
+        public void getPersonInfoByFirstNameAndLastNameTest_WithNoResults() throws Exception {
             // GIVEN
             List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
             when(personServiceMock.getPersonInfoByFirstNameAndLastName("FirstNameTestNotKnown", "LastNameTestNotKnown"))
@@ -162,7 +165,7 @@ class PersonControllerTest {
                 "THEN the returned list is null and no request has been sent to repository")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoNameAsInput() throws Exception {
             // GIVEN
-            when(personServiceMock.getPersonInfoByFirstNameAndLastName(anyString(),anyString())).thenReturn(null);
+            when(personServiceMock.getPersonInfoByFirstNameAndLastName(anyString(), anyString())).thenReturn(null);
 
             // THEN
             mockMvc.perform(get("/personInfo")
@@ -257,7 +260,7 @@ class PersonControllerTest {
                 "THEN a list of phone number is returned")
         public void getPhoneAlertByFireStationTest_WithResults() throws Exception {
             // GIVEN
-            List<String > listOfPhoneNumbers = new ArrayList<>();
+            List<String> listOfPhoneNumbers = new ArrayList<>();
             listOfPhoneNumbers.add("33-1 23 45 67 89");
             listOfPhoneNumbers.add("33-1 98 76 54 32");
             listOfPhoneNumbers.add("33 1 11 11 11 11");
@@ -278,7 +281,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
                 "THEN the returned list is null")
-        public void getPhoneAlertByFireStationTest_WithNoResults() throws Exception{
+        public void getPhoneAlertByFireStationTest_WithNoResults() throws Exception {
             // GIVEN
             List<String> listOfPhoneNumbers = new ArrayList<>();
             when(personServiceMock.getPhoneAlertByFireStation(2))
@@ -304,6 +307,96 @@ class PersonControllerTest {
             // THEN
             mockMvc.perform(get("/phoneAlert")
                     .param("firestation", String.valueOf(999)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  getFireStationCoverageByAddress tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("getFireStationCoverageByAddress tests")
+    class GetFireStationCoverageByAddressTest {
+        @Test
+        @DisplayName("GIVEN persons in repository living at one address covered by the requested fire station " +
+                "WHEN processing a GET /firestation request on fire station number " +
+                "THEN a list of person info + nb of adults + nb of children is returned")
+        public void getFireStationCoverageByAddressTest_WithResults() throws Exception {
+            // GIVEN
+            FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
+
+            List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
+
+            PersonCoveredContactsDTO personCoveredContactsDTO1 = new PersonCoveredContactsDTO();
+            personCoveredContactsDTO1.setFirstName("PST_first_name_1");
+            personCoveredContactsDTO1.setLastName("PST_last_name_1");
+            personCoveredContactsDTO1.setAddress("PST_Address_1");
+            personCoveredContactsDTO1.setPhone("33 1 23 45 67 89");
+            listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO1);
+
+            PersonCoveredContactsDTO personCoveredContactsDTO2 = new PersonCoveredContactsDTO();
+            personCoveredContactsDTO2.setFirstName("PST_first_name_2");
+            personCoveredContactsDTO2.setLastName("PST_last_name_2");
+            personCoveredContactsDTO2.setAddress("PST_Address_2");
+            personCoveredContactsDTO2.setPhone("33 1 98 76 54 32");
+            listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO2);
+
+            PersonCoveredContactsDTO personCoveredContactsDTO3 = new PersonCoveredContactsDTO();
+            personCoveredContactsDTO3.setFirstName("PST_first_name_3");
+            personCoveredContactsDTO3.setLastName("PST_last_name_3");
+            personCoveredContactsDTO3.setAddress(personCoveredContactsDTO2.getAddress());
+            personCoveredContactsDTO3.setPhone("33 1 99 99 99 99");
+            listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO3);
+
+            fireStationCoverageDTO.setPersonCoveredContactsDTOList(listOfPersonCoveredContactsDTO);
+            fireStationCoverageDTO.setNumberOfChildren(1);
+            fireStationCoverageDTO.setNumberOfAdults(2);
+
+            when(personServiceMock.getFireStationCoverageByStationNumber(3))
+                    .thenReturn(fireStationCoverageDTO);
+
+            // THEN
+            mockMvc.perform(get("/firestation")
+                    .param("stationNumber", "3"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN no person found for requested fire station number in repository " +
+                "WHEN processing a GET /firestation request on fire station number " +
+                "THEN the returned list is null and number of adults & children equals 0")
+        public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
+            // GIVEN
+            FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
+            when(personServiceMock.getFireStationCoverageByStationNumber(2))
+                    .thenReturn(fireStationCoverageDTO);
+
+            // THEN
+            mockMvc.perform(get("/firestation")
+                    .param("stationNumber", "2"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.numberOfChildren", is(0)))
+                    .andExpect(jsonPath("$.numberOfAdults", is(0)))
+                    .andExpect(jsonPath("$.personCoveredContactsDTOList", is(nullValue())));
+        }
+
+
+        @Test
+        @DisplayName("GIVEN null fire station number " +
+                "WHEN processing a GET /firestation request on fire station number " +
+                "THEN the returned list is null and no request has been sent to repository")
+        public void getFireStationCoverageByAddressTest_WithNoStationNumberAsInput() throws Exception {
+            // GIVEN
+            when(personServiceMock.getFireStationCoverageByStationNumber(anyInt())).thenReturn(null);
+
+            // THEN
+            mockMvc.perform(get("/firestation")
+                    .param("stationNumber", String.valueOf(999)))
                     .andExpect(status().isBadRequest());
         }
     }
