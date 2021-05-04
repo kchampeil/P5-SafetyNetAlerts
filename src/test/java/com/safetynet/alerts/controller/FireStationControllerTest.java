@@ -23,7 +23,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -169,7 +168,6 @@ class FireStationControllerTest {
                 "THEN the returned coverage information is null")
         public void getFloodByStationNumbersTest_WithNoResults() throws Exception{
             // GIVEN
-            FloodDTO floodDTO = new FloodDTO();
             List<FloodDTO> listOfFloodDTO = new ArrayList<>();
             when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(999)))
                     .thenReturn(listOfFloodDTO);
