@@ -3,6 +3,7 @@ package com.safetynet.alerts.service;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.FireDTO;
+import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
 import com.safetynet.alerts.repository.PersonRepository;
@@ -13,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -107,6 +111,69 @@ public class FireStationService implements IFireStationService {
             return null;
         }
 
+    }
+
+
+    /**
+     * allow getting person information about people covered by fire stations
+     * for a given list of station number et grouped by station number and address, found in DB
+     *
+     * @return the flood for the fire stations
+     */
+    @Override
+    public List<FloodDTO> getFloodByStationNumbers(List<Integer> listOfStationNumbers) {
+        if (listOfStationNumbers != null && !listOfStationNumbers.isEmpty()) {
+            try {
+                List<FloodDTO> listOfFloodDTO = new ArrayList<>();
+
+                listOfStationNumbers.forEach(station -> {
+                            //get the list of persons covered by the fire station
+                            List<Person> listOfPersons = new ArrayList<>();
+                            listOfPersons.addAll(personRepository.findAllByFireStation_StationNumber(station));
+
+                            if (!listOfPersons.isEmpty()) {
+                                log.info(listOfPersons.size() + " persons found for the stations : " + listOfStationNumbers);
+
+                                //group persons by address
+                                Map<String, List<Person>> personsGroupedByAddress = listOfPersons.stream().collect(Collectors.groupingBy(Person::getAddress));
+
+                                //then convert to DTO
+                                //TODO checker type de map
+                                Map<String, List<PersonCoveredDTO>> personsCoveredDTOByAddress = new HashMap<>();
+                                FloodDTO floodDTO = new FloodDTO();
+                                for (String address : personsGroupedByAddress.keySet()) {
+                                    List<PersonCoveredDTO> personCoveredDTOList = new ArrayList<>();
+                                    for (Map.Entry<String, List<Person>> listOfPersonsForAddress : personsGroupedByAddress.entrySet()) {
+                                        for (Person person : listOfPersonsForAddress.getValue()) {
+                                            person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
+                                            personCoveredDTOList.add(mapToPersonCoveredDTO(person));
+                                        }
+                                    }
+                                    personsCoveredDTOByAddress.put(address, personCoveredDTOList);
+                                }
+
+                                //and populate the floodDTO and add it to the list of FloodDTO
+                                floodDTO.setPersonsCoveredByAddress(personsCoveredDTOByAddress);
+                                floodDTO.setStationNumber(station);
+
+                                listOfFloodDTO.add(floodDTO);
+
+                            } else {
+                                log.warn("no person found for station " + station + ", list of person information is empty for this station");
+                            }
+                        }
+                );
+
+                return listOfFloodDTO;
+
+            } catch (Exception exception) {
+                log.error("error when getting the fire station coverage information for stations " + listOfStationNumbers + " : " + exception.getMessage());
+                return null;
+            }
+        } else {
+            log.error("a list of station numbers must be specified to get the fire station coverage information");
+            return null;
+        }
     }
 
 
