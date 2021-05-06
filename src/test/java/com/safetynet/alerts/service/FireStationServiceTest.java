@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -329,8 +330,8 @@ class FireStationServiceTest {
 
             //THEN
             assertEquals(2, listOfFloodDTO.size());
-            assertEquals(true, listOfFloodDTO.get(0).getPersonsCoveredByAddress().containsKey("FSST_AddressTest1"));
-            assertEquals(true, listOfFloodDTO.get(1).getPersonsCoveredByAddress().containsKey("FSST_AddressTest3"));
+            assertTrue(listOfFloodDTO.get(0).getPersonsCoveredByAddress().containsKey("FSST_AddressTest1"));
+            assertTrue(listOfFloodDTO.get(1).getPersonsCoveredByAddress().containsKey("FSST_AddressTest3"));
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(3);
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(4);
         }
@@ -362,6 +363,102 @@ class FireStationServiceTest {
             //THEN
             assertThat(fireStationService.getFloodByStationNumbers(null)).isNull();
             verify(personRepositoryMock, Mockito.times(0)).findAllByAddress(null);
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  addFireStation tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("addFireStation tests")
+    class addFireStationTest {
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station " +
+                "WHEN saving this new relationship " +
+                "THEN the returned value is the added fire station")
+        public void addFireStationTest_WithSuccess() {
+            //GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setStationNumber(3);
+            fireStationToAdd.setAddress("FSST_New_Address");
+            fireStationToAdd.setFireStationId(3L);
+            when(fireStationRepositoryMock.findByAddress("FSST_New_Address")).thenReturn(null);
+            when(fireStationRepositoryMock.save(fireStationToAdd)).thenReturn(fireStationToAdd);
+
+            //WHEN
+            FireStation addedFireStation = fireStationService.addFireStation(fireStationToAdd);
+
+            //THEN
+            assertEquals(fireStationToAdd.getStationNumber(), addedFireStation.getStationNumber());
+            assertEquals(fireStationToAdd.getAddress(),addedFireStation.getAddress());
+            assertThat(addedFireStation.getFireStationId()).isNotNull();
+            verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress("FSST_New_Address");
+            verify(fireStationRepositoryMock, Mockito.times(1)).save(fireStationToAdd);
+
+        }
+
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station for an existing address in repository " +
+                "WHEN saving this new relationship " +
+                "THEN the returned value is null (ie no fire station has been added)")
+        public void addFireStationTest_WithExistingAddressInRepository() {
+            //GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setStationNumber(3);
+            fireStationToAdd.setAddress("FSST_Address_Already_Present");
+
+            FireStation fireStationInDb = new FireStation();
+            fireStationInDb.setStationNumber(4);
+            fireStationInDb.setAddress(fireStationToAdd.getAddress());
+
+            when(fireStationRepositoryMock.findByAddress("FSST_Address_Already_Present")).thenReturn(fireStationInDb);
+
+            //THEN
+            assertNull(fireStationService.addFireStation(fireStationToAdd));
+            verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress("FSST_Address_Already_Present");
+            verify(fireStationRepositoryMock, Mockito.times(0)).save(fireStationToAdd);
+        }
+
+        @Test
+        @DisplayName("GIVEN an empty fire station information " +
+                "WHEN saving this new relationship " +
+                "THEN the returned value is null (ie no fire station has been added)")
+        public void addFireStationTest_WithMissingFireStationInformation() {
+
+            assertThat(fireStationService.addFireStation(null)).isNull();
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(null);
+            verify(fireStationRepositoryMock, Mockito.times(0)).save(any((FireStation.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station without any address " +
+                "WHEN saving this new relationship " +
+                "THEN the returned value is null (ie no fire station has been added)")
+        public void addFireStationTest_WithNoAddressForStation() {
+            //GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setStationNumber(3);
+
+            //THEN
+            assertNull(fireStationService.addFireStation(fireStationToAdd));
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(fireStationToAdd.getAddress());
+            verify(fireStationRepositoryMock, Mockito.times(0)).save(fireStationToAdd);
+        }
+
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station without any station number " +
+                "WHEN saving this new relationship " +
+                "THEN the returned value is null (ie no fire station has been added)")
+        public void addFireStationTest_WithNoStationNumber() {
+            //GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setAddress("FSST_New_Address");
+
+            //THEN
+            assertNull(fireStationService.addFireStation(fireStationToAdd));
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(fireStationToAdd.getAddress());
+            verify(fireStationRepositoryMock, Mockito.times(0)).save(fireStationToAdd);
         }
     }
 

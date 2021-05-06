@@ -1,19 +1,12 @@
 package com.safetynet.alerts.controller;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import static org.mockito.Mockito.when;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
 import com.safetynet.alerts.service.FireStationService;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,6 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest(controllers = FireStationController.class)
 class FireStationControllerTest {
@@ -39,6 +40,7 @@ class FireStationControllerTest {
     @MockBean
     private FireStationService fireStationServiceMock;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("WHEN asking for the list of fire stations (GET) THEN return status is ok")
@@ -91,7 +93,7 @@ class FireStationControllerTest {
         @DisplayName("GIVEN no person found for requested address in repository " +
                 "WHEN processing a GET /fire request on address " +
                 "THEN the returned coverage information is null")
-        public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception{
+        public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
             // GIVEN
             FireDTO fireDTO = new FireDTO();
             when(fireStationServiceMock.getFireStationCoverageByAddress("AddressTestNotFound"))
@@ -114,7 +116,7 @@ class FireStationControllerTest {
 
             // THEN
             mockMvc.perform(get("/fire")
-                    .param("address", "AddressTestNull"))
+                    .param("address", (String) null))
                     .andExpect(status().isBadRequest());
         }
 
@@ -145,7 +147,7 @@ class FireStationControllerTest {
             FloodDTO floodDTO = new FloodDTO();
             floodDTO.setStationNumber(73);
             Map<String, List<PersonCoveredDTO>> personCoveredDTOByAddress = new HashMap<>();
-            personCoveredDTOByAddress.put("FSCT_Address",listOfPersonsCovered);
+            personCoveredDTOByAddress.put("FSCT_Address", listOfPersonsCovered);
             floodDTO.setPersonsCoveredByAddress(personCoveredDTOByAddress);
             List<FloodDTO> listOfFloodDTO = new ArrayList<>();
             listOfFloodDTO.add(floodDTO);
@@ -166,7 +168,7 @@ class FireStationControllerTest {
         @DisplayName("GIVEN no person found for requested fire stations in repository " +
                 "WHEN processing a GET /flood/stations request on station numbers " +
                 "THEN the returned coverage information is null")
-        public void getFloodByStationNumbersTest_WithNoResults() throws Exception{
+        public void getFloodByStationNumbersTest_WithNoResults() throws Exception {
             // GIVEN
             List<FloodDTO> listOfFloodDTO = new ArrayList<>();
             when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(999)))
@@ -185,14 +187,70 @@ class FireStationControllerTest {
                 "THEN the returned coverage information is null and no request has been sent to repository")
         public void getFloodByStationNumbersTest_WithNoAddressAsInput() throws Exception {
             // GIVEN
-            List<Integer> listOfStationNumbers = new ArrayList<>();
-            when(fireStationServiceMock.getFloodByStationNumbers(listOfStationNumbers)).thenReturn(null);
+            when(fireStationServiceMock.getFloodByStationNumbers(null)).thenReturn(null);
 
             // THEN
             mockMvc.perform(get("/flood/stations")
-                    .param("stations", String.valueOf(listOfStationNumbers)))
+                    .param("stations", (String) null))
                     .andExpect(status().isBadRequest());
         }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  addFireStation tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("addFireStation tests")
+    class AddFireStationTest {
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station " +
+                "WHEN processing a POST /firestation request for this fire station " +
+                "THEN the returned value is the added fire station")
+        public void addFireStationTest_WithSuccess() throws Exception {
+            // GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setStationNumber(3);
+            fireStationToAdd.setAddress("FSCT_New_Address");
+            FireStation addedFireStation = new FireStation();
+            addedFireStation.setFireStationId(3L);
+            addedFireStation.setStationNumber(fireStationToAdd.getStationNumber());
+            addedFireStation.setAddress(fireStationToAdd.getAddress());
+
+            when(fireStationServiceMock.addFireStation(fireStationToAdd))
+                    .thenReturn(fireStationToAdd);
+
+            // THEN
+
+            mockMvc.perform(post("/firestation")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(fireStationToAdd)))
+                    .andExpect(status().isCreated())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a new mapping address/fire station for an existing address in repository " +
+                "WHEN processing a POST /firestation request for this fire station " +
+                "THEN the returned value is null (ie no fire station has been added) " +
+                "and the returned code is 'not created'")
+        public void addFireStationTest_WithExistingFireStation() throws Exception {
+            // GIVEN
+            FireStation fireStationToAdd = new FireStation();
+            fireStationToAdd.setStationNumber(3);
+            fireStationToAdd.setAddress("FSCT_Existing_Address");
+            when(fireStationServiceMock.addFireStation(fireStationToAdd))
+                    .thenReturn(null);
+
+            // THEN
+            mockMvc.perform(post("/firestation")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(fireStationToAdd)))
+                    .andExpect(status().isNoContent());
+        }
+
     }
 
 }

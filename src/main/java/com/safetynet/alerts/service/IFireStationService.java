@@ -34,4 +34,11 @@ public interface IFireStationService {
      * @return the flood for the fire stations
      */
     List<FloodDTO> getFloodByStationNumbers(List<Integer> listOfStationNumbers);
+
+    /**
+     * save a new address / fire station relationship in the repository
+     * @param fireStationToAdd a new address / fire station relationship to add
+     * @return the added fireStation
+     */
+    FireStation addFireStation(FireStation fireStationToAdd);
 }

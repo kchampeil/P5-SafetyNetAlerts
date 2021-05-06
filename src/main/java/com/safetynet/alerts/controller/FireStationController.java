@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,13 +51,13 @@ public class FireStationController {
         FireDTO fireDTO
                 = fireStationService.getFireStationCoverageByAddress(address);
 
-        if (fireDTO==null) {
+        if (fireDTO == null) {
             log.error("error when getting the fire station coverage for address: " + address);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
 
-            if (fireDTO.getPersonCoveredDTOList()==null) {
+            if (fireDTO.getPersonCoveredDTOList() == null) {
                 log.warn("response to GET request on endpoint /fire for address: "
                         + address + " is empty, no fire station coverage information found");
                 return new ResponseEntity<>(fireDTO, HttpStatus.NOT_FOUND);
@@ -84,7 +86,7 @@ public class FireStationController {
         List<FloodDTO> listOfFloodDTO
                 = fireStationService.getFloodByStationNumbers(listOfStationNumbers);
 
-        if (listOfFloodDTO==null) {
+        if (listOfFloodDTO == null) {
             log.error("error when getting the flood for stations: " + listOfStationNumbers);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -102,4 +104,32 @@ public class FireStationController {
             }
         }
     }
+
+
+    /**
+     * Create - Post a new fire station
+     *
+     * @param fireStationToAdd to add to repository
+     */
+    @PostMapping(value = "/firestation")
+    public ResponseEntity<FireStation> addFireStation(@RequestBody FireStation fireStationToAdd) {
+
+        log.info("POST request on endpoint /firestation received for fire station n°"
+                + fireStationToAdd.getStationNumber());
+
+        FireStation addedFireStation = fireStationService.addFireStation(fireStationToAdd);
+
+        if (addedFireStation != null) {
+            log.info("new address/fire station mapping has been saved for fire station n°"
+                    + fireStationToAdd.getStationNumber()
+                    + " with id: " + addedFireStation.getFireStationId());
+            return new ResponseEntity<>(addedFireStation, HttpStatus.CREATED);
+
+        } else {
+            log.error("new address/fire station mapping has not been saved for fire station: "
+                    + fireStationToAdd);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+    }
+
 }

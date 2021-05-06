@@ -138,7 +138,6 @@ public class FireStationService implements IFireStationService {
                                 Map<String, List<Person>> personsGroupedByAddress = listOfPersons.stream().collect(Collectors.groupingBy(Person::getAddress));
 
                                 //then convert to DTO
-                                //TODO checker type de map
                                 Map<String, List<PersonCoveredDTO>> personsCoveredDTOByAddress = new HashMap<>();
                                 FloodDTO floodDTO = new FloodDTO();
                                 for (String address : personsGroupedByAddress.keySet()) {
@@ -172,6 +171,40 @@ public class FireStationService implements IFireStationService {
             }
         } else {
             log.error("a list of station numbers must be specified to get the fire station coverage information");
+            return null;
+        }
+    }
+
+
+    /**
+     * save a new address/fire station in the repository
+     *
+     * @param fireStationToAdd a new address / fire station relationship to add
+     * @return the added fireStation
+     */
+    @Override
+    public FireStation addFireStation(FireStation fireStationToAdd) {
+
+        if (fireStationToAdd != null
+                && fireStationToAdd.getStationNumber() != null
+                && fireStationToAdd.getAddress() != null && !fireStationToAdd.getAddress().isEmpty()) {
+
+            //check the address does not already exist in the repository
+            if (fireStationRepository.findByAddress(fireStationToAdd.getAddress()) == null) {
+                FireStation addedFireStation = fireStationRepository.save(fireStationToAdd);
+                if (addedFireStation.getFireStationId()!=null){
+                    log.info("new address/fire station relationship has been added");
+                }else {
+                    log.info("new address/fire station relationship has not been added");
+                }
+                return addedFireStation;
+            } else {
+                log.error("address: " + fireStationToAdd.getAddress() + " has already one fire station assigned");
+                return null;
+            }
+
+        } else {
+            log.error("all fire station information must be specified for saving");
             return null;
         }
     }
