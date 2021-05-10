@@ -21,7 +21,7 @@ public class DateUtil {
         }
     }
 
-    private LocalDate getCurrentLocalDate() {
+    public LocalDate getCurrentLocalDate() {
         return LocalDate.now();
     }
 
