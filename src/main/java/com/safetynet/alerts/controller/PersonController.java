@@ -210,6 +210,7 @@ public class PersonController {
      * Create - Post a new person
      *
      * @param personDTOToAdd to add to repository
+     * @return the added PersonDTO
      */
     @PostMapping(value = "/person")
     public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTOToAdd) {

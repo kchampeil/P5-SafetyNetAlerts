@@ -386,7 +386,7 @@ public class PersonService implements IPersonService {
 
         PersonDTO addedPersonDTO = null;
 
-        //check if the addedPersonDTO is correctly filled
+        //check if the personDTOToAdd is correctly filled
         if (checkPersonDTO(personDTOToAdd)) {
 
             //check if the person does not already exist in the repository

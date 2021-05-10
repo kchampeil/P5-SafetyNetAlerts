@@ -2,6 +2,7 @@ package com.safetynet.alerts.controller;
 
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
+import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.service.IFireStationService;
 import lombok.extern.slf4j.Slf4j;
@@ -109,26 +110,34 @@ public class FireStationController {
     /**
      * Create - Post a new fire station
      *
-     * @param fireStationToAdd to add to repository
+     * @param fireStationDTOToAdd to add to repository
+     * @return the added FireStationDTO
      */
     @PostMapping(value = "/firestation")
-    public ResponseEntity<FireStation> addFireStation(@RequestBody FireStation fireStationToAdd) {
+    public ResponseEntity<FireStationDTO> addFireStation(@RequestBody FireStationDTO fireStationDTOToAdd) {
 
         log.info("POST request on endpoint /firestation received for fire station n°"
-                + fireStationToAdd.getStationNumber());
+                + fireStationDTOToAdd.getStationNumber());
 
-        FireStation addedFireStation = fireStationService.addFireStation(fireStationToAdd);
+        try {
+            FireStationDTO addedFireStation = fireStationService.addFireStation(fireStationDTOToAdd);
 
-        if (addedFireStation != null) {
-            log.info("new address/fire station mapping has been saved for fire station n°"
-                    + fireStationToAdd.getStationNumber()
-                    + " with id: " + addedFireStation.getFireStationId());
-            return new ResponseEntity<>(addedFireStation, HttpStatus.CREATED);
 
-        } else {
-            log.error("new address/fire station mapping has not been saved for fire station: "
-                    + fireStationToAdd);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            if (addedFireStation != null) {
+                log.info("new address/fire station mapping has been saved for fire station n°"
+                        + fireStationDTOToAdd.getStationNumber()
+                        + " with id: " + addedFireStation.getFireStationId());
+                return new ResponseEntity<>(addedFireStation, HttpStatus.CREATED);
+
+            } else {
+                log.error("new address/fire station mapping has not been saved for fire station: "
+                        + fireStationDTOToAdd);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            //TOASK comment remonter le message de l'exception ?
         }
     }
 

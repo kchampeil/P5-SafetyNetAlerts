@@ -35,6 +35,7 @@ public class MedicalRecordController {
      * Create - Post a new medical record
      *
      * @param medicalRecordToAdd to add to repository
+     * @return the added MedicalRecordDTO
      */
     @PostMapping(value = "/medicalRecord")
     public ResponseEntity<MedicalRecordDTO> addPerson(@RequestBody MedicalRecordDTO medicalRecordToAdd) {

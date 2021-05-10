@@ -1,8 +1,11 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.FireDTO;
+import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
@@ -179,34 +182,45 @@ public class FireStationService implements IFireStationService {
     /**
      * save a new address/fire station in the repository
      *
-     * @param fireStationToAdd a new address / fire station relationship to add
+     * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
      */
     @Override
-    public FireStation addFireStation(FireStation fireStationToAdd) {
+    public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
 
-        if (fireStationToAdd != null
-                && fireStationToAdd.getStationNumber() != null
-                && fireStationToAdd.getAddress() != null && !fireStationToAdd.getAddress().isEmpty()) {
+        FireStationDTO addedFireStationDTO = null;
+
+        //check if the fireStationDTOToAdd is correctly filled
+        if (fireStationDTOToAdd != null
+                && fireStationDTOToAdd.getStationNumber() != null
+                && fireStationDTOToAdd.getAddress() != null && !fireStationDTOToAdd.getAddress().isEmpty()) {
 
             //check the address does not already exist in the repository
-            if (fireStationRepository.findByAddress(fireStationToAdd.getAddress()) == null) {
+            if (fireStationRepository.findByAddress(fireStationDTOToAdd.getAddress()) == null) {
+                //map DTO to DAO, save in repository and map back to FireStationDTO for return
+                ModelMapper modelMapper = new ModelMapper();
+                FireStation fireStationToAdd = modelMapper.map(fireStationDTOToAdd, FireStation.class);
+
                 FireStation addedFireStation = fireStationRepository.save(fireStationToAdd);
-                if (addedFireStation.getFireStationId()!=null){
+                if (addedFireStation.getFireStationId() != null) {
                     log.info("new address/fire station relationship has been added");
-                }else {
+                } else {
                     log.info("new address/fire station relationship has not been added");
                 }
-                return addedFireStation;
+
+                addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
+
             } else {
-                log.error("address: " + fireStationToAdd.getAddress() + " has already one fire station assigned");
-                return null;
+                log.error("address: " + fireStationDTOToAdd.getAddress() + " has already one fire station assigned");
+                throw new AlreadyExistsException("Address: " + fireStationDTOToAdd.getAddress() + " has already one fire station assigned");
             }
 
         } else {
             log.error("all fire station information must be specified for saving");
-            return null;
+            throw new MissingInformationException("All fire station information must be specified for saving");
         }
+
+        return addedFireStationDTO;
     }
 
 

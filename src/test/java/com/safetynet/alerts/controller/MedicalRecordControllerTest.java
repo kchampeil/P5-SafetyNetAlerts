@@ -101,8 +101,7 @@ class MedicalRecordControllerTest {
         @Test
         @DisplayName("GIVEN a medical record with missing firstname " +
                 "WHEN processing a POST /medicalRecord request for this medical record " +
-                "THEN the returned value is null (ie no medical record has been added) " +
-                "and the returned code is 'not created'")
+                "THEN the returned code is 'bad request'")
         public void addMedicalRecordTest_WithMissingInformation() throws Exception {
             // GIVEN
             MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
@@ -132,9 +131,8 @@ class MedicalRecordControllerTest {
         @Test
         @DisplayName("GIVEN a medical record already present in repository " +
                 "WHEN processing a POST /medicalRecord request for this medical record " +
-                "THEN the returned value is null (ie no medical record has been added) " +
-                "and the returned code is 'bad request'")
-        public void addMedicalRecordTest_AlreadyExisting() throws AlreadyExistsException, MissingInformationException, Exception {
+                "THEN the returned code is 'bad request'")
+        public void addMedicalRecordTest_AlreadyExisting() throws Exception {
             // GIVEN
             MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setFirstName("MRCT_Existing_first_name");

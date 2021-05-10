@@ -459,8 +459,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN a person with missing firstname " +
                 "WHEN processing a POST /person request for this person " +
-                "THEN the returned value is null (ie no person has been added) " +
-                "and the returned code is 'bad request'")
+                "THEN the returned code is 'bad request'")
         public void addPersonTest_WithMissingInformation() throws Exception {
             // GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();
@@ -485,8 +484,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN a person already present in repository " +
                 "WHEN processing a POST /person request for this person " +
-                "THEN the returned value is null (ie no person has been added) " +
-                "and the returned code is 'bad request'")
+                "THEN the returned code is 'bad request'")
         public void addPersonTest_AlreadyExisting() throws Exception {
             // GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();

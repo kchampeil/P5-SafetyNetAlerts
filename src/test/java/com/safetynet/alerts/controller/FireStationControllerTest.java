@@ -2,14 +2,17 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.TestConstants;
-import com.safetynet.alerts.model.FireStation;
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.FireDTO;
+import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
 import com.safetynet.alerts.service.FireStationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -209,46 +213,67 @@ class FireStationControllerTest {
                 "THEN the returned value is the added fire station")
         public void addFireStationTest_WithSuccess() throws Exception {
             // GIVEN
-            FireStation fireStationToAdd = new FireStation();
-            fireStationToAdd.setStationNumber(3);
-            fireStationToAdd.setAddress("FSCT_New_Address");
-            FireStation addedFireStation = new FireStation();
-            addedFireStation.setFireStationId(3L);
-            addedFireStation.setStationNumber(fireStationToAdd.getStationNumber());
-            addedFireStation.setAddress(fireStationToAdd.getAddress());
+            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
+            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setAddress("FSCT_New_Address");
+            FireStationDTO addedFireStationDTO = new FireStationDTO();
+            addedFireStationDTO.setFireStationId(3L);
+            addedFireStationDTO.setStationNumber(fireStationDTOToAdd.getStationNumber());
+            addedFireStationDTO.setAddress(fireStationDTOToAdd.getAddress());
 
-            when(fireStationServiceMock.addFireStation(fireStationToAdd))
-                    .thenReturn(fireStationToAdd);
+            when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
+                    .thenReturn(addedFireStationDTO);
 
             // THEN
 
             mockMvc.perform(post("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(fireStationToAdd)))
+                    .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a fire station with missing address " +
+                "WHEN processing a POST /firestation request for this fire station " +
+                "THEN the returned code is 'bad request'")
+        public void addFireStationTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
+            fireStationDTOToAdd.setStationNumber(3);
+
+            when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
+                    .thenThrow(new MissingInformationException("Address is missing"));
+
+            // THEN
+            mockMvc.perform(post("/firestation")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
+                    .andExpect(status().isBadRequest());
         }
 
 
         @Test
         @DisplayName("GIVEN a new mapping address/fire station for an existing address in repository " +
                 "WHEN processing a POST /firestation request for this fire station " +
-                "THEN the returned value is null (ie no fire station has been added) " +
-                "and the returned code is 'not created'")
+                "THEN the returned code is 'bad request'")
         public void addFireStationTest_WithExistingFireStation() throws Exception {
             // GIVEN
-            FireStation fireStationToAdd = new FireStation();
-            fireStationToAdd.setStationNumber(3);
-            fireStationToAdd.setAddress("FSCT_Existing_Address");
-            when(fireStationServiceMock.addFireStation(fireStationToAdd))
-                    .thenReturn(null);
+            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
+            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setAddress("FSCT_Existing_Address");
+            when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
+                    .thenThrow(new AlreadyExistsException("Person already exists"));
 
             // THEN
             mockMvc.perform(post("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(fireStationToAdd)))
-                    .andExpect(status().isNoContent());
+                    .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
+                    .andExpect(status().isBadRequest());
+            verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
         }
 
     }

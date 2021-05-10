@@ -1,7 +1,10 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
+import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 
 import java.util.List;
@@ -40,5 +43,5 @@ public interface IFireStationService {
      * @param fireStationToAdd a new address / fire station relationship to add
      * @return the added fireStation
      */
-    FireStation addFireStation(FireStation fireStationToAdd);
+    FireStationDTO addFireStation(FireStationDTO fireStationToAdd) throws AlreadyExistsException, MissingInformationException;
 }
