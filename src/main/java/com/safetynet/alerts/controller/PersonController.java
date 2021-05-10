@@ -2,8 +2,8 @@ package com.safetynet.alerts.controller;
 
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
-
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
+import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.IPersonService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -184,13 +186,13 @@ public class PersonController {
         FireStationCoverageDTO fireStationCoverageDTO
                 = personService.getFireStationCoverageByStationNumber(stationNumber);
 
-        if (fireStationCoverageDTO==null) {
+        if (fireStationCoverageDTO == null) {
             log.error("error when getting the fire station coverage for fire station n°: " + stationNumber);
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
 
-            if (fireStationCoverageDTO.getPersonCoveredContactsDTOList()==null) {
+            if (fireStationCoverageDTO.getPersonCoveredContactsDTOList() == null) {
                 log.warn("response to GET request on endpoint /firestation for fire station n°: "
                         + stationNumber + " is empty, no fire station coverage information found");
                 return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.NOT_FOUND);
@@ -201,6 +203,38 @@ public class PersonController {
                 return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.OK);
             }
         }
+    }
+
+
+    /**
+     * Create - Post a new person
+     *
+     * @param personDTOToAdd to add to repository
+     */
+    @PostMapping(value = "/person")
+    public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTOToAdd) {
+
+        log.info("POST request on endpoint /person received for person "
+                + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName());
+
+        try {
+            PersonDTO addedPerson = personService.addPerson(personDTOToAdd);
+
+            if (addedPerson != null) {
+                log.info("new person " + personDTOToAdd.getFirstName() + personDTOToAdd.getLastName() + " has been saved "
+                        + " with id: " + addedPerson.getPersonId());
+                return new ResponseEntity<>(addedPerson, HttpStatus.CREATED);
+            } else {
+                log.error("new person " + personDTOToAdd + " has not been saved");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            //TOASK comment remonter le message de l'exception ?
+        }
+
     }
 
 }

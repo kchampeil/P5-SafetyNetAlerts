@@ -1,14 +1,19 @@
 package com.safetynet.alerts.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
+import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,8 +28,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,6 +45,8 @@ class PersonControllerTest {
 
     @MockBean
     private PersonService personServiceMock;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("WHEN asking for the list of persons (GET) THEN return status is ok")
@@ -329,22 +338,22 @@ class PersonControllerTest {
             List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
 
             PersonCoveredContactsDTO personCoveredContactsDTO1 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO1.setFirstName("PST_first_name_1");
-            personCoveredContactsDTO1.setLastName("PST_last_name_1");
-            personCoveredContactsDTO1.setAddress("PST_Address_1");
+            personCoveredContactsDTO1.setFirstName("PCT_first_name_1");
+            personCoveredContactsDTO1.setLastName("PCT_last_name_1");
+            personCoveredContactsDTO1.setAddress("PCT_Address_1");
             personCoveredContactsDTO1.setPhone("33 1 23 45 67 89");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO1);
 
             PersonCoveredContactsDTO personCoveredContactsDTO2 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO2.setFirstName("PST_first_name_2");
-            personCoveredContactsDTO2.setLastName("PST_last_name_2");
-            personCoveredContactsDTO2.setAddress("PST_Address_2");
+            personCoveredContactsDTO2.setFirstName("PCT_first_name_2");
+            personCoveredContactsDTO2.setLastName("PCT_last_name_2");
+            personCoveredContactsDTO2.setAddress("PCT_Address_2");
             personCoveredContactsDTO2.setPhone("33 1 98 76 54 32");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO2);
 
             PersonCoveredContactsDTO personCoveredContactsDTO3 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO3.setFirstName("PST_first_name_3");
-            personCoveredContactsDTO3.setLastName("PST_last_name_3");
+            personCoveredContactsDTO3.setFirstName("PCT_first_name_3");
+            personCoveredContactsDTO3.setLastName("PCT_last_name_3");
             personCoveredContactsDTO3.setAddress(personCoveredContactsDTO2.getAddress());
             personCoveredContactsDTO3.setPhone("33 1 99 99 99 99");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO3);
@@ -399,6 +408,107 @@ class PersonControllerTest {
                     .param("stationNumber", String.valueOf(999)))
                     .andExpect(status().isBadRequest());
         }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  addPerson tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("addPerson tests")
+    class AddPersonTest {
+        @Test
+        @DisplayName("GIVEN a person not already present in repository " +
+                "WHEN processing a POST /person request for this person " +
+                "THEN the returned value is the added person")
+        public void addPersonTest_WithSuccess() throws Exception {
+            // GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setFirstName("PCT_first_name");
+            personDTOToAdd.setLastName("PCT_last_name");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            PersonDTO addedPersonDTO = new PersonDTO();
+            addedPersonDTO.setPersonId(100L);
+            addedPersonDTO.setFirstName(personDTOToAdd.getFirstName());
+            addedPersonDTO.setLastName(personDTOToAdd.getLastName());
+            addedPersonDTO.setAddress(personDTOToAdd.getAddress());
+            addedPersonDTO.setEmail(personDTOToAdd.getEmail());
+            addedPersonDTO.setPhone(personDTOToAdd.getPhone());
+            addedPersonDTO.setCity(personDTOToAdd.getCity());
+            addedPersonDTO.setZip(personDTOToAdd.getZip());
+
+            when(personServiceMock.addPerson(personDTOToAdd))
+                    .thenReturn(addedPersonDTO);
+
+            // THEN
+            mockMvc.perform(post("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToAdd)))
+                    .andExpect(status().isCreated())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1)).addPerson(personDTOToAdd);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person with missing firstname " +
+                "WHEN processing a POST /person request for this person " +
+                "THEN the returned value is null (ie no person has been added) " +
+                "and the returned code is 'bad request'")
+        public void addPersonTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setLastName("PCT_last_name");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            when(personServiceMock.addPerson(personDTOToAdd))
+                    .thenThrow(new MissingInformationException("Firstname is missing"));
+
+            // THEN
+            mockMvc.perform(post("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToAdd)))
+                    .andExpect(status().isBadRequest());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person already present in repository " +
+                "WHEN processing a POST /person request for this person " +
+                "THEN the returned value is null (ie no person has been added) " +
+                "and the returned code is 'bad request'")
+        public void addPersonTest_AlreadyExisting() throws Exception {
+            // GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setFirstName("PCT_Existing_first_name");
+            personDTOToAdd.setLastName("PCT_Existing_last_name");
+            personDTOToAdd.setAddress("PCT_Existing_address");
+            personDTOToAdd.setEmail("PCT_Existing_email@safety.com");
+            personDTOToAdd.setPhone("PCT_Existing_phone");
+            personDTOToAdd.setCity("PCT_Existing_city");
+            personDTOToAdd.setZip("PCT_Existing_zip");
+
+            when(personServiceMock.addPerson(personDTOToAdd))
+                    .thenThrow(new AlreadyExistsException("Person already exists"));
+
+            // THEN
+            mockMvc.perform(post("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToAdd)))
+                    .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1)).addPerson(personDTOToAdd);
+        }
+
     }
 
 }

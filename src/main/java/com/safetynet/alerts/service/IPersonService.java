@@ -1,8 +1,11 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.exceptions.MissingInformationException;
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
+import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 
 import java.util.List;
@@ -70,4 +73,11 @@ public interface IPersonService {
      * completed with a count of adults and children
      */
     FireStationCoverageDTO getFireStationCoverageByStationNumber(Integer stationNumber);
+
+    /**
+     * save a new person in the repository
+     * @param personToAdd a new person to add
+     * @return the added Person
+     */
+    PersonDTO addPerson(PersonDTO personToAdd) throws Exception, AlreadyExistsException, MissingInformationException;
 }

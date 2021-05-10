@@ -1,11 +1,16 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.exceptions.MissingInformationException;
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
+import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
+import com.safetynet.alerts.repository.FireStationRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +29,11 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -37,6 +45,9 @@ class PersonServiceTest {
 
     @MockBean
     private PersonRepository personRepositoryMock;
+
+    @MockBean
+    private FireStationRepository fireStationRepositoryMock;
 
     @Autowired
     private PersonService personService;
@@ -193,7 +204,7 @@ class PersonServiceTest {
             when(personRepositoryMock.findAllByCity(null)).thenReturn(null);
 
             //THEN
-            assertThat(personService.getAllEmailsByCity(null)).isNull();
+            assertNull(personService.getAllEmailsByCity(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByCity(null);
         }
 
@@ -206,7 +217,7 @@ class PersonServiceTest {
             when(personRepositoryMock.findAllByCity("")).thenReturn(null);
 
             //THEN
-            assertThat(personService.getAllEmailsByCity("")).isNull();
+            assertNull(personService.getAllEmailsByCity(""));
             verify(personRepositoryMock, Mockito.times(0)).findAllByCity("");
         }
     }
@@ -474,7 +485,7 @@ class PersonServiceTest {
             when(personRepositoryMock.findAllByFireStation_StationNumber(null)).thenReturn(null);
 
             //THEN
-            assertThat(personService.getPhoneAlertByFireStation(null)).isNull();
+            assertNull(personService.getPhoneAlertByFireStation(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
         }
 
@@ -533,7 +544,7 @@ class PersonServiceTest {
 
             //THEN
             assertEquals(3, fireStationCoverageDTO.getPersonCoveredContactsDTOList().size());
-            assertEquals(2,fireStationCoverageDTO.getNumberOfAdults());
+            assertEquals(2, fireStationCoverageDTO.getNumberOfAdults());
             assertEquals(1, fireStationCoverageDTO.getNumberOfChildren());
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(3);
         }
@@ -550,9 +561,9 @@ class PersonServiceTest {
             FireStationCoverageDTO fireStationCoverageDTO = personService.getFireStationCoverageByStationNumber(999);
 
             //THEN
-            assertThat(fireStationCoverageDTO.getPersonCoveredContactsDTOList()).isNull();
-            assertEquals(0,fireStationCoverageDTO.getNumberOfAdults());
-            assertEquals(0,fireStationCoverageDTO.getNumberOfChildren());
+            assertNull(fireStationCoverageDTO.getPersonCoveredContactsDTOList());
+            assertEquals(0, fireStationCoverageDTO.getNumberOfAdults());
+            assertEquals(0, fireStationCoverageDTO.getNumberOfChildren());
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(999);
         }
 
@@ -565,10 +576,162 @@ class PersonServiceTest {
             when(personRepositoryMock.findAllByFireStation_StationNumber(null)).thenReturn(null);
 
             //THEN
-            assertThat(personService.getFireStationCoverageByStationNumber(null)).isNull();
+            assertNull(personService.getFireStationCoverageByStationNumber(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
         }
 
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  addPerson tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("addPerson tests")
+    class AddPersonTest {
+        @Test
+        @DisplayName("GIVEN a new person to add " +
+                "WHEN saving this new person " +
+                "THEN the returned value is the added person")
+        public void addPersonTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
+            //GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setFirstName("PCT_first_name");
+            personDTOToAdd.setLastName("PCT_last_name");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            Person expectedAddedPerson = new Person();
+            expectedAddedPerson.setPersonId(100L);
+            expectedAddedPerson.setFirstName(personDTOToAdd.getFirstName());
+            expectedAddedPerson.setLastName(personDTOToAdd.getLastName());
+            expectedAddedPerson.setAddress(personDTOToAdd.getAddress());
+            expectedAddedPerson.setEmail(personDTOToAdd.getEmail());
+            expectedAddedPerson.setPhone(personDTOToAdd.getPhone());
+            expectedAddedPerson.setCity(personDTOToAdd.getCity());
+            expectedAddedPerson.setZip(personDTOToAdd.getZip());
+            FireStation fireStation = new FireStation();
+            fireStation.setFireStationId(100L);
+            fireStation.setStationNumber(73);
+            fireStation.setAddress(personDTOToAdd.getAddress());
+            expectedAddedPerson.setFireStation(fireStation);
+
+            List<Person> listOfPersons = new ArrayList<>();
+
+            when(personRepositoryMock
+                    .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName()))
+                    .thenReturn(listOfPersons);
+            when(fireStationRepositoryMock
+                    .findByAddress(personDTOToAdd.getAddress())).thenReturn(fireStation);
+            when(personRepositoryMock.save(any(Person.class))).thenReturn(expectedAddedPerson);
+
+            //WHEN
+            PersonDTO addedPersonDTO = personService.addPerson(personDTOToAdd);
+
+            //THEN
+            personDTOToAdd.setPersonId(expectedAddedPerson.getPersonId());
+            assertEquals(personDTOToAdd, addedPersonDTO);
+            assertNotNull(addedPersonDTO.getPersonId());
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToAdd.getAddress());
+            verify(personRepositoryMock, Mockito.times(1)).save(any(Person.class));
+
+        }
+
+        @Test
+        @DisplayName("GIVEN a person already present in repository " +
+                "WHEN saving this new person " +
+                "THEN an AlreadyExistsException is thrown")
+        public void addPersonTest_WithExistingPersonInRepository() {
+            //GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setFirstName("PCT_first_name_Already_Present");
+            personDTOToAdd.setLastName("PCT_last_name_Already_Present");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email_Already_Present@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            List<Person> listOfPersons = new ArrayList<>();
+            Person existingPerson = new Person();
+            person.setPersonId(1L);
+            person.setFirstName(personDTOToAdd.getFirstName());
+            person.setLastName(personDTOToAdd.getLastName());
+            listOfPersons.add(existingPerson);
+
+            when(personRepositoryMock
+                    .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName()))
+                    .thenReturn(listOfPersons);
+
+            //THEN
+            assertThrows(AlreadyExistsException.class, () -> personService.addPerson(personDTOToAdd));
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN an empty person " +
+                "WHEN saving this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void addPersonTest_WithMissingPersonInformation() throws AlreadyExistsException, MissingInformationException {
+            //GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null,null);
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a new person without firstname " +
+                "WHEN saving this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void addPersonTest_WithoutFirstName() throws AlreadyExistsException, MissingInformationException {
+            //GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setLastName("PCT_last_name");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null,personDTOToAdd.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a new person without lastname " +
+                "WHEN saving this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void addPersonTest_WithoutLastName() throws AlreadyExistsException, MissingInformationException {
+            //GIVEN
+            PersonDTO personDTOToAdd = new PersonDTO();
+            personDTOToAdd.setFirstName("PCT_first_name");
+            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setEmail("PCT_email@safety.com");
+            personDTOToAdd.setPhone("PCT_phone");
+            personDTOToAdd.setCity("PCT_city");
+            personDTOToAdd.setZip("PCT_zip");
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(),null);
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
     }
 
 }

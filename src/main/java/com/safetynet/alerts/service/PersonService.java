@@ -1,11 +1,15 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.exceptions.MissingInformationException;
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
+import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
+import com.safetynet.alerts.repository.FireStationRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +31,9 @@ public class PersonService implements IPersonService {
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private FireStationRepository fireStationRepository;
 
     /**
      * save a list of persons in DB
@@ -365,6 +372,67 @@ public class PersonService implements IPersonService {
             log.error("a fire station number must be specified to get the list of person information");
             return null;
         }
+    }
+
+
+    /**
+     * save a new person in the repository
+     *
+     * @param personDTOToAdd a new person to add
+     * @return the added Person
+     */
+    @Override
+    public PersonDTO addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
+
+        PersonDTO addedPersonDTO = null;
+
+        //check if the addedPersonDTO is correctly filled
+        if (checkPersonDTO(personDTOToAdd)) {
+
+            //check if the person does not already exist in the repository
+            List<Person> listOfPersons =
+                    personRepository.findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName());
+
+            if (listOfPersons.size() == 0) {
+                //map DTO to DAO, add the covering fire station if exists,
+                //save in repository and map back to PersonDTO for return
+                ModelMapper modelMapper = new ModelMapper();
+                Person personToAdd = modelMapper.map(personDTOToAdd, Person.class);
+
+                personToAdd.setFireStation(fireStationRepository.findByAddress(personToAdd.getAddress()));
+
+                Person addedPerson = personRepository.save(personToAdd);
+
+                addedPersonDTO = modelMapper.map(addedPerson, PersonDTO.class);
+
+            } else {
+                log.error("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+                throw new AlreadyExistsException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+            }
+
+        } else {
+            log.error("All person information must be specified for saving");
+            throw new MissingInformationException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+        }
+
+        return addedPersonDTO;
+    }
+
+
+    /**
+     * check if personDTO input is correct
+     *
+     * @param personDTO personDTO information to be checked
+     * @return true if correct
+     */
+    private boolean checkPersonDTO(PersonDTO personDTO) {
+        return personDTO.getFirstName() != null && !personDTO.getFirstName().isEmpty()
+                && personDTO.getLastName() != null && !personDTO.getLastName().isEmpty()
+                && personDTO.getAddress() != null && !personDTO.getAddress().isEmpty()
+                && personDTO.getCity() != null && !personDTO.getCity().isEmpty()
+                && personDTO.getZip() != null && !personDTO.getZip().isEmpty()
+                && personDTO.getEmail() != null && !personDTO.getEmail().isEmpty()
+                && personDTO.getPhone() != null && !personDTO.getPhone().isEmpty();
     }
 
 }
