@@ -1,8 +1,10 @@
 package com.safetynet.alerts.model.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class PersonCoveredContactsDTO {
 
     private String firstName;

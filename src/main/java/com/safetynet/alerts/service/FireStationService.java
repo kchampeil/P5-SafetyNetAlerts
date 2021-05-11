@@ -202,11 +202,6 @@ public class FireStationService implements IFireStationService {
                 FireStation fireStationToAdd = modelMapper.map(fireStationDTOToAdd, FireStation.class);
 
                 FireStation addedFireStation = fireStationRepository.save(fireStationToAdd);
-                if (addedFireStation.getFireStationId() != null) {
-                    log.info("new address/fire station relationship has been added");
-                } else {
-                    log.info("new address/fire station relationship has not been added");
-                }
 
                 addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
 
