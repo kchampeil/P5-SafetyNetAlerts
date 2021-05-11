@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,14 +25,16 @@ public class MedicalRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long medicalRecordId;
 
+    @Column(name="first_name", nullable = false)
     private String firstName;
 
+    @Column(name="last_name", nullable = false)
     private String lastName;
 
-    //TO-DO à voir si là ou dans Person comme initialement prévu
     @JsonProperty("birthdate")
     @JsonFormat(pattern = "MM/dd/yyyy")
     @JsonDeserialize(using = LocalDateDeserializer.class)
+    @Column(name="birth_date", nullable = false)
     private LocalDate birthDate;
 
     @ElementCollection

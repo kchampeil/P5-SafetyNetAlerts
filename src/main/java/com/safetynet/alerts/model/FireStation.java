@@ -3,6 +3,7 @@ package com.safetynet.alerts.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,11 +20,10 @@ public class FireStation {
     private Long fireStationId;
 
     @JsonProperty("station")
+    @Column(name="station_number", nullable = false)
     private Integer stationNumber;
 
-    //@ElementCollection
-    //private List<String> address;
-    //TODO revoir le modèle dans doc une ligne par address et pas une liste d'adresse associée à la station
+    @Column(name="address", nullable = false)
     private String address;
 
 }

@@ -87,8 +87,8 @@ public class JsonParserService implements IFileParserService {
                         log.info(listOfPersons.size() + " person(s) found");
 
                         // map the persons with their medical record and with their fire station
-                        listOfPersons = mapMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
-                        listOfPersons = mapFireStationToPerson(listOfPersons, listOfFireStations);
+                        listOfPersons = associateMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
+                        listOfPersons = associateFireStationToPerson(listOfPersons, listOfFireStations);
 
                         //and save person data in DB
                         personService.saveListOfPersons(listOfPersons);
@@ -201,20 +201,18 @@ public class JsonParserService implements IFileParserService {
      * @param listOfMedicalRecords list of all medical records
      * @return listOfPersons populated with relative medical records
      */
-    private List<Person> mapMedicalRecordToPerson(List<Person> listOfPersons, List<MedicalRecord> listOfMedicalRecords) {
-        for (Person person : listOfPersons) {
-            for (MedicalRecord medicalRecord : listOfMedicalRecords) {
-                if (person.getFirstName().equals(medicalRecord.getFirstName())
-                        && person.getLastName().equals(medicalRecord.getLastName())) {
-                    person.setMedicalRecord(medicalRecord);
-                    break;
-                }
-            }
+    private List<Person> associateMedicalRecordToPerson(List<Person> listOfPersons, List<MedicalRecord> listOfMedicalRecords) {
+        listOfPersons.forEach(person -> {
+            listOfMedicalRecords.stream()
+                    .filter(medicalRecord -> person.getFirstName().equals(medicalRecord.getFirstName())
+                            && person.getLastName().equals(medicalRecord.getLastName()))
+                    .findFirst()
+                    .ifPresent(person::setMedicalRecord);
             if (person.getMedicalRecord() == null) {
                 log.warn("no medical record found for "
                         + person.getFirstName() + " " + person.getLastName());
             }
-        }
+        });
         return listOfPersons;
     }
 
@@ -227,20 +225,18 @@ public class JsonParserService implements IFileParserService {
      * @param listOfFireStations list of all fire stations
      * @return listOfPersons populated with the fire station they are attached to
      */
-    private List<Person> mapFireStationToPerson(List<Person> listOfPersons, List<FireStation> listOfFireStations) {
-        for (Person person : listOfPersons) {
-            for (FireStation fireStation : listOfFireStations) {
-                if (person.getAddress().equals(fireStation.getAddress())) {
-                    person.setFireStation(fireStation);
-                    break;
-                }
-            }
+    private List<Person> associateFireStationToPerson(List<Person> listOfPersons, List<FireStation> listOfFireStations) {
+        listOfPersons.forEach(person -> {
+            listOfFireStations.stream()
+                    .filter(fireStation -> person.getAddress().equals(fireStation.getAddress()))
+                    .findFirst()
+                    .ifPresent(person::setFireStation);
             if (person.getAddress() == null) {
                 log.warn("no fire station found for "
                         + person.getFirstName() + " " + person.getLastName()
                         + " at " + person.getAddress());
             }
-        }
+        });
         return listOfPersons;
     }
 
