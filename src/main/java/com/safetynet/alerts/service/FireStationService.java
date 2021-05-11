@@ -41,30 +41,50 @@ public class FireStationService implements IFireStationService {
      * @return true if data saved, else false
      */
     @Override
-    public boolean saveListOfFireStations(List<FireStation> listOfFireStations) {
+    public Iterable<FireStation> saveListOfFireStations(List<FireStation> listOfFireStations) {
+
         try {
-            fireStationRepository.saveAll(listOfFireStations);
-            return true;
+             return fireStationRepository.saveAll(listOfFireStations);
         } catch (IllegalArgumentException e) {
             log.error("error when saving the list of fire stations in DB : " + e.getMessage() + "\n");
-            return false;
+            return null;
         }
+
     }
 
 
     /**
      * allow getting the list of all fire stations found in DB
      *
-     * @return a list of FireStation
+     * @return a list of FireStationDTO
      */
     @Override
-    public Iterable<FireStation> getAllFireStations() {
+    public Iterable<FireStationDTO> getAllFireStations() {
+        List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
+
         try {
-            return fireStationRepository.findAll();
+            Iterable<FireStation> listOfFireStations = fireStationRepository.findAll();
+            listOfFireStations.forEach(fireStation ->
+                    listOfFireStationsDTO
+                            .add(mapFireStationToFireStationDTO(fireStation)));
+
         } catch (Exception exception) {
             log.error("error when getting the list of fire stations " + exception.getMessage() + "\n");
-            return null;
         }
+
+        return listOfFireStationsDTO;
+    }
+
+
+    /**
+     * map the FireStation object to the FireStationDTO object
+     *
+     * @param fireStation FireStation object to be mapped to FireStationDTO
+     * @return a FireStationDTO
+     */
+    private FireStationDTO mapFireStationToFireStationDTO(FireStation fireStation) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(fireStation, FireStationDTO.class);
     }
 
 
@@ -89,7 +109,7 @@ public class FireStationService implements IFireStationService {
                     List<PersonCoveredDTO> personCoveredDTOList = new ArrayList<>();
                     listOfPersons.forEach(person -> {
                                 person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-                                personCoveredDTOList.add(mapToPersonCoveredDTO(person));
+                                personCoveredDTOList.add(mapPersonToPersonCoveredDTO(person));
                             }
                     );
 
@@ -148,7 +168,7 @@ public class FireStationService implements IFireStationService {
                                     for (Map.Entry<String, List<Person>> listOfPersonsForAddress : personsGroupedByAddress.entrySet()) {
                                         for (Person person : listOfPersonsForAddress.getValue()) {
                                             person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-                                            personCoveredDTOList.add(mapToPersonCoveredDTO(person));
+                                            personCoveredDTOList.add(mapPersonToPersonCoveredDTO(person));
                                         }
                                     }
                                     personsCoveredDTOByAddress.put(address, personCoveredDTOList);
@@ -184,6 +204,7 @@ public class FireStationService implements IFireStationService {
      *
      * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
+     * @throws AlreadyExistsException, MissingInformationException
      */
     @Override
     public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -225,7 +246,7 @@ public class FireStationService implements IFireStationService {
      * @param person person information to be mapped to PersonCoveredDTO
      * @return a PersonCoveredDTO
      */
-    private PersonCoveredDTO mapToPersonCoveredDTO(Person person) {
+    private PersonCoveredDTO mapPersonToPersonCoveredDTO(Person person) {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.typeMap(Person.class, PersonCoveredDTO.class).addMappings(mapper -> {
             mapper.map(src -> src.getMedicalRecord().getMedications(), PersonCoveredDTO::setMedications);

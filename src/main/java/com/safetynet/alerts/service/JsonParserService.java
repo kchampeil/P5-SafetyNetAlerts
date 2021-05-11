@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class JsonParserService implements IFileParserService {
-    
+
     @Autowired
     private PersonService personService;
 
@@ -44,7 +44,7 @@ public class JsonParserService implements IFileParserService {
     public void readDataFromFile() {
 
         // read JSON file
-        log.info(" Reading JSON file ");
+        log.info("Reading JSON file");
         try {
 
             InputStream jsonData = getClass().getClassLoader().getResourceAsStream(this.dataInputFilePath);
@@ -56,35 +56,35 @@ public class JsonParserService implements IFileParserService {
 
                     //read medical records, save medical record data in DB
                     // and get back the list of medical records with their IDs in DB
-                    log.info(" reading MedicalRecords in file");
+                    log.info("  reading MedicalRecords in file");
                     List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
 
                     if (!listOfMedicalRecords.isEmpty()) {
-                        log.info(listOfMedicalRecords.size() + " medical record(s) found");
-                        medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
-                        listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.getAllMedicalRecords();
+                        log.info("    " + listOfMedicalRecords.size() + " medical record(s) found");
+                        listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
+                        log.info("    " + listOfMedicalRecords.size() + " medical record(s) saved");
                     } else {
-                        log.error("no medical record data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no medical record data found in file " + this.dataInputFilePath);
                     }
 
                     //read fire stations and save fire station data in DB
-                    log.info("reading FireStations in file");
+                    log.info("  reading FireStations in file");
                     List<FireStation> listOfFireStations = readFireStationsFromJsonFile(rootNode);
 
                     if (!listOfFireStations.isEmpty()) {
-                        log.info(listOfFireStations.size() + " fire station(s) found");
-                        fireStationService.saveListOfFireStations(listOfFireStations);
-                        listOfFireStations = (List<FireStation>) fireStationService.getAllFireStations();
+                        log.info("    " + listOfFireStations.size() + " fire station(s) found");
+                        listOfFireStations = (List<FireStation>) fireStationService.saveListOfFireStations(listOfFireStations);
+                        log.info("    " + listOfFireStations.size() + " fire station(s) saved");
                     } else {
-                        log.error("no fire station data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no fire station data found in file " + this.dataInputFilePath);
                     }
 
                     //read persons in Json file
-                    log.info("reading Persons in file");
+                    log.info("  reading Persons in file");
                     List<Person> listOfPersons = readPersonsFromJsonFile(rootNode);
 
                     if (!listOfPersons.isEmpty()) {
-                        log.info(listOfPersons.size() + " person(s) found");
+                        log.info("    " + listOfPersons.size() + " person(s) found");
 
                         // map the persons with their medical record and with their fire station
                         listOfPersons = associateMedicalRecordToPerson(listOfPersons, listOfMedicalRecords);
@@ -92,17 +92,18 @@ public class JsonParserService implements IFileParserService {
 
                         //and save person data in DB
                         personService.saveListOfPersons(listOfPersons);
+                        log.info("    " + listOfPersons.size() + " person(s) saved");
 
                     } else {
-                        log.error("no person data found in file " + this.dataInputFilePath + "\n");
+                        log.error("no person data found in file " + this.dataInputFilePath);
                     }
 
-                    log.info(" End of Reading JSON file ");
+                    log.info("End of Reading JSON file \n");
                 } else {
-                    log.error("input data file " + this.dataInputFilePath + " is empty");
+                    log.error("input data file " + this.dataInputFilePath + " is empty \n");
                 }
             } else {
-                log.error("input data file " + this.dataInputFilePath + " not found");
+                log.error("input data file " + this.dataInputFilePath + " not found \n");
             }
 
         } catch (IOException e) {

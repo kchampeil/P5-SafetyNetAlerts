@@ -15,14 +15,14 @@ public interface IMedicalRecordService {
      * @param listOfMedicalRecords list to be saved in DB
      * @return true if data saved, else false
      */
-    boolean saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords);
+    Iterable<MedicalRecord> saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords);
 
     /**
      * allow getting the list of all medical records found in DB
      *
      * @return a list of MedicalRecord
      */
-    Iterable<MedicalRecord> getAllMedicalRecords();
+    Iterable<MedicalRecordDTO> getAllMedicalRecords();
 
     /**
      * save a new medical record in the repository

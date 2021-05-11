@@ -22,12 +22,11 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -64,33 +63,35 @@ class MedicalRecordServiceTest {
 
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  saveListOfMedicalRecords tests
-     * ----------------------------------------------------------------------------------------------------------------------
-     * GIVEN a consistent list of medical records
-     * THEN it is saved in DB and return code is true
-     *
-     * GIVEN an exception when processing
-     * THEN no data is saved in DB and return code is false
-     * -------------------------------------------------------------------------------------------------------------------- */
+     * ---------------------------------------------------------------------------------------------------------------------- */
 
     @Nested
     @DisplayName("saveListOfMedicalRecords tests")
     class saveListOfMedicalRecordsTest {
         @Test
 
-        @DisplayName("GIVEN a consistent list of medical records THEN it is saved in DB and return code is true")
+        @DisplayName("GIVEN a consistent list of medical records " +
+                "WHEN saving the list of medical records " +
+                "THEN it is saved in DB and the saved list of medical records is returned")
         public void saveListOfMedicalRecordsTest_WithConsistentList() {
             //GIVEN
             List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
             listOfMedicalRecords.add(medicalRecord);
+            when(medicalRecordRepositoryMock.saveAll(listOfMedicalRecords)).thenReturn(listOfMedicalRecords);
+
+            //WHEN
+            Iterable<MedicalRecord> savedListOfMedicalRecords = medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
 
             //THEN
-            assertTrue(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
+            assertNotNull(savedListOfMedicalRecords);
+            assertThat(savedListOfMedicalRecords).isNotEmpty();
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
 
         @Test
-        @DisplayName("GIVEN an exception when processing THEN no data is saved in DB and return code is false")
+        @DisplayName("GIVEN an exception when processing WHEN saving the list of medical records " +
+                "THEN no data is saved in DB and return code is false")
         public void saveListOfMedicalRecordsTest_WithException() {
             //GIVEN
             List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
@@ -98,7 +99,7 @@ class MedicalRecordServiceTest {
             when(medicalRecordRepositoryMock.saveAll(listOfMedicalRecords)).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertFalse(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
+            assertNull(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
@@ -112,27 +113,39 @@ class MedicalRecordServiceTest {
     @DisplayName("getAllMedicalRecords tests")
     class GetAllMedicalRecordsTest {
         @Test
-        @DisplayName("GIVEN medical records in DB WHEN processing a GET /medicalrecords request THEN a list of medical records is returned")
+        @DisplayName("GIVEN medical records in DB WHEN asking for all medical records " +
+                "THEN a list of medical records is returned")
         public void getAllMedicalRecordsTest_WithMedicalRecordDataInDb() {
             //GIVEN
-            List<MedicalRecord> expectedListOfMedicalRecords = new ArrayList<>();
-            expectedListOfMedicalRecords.add(medicalRecord);
-            when(medicalRecordRepositoryMock.findAll()).thenReturn(expectedListOfMedicalRecords);
+            List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
+            medicalRecord.setMedicalRecordId(100L);
+            listOfMedicalRecords.add(medicalRecord);
+            when(medicalRecordRepositoryMock.findAll()).thenReturn(listOfMedicalRecords);
+
+            List<MedicalRecordDTO> expectedListOfMedicalRecordsDTO = new ArrayList<>();
+            MedicalRecordDTO medicalRecordDTO = new MedicalRecordDTO();
+            medicalRecordDTO.setMedicalRecordId(medicalRecord.getMedicalRecordId());
+            medicalRecordDTO.setFirstName(medicalRecord.getFirstName());
+            medicalRecordDTO.setLastName(medicalRecord.getLastName());
+            medicalRecordDTO.setBirthDate(medicalRecord.getBirthDate());
+            medicalRecordDTO.setMedications(medicalRecord.getMedications());
+            medicalRecordDTO.setAllergies(medicalRecord.getAllergies());
+            expectedListOfMedicalRecordsDTO.add(medicalRecordDTO);
 
             //THEN
-            assertEquals(expectedListOfMedicalRecords, medicalRecordService.getAllMedicalRecords());
+            assertEquals(expectedListOfMedicalRecordsDTO, medicalRecordService.getAllMedicalRecords());
             verify(medicalRecordRepositoryMock, Mockito.times(1)).findAll();
 
         }
 
         @Test
-        @DisplayName("GIVEN an exception WHEN processing a GET /medicalrecords request THEN null is returned")
+        @DisplayName("GIVEN an exception WHEN asking for all medical records THEN an empty list is returned")
         public void getAllMedicalRecordsTest_WithException() {
             //GIVEN
             when(medicalRecordRepositoryMock.findAll()).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertNull(medicalRecordService.getAllMedicalRecords());
+            assertThat(medicalRecordService.getAllMedicalRecords()).isEmpty();
             verify(medicalRecordRepositoryMock, Mockito.times(1)).findAll();
 
         }

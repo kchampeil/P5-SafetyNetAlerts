@@ -16,14 +16,14 @@ public interface IFireStationService {
      * @param listOfFireStations list to be saved in DB
      * @return true if data saved, else false
      */
-    boolean saveListOfFireStations(List<FireStation> listOfFireStations);
+    Iterable<FireStation> saveListOfFireStations(List<FireStation> listOfFireStations);
 
 
     /**
      * allow getting the list of all fire stations found in DB
      * @return a list of FireStation
      */
-    Iterable<FireStation> getAllFireStations();
+    Iterable<FireStationDTO> getAllFireStations();
 
     /**
      * allow getting the list of persons for a given address with its fire station number, found in DB

@@ -28,7 +28,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -69,32 +68,34 @@ class FireStationServiceTest {
 
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  saveListOfFireStations tests
-     * ----------------------------------------------------------------------------------------------------------------------
-     * GIVEN a consistent list of fire stations
-     * THEN it is saved in DB and return code is true
-     *
-     * GIVEN an exception when processing
-     * THEN no data is saved in DB and return code is false
-     * -------------------------------------------------------------------------------------------------------------------- */
+     * ----------------------------------------------------------------------------------------------------------------------*/
 
     @Nested
     @DisplayName("saveListOfFireStations tests")
     class saveListOfFireStationsTest {
         @Test
-        @DisplayName("GIVEN a consistent list of fire stations THEN it is saved in DB and return code is true")
+        @DisplayName("GIVEN a consistent list of fire stations " +
+                "WHEN saving the list of fire stations " +
+                "THEN it is saved in DB and the saved list of fire stations is returned")
         public void saveListOfFireStationsTest_WithConsistentList() {
             //GIVEN
             List<FireStation> listOfFireStations = new ArrayList<>();
             listOfFireStations.add(fireStation);
+            when(fireStationRepositoryMock.saveAll(listOfFireStations)).thenReturn(listOfFireStations);
+
+            //WHEN
+            Iterable<FireStation> savedListOfFireStations = fireStationService.saveListOfFireStations(listOfFireStations);
 
             //THEN
-            assertTrue(fireStationService.saveListOfFireStations(listOfFireStations));
+            assertNotNull(savedListOfFireStations);
+            assertThat(savedListOfFireStations).isNotEmpty();
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
 
         @Test
-        @DisplayName("GIVEN an exception when processing THEN no data is saved in DB and return code is false")
+        @DisplayName("GIVEN an exception when processing WHEN saving the list of fire stations " +
+                "THEN no data is saved in DB and null is returned")
         public void saveListOfFireStationsTest_WithException() {
             //GIVEN
             List<FireStation> listOfFireStations = new ArrayList<>();
@@ -102,7 +103,7 @@ class FireStationServiceTest {
             when(fireStationRepositoryMock.saveAll(listOfFireStations)).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertFalse(fireStationService.saveListOfFireStations(listOfFireStations));
+            assertNull(fireStationService.saveListOfFireStations(listOfFireStations));
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
 
         }
@@ -111,43 +112,43 @@ class FireStationServiceTest {
 
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  getAllFireStations tests
-     * ----------------------------------------------------------------------------------------------------------------------
-     * GIVEN fire stations in DB
-     * WHEN processing a GET /firestations request
-     * THEN a list of fire stations is returned
-     *
-     * GIVEN an exception
-     * WHEN processing a GET /firestations request
-     * THEN null is returned
-     * -------------------------------------------------------------------------------------------------------------------- */
+     * ----------------------------------------------------------------------------------------------------------------------*/
 
     @Nested
     @DisplayName("getAllFireStations tests")
     class GetAllFireStationsTest {
         @Test
-        @DisplayName("GIVEN fire stations in DB WHEN processing a GET /firestations request THEN a list of fire stations is returned")
+        @DisplayName("GIVEN fire stations in DB WHEN asking for all fire stations " +
+                "THEN a list of fire stations DTO is returned")
         public void getAllFireStationsTest_WithFireStationDataInDb() {
             //GIVEN
-            List<FireStation> expectedListOfFireStations = new ArrayList<>();
-            expectedListOfFireStations.add(fireStation);
-            when(fireStationRepositoryMock.findAll()).thenReturn(expectedListOfFireStations);
+            List<FireStation> listOfFireStations = new ArrayList<>();
+            fireStation.setFireStationId(100L);
+            listOfFireStations.add(fireStation);
+            when(fireStationRepositoryMock.findAll()).thenReturn(listOfFireStations);
+
+            List<FireStationDTO> expectedListOfFireStationsDTO = new ArrayList<>();
+            FireStationDTO fireStationDTO = new FireStationDTO();
+            fireStationDTO.setFireStationId(fireStation.getFireStationId());
+            fireStationDTO.setStationNumber(fireStation.getStationNumber());
+            fireStationDTO.setAddress(fireStation.getAddress());
+            expectedListOfFireStationsDTO.add(fireStationDTO);
 
             //THEN
-            assertEquals(expectedListOfFireStations, fireStationService.getAllFireStations());
+            assertEquals(expectedListOfFireStationsDTO, fireStationService.getAllFireStations());
             verify(fireStationRepositoryMock, Mockito.times(1)).findAll();
-
         }
 
+
         @Test
-        @DisplayName("GIVEN an exception WHEN processing a GET /firestations request THEN null is returned")
+        @DisplayName("GIVEN an exception WHEN asking for all fire stations THEN an empty list is returned")
         public void getAllFireStationsTest_WithException() {
             //GIVEN
             when(fireStationRepositoryMock.findAll()).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertNull(fireStationService.getAllFireStations());
+            assertThat(fireStationService.getAllFireStations()).isEmpty();
             verify(fireStationRepositoryMock, Mockito.times(1)).findAll();
-
         }
     }
 

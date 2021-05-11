@@ -42,13 +42,12 @@ public class PersonService implements IPersonService {
      * @return true if data saved, else false
      */
     @Override
-    public boolean saveListOfPersons(List<Person> listOfPersons) {
+    public Iterable<Person> saveListOfPersons(List<Person> listOfPersons) {
         try {
-            personRepository.saveAll(listOfPersons);
-            return true;
+            return personRepository.saveAll(listOfPersons);
         } catch (IllegalArgumentException illegalArgumentException) {
             log.error("error when saving the list of persons in DB : " + illegalArgumentException.getMessage() + "\n");
-            return false;
+            return null;
         }
     }
 
@@ -59,13 +58,30 @@ public class PersonService implements IPersonService {
      * @return a list of Person
      */
     @Override
-    public Iterable<Person> getAllPersons() {
+    public Iterable<PersonDTO> getAllPersons() {
+        List<PersonDTO> listOfPersonsDTO = new ArrayList<>();
+
         try {
-            return personRepository.findAll();
+            Iterable<Person> listOfPersons = personRepository.findAll();
+            listOfPersons.forEach(person ->
+                    listOfPersonsDTO
+                            .add(mapPersonToPersonDTO(person)));
         } catch (Exception exception) {
             log.error("error when getting the list of all persons " + exception.getMessage() + "\n");
-            return null;
         }
+
+        return listOfPersonsDTO;
+    }
+
+    /**
+     * map the Person object to the PersonDTO object
+     *
+     * @param person Person object to be mapped to PersonDTO
+     * @return a PersonDTO
+     */
+    private PersonDTO mapPersonToPersonDTO(Person person) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(person, PersonDTO.class);
     }
 
 
@@ -132,7 +148,7 @@ public class PersonService implements IPersonService {
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
                     listOfPersons.forEach(person -> {
                         person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-                        listOfPersonInfoDTO.add(mapToPersonInfoDTO(person));
+                        listOfPersonInfoDTO.add(mapPersonToPersonInfoDTO(person));
                     });
 
                 } else {
@@ -160,7 +176,7 @@ public class PersonService implements IPersonService {
      * @param person person information to be mapped to personInfoDTO
      * @return a PersonInfoDTO
      */
-    private PersonInfoDTO mapToPersonInfoDTO(Person person) {
+    private PersonInfoDTO mapPersonToPersonInfoDTO(Person person) {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.typeMap(Person.class, PersonInfoDTO.class).addMappings(mapper -> {
             mapper.map(src -> src.getMedicalRecord().getMedications(), PersonInfoDTO::setMedications);

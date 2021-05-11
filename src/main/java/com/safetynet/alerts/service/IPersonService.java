@@ -18,14 +18,14 @@ public interface IPersonService {
      * @param listOfPersons list to be saved in DB
      * @return true if data saved, else false
      */
-    boolean saveListOfPersons(List<Person> listOfPersons);
+    Iterable<Person> saveListOfPersons(List<Person> listOfPersons);
 
     /**
      * allow getting the list of all persons found in DB
      *
      * @return a list of Person
      */
-    Iterable<Person> getAllPersons();
+    Iterable<PersonDTO> getAllPersons();
 
     /**
      * allow getting the list of all citizens' emails for a given city found in DB

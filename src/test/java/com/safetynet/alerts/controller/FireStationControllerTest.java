@@ -46,14 +46,46 @@ class FireStationControllerTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    @DisplayName("WHEN asking for the list of fire stations (GET) THEN return status is ok")
-    public void getAllFireStationsTest() throws Exception {
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  getAllFireStations tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("getFireStationCoverageByAddress tests")
+    class GetAllFireStationsTest {
 
-        //TODO when(fireStationServiceMock.getAllFireStations()).thenReturn(any(List< FireStation >));
-        mockMvc.perform(get("/firestations"))
-                .andExpect(status().isOk());
-        //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest
+        @Test
+        @DisplayName("GIVEN data in DB WHEN asking for the list of fire stations GET /firestations " +
+                "THEN return status is ok and a list is returned")
+        public void getAllFireStationsTest_WithData() throws Exception {
+
+            List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
+            FireStationDTO fireStationDTO = new FireStationDTO();
+            fireStationDTO.setFireStationId(100L);
+            fireStationDTO.setStationNumber(2021);
+            fireStationDTO.setAddress("FSCT_Address");
+            listOfFireStationsDTO.add(fireStationDTO);
+            when(fireStationServiceMock.getAllFireStations()).thenReturn(listOfFireStationsDTO);
+
+            mockMvc.perform(get("/firestations"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN no data in DB WHEN asking for the list of fire stations GET /firestations " +
+                "THEN return status is not found and an empty list is returned")
+        public void getAllFireStationsTest_WithoutData() throws Exception {
+
+            List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
+            when(fireStationServiceMock.getAllFireStations()).thenReturn(listOfFireStationsDTO);
+
+            mockMvc.perform(get("/firestations"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isEmpty());
+        }
     }
 
     /* ----------------------------------------------------------------------------------------------------------------------
@@ -62,6 +94,7 @@ class FireStationControllerTest {
     @Nested
     @DisplayName("getFireStationCoverageByAddress tests")
     class GetFireStationCoverageByAddressTest {
+
         @Test
         @DisplayName("GIVEN persons in repository living at the requested address and one fire station covering this address " +
                 "WHEN processing a GET /fire request on address " +

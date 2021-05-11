@@ -1,6 +1,5 @@
 package com.safetynet.alerts.controller;
 
-import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
 import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
@@ -31,9 +30,21 @@ public class FireStationController {
      * @return - An Iterable object of FireStation full filled
      */
     @GetMapping("/firestations")
-    public Iterable<FireStation> getAllFireStations() {
-        log.info("GET request on endpoint /firestations received \n");
-        return fireStationService.getAllFireStations();
+    public ResponseEntity<Iterable<FireStationDTO>> getAllFireStations() {
+        log.info("GET request on endpoint /firestations received");
+
+        List<FireStationDTO> listOfFireStationsDTO = (List<FireStationDTO>) fireStationService.getAllFireStations();
+
+        if (listOfFireStationsDTO.isEmpty()) {
+            log.warn("response to GET request on endpoint /firestations is empty, " +
+                    "no fire station found \n");
+            return new ResponseEntity<>(listOfFireStationsDTO, HttpStatus.NOT_FOUND);
+
+        } else {
+            log.info("response to GET request on endpoint /firestations sent with "
+                    + listOfFireStationsDTO.size() + " values \n");
+            return new ResponseEntity<>(listOfFireStationsDTO, HttpStatus.OK);
+        }
     }
 
 
@@ -53,19 +64,19 @@ public class FireStationController {
                 = fireStationService.getFireStationCoverageByAddress(address);
 
         if (fireDTO == null) {
-            log.error("error when getting the fire station coverage for address: " + address);
+            log.error("error when getting the fire station coverage for address: " + address + " \n");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
 
             if (fireDTO.getPersonCoveredDTOList() == null) {
                 log.warn("response to GET request on endpoint /fire for address: "
-                        + address + " is empty, no fire station coverage information found");
+                        + address + " is empty, no fire station coverage information found \n");
                 return new ResponseEntity<>(fireDTO, HttpStatus.NOT_FOUND);
 
             } else {
                 log.info("response to GET request on endpoint /fire sent for for address: "
-                        + address + " with " + fireDTO.getPersonCoveredDTOList().size() + " values");
+                        + address + " with " + fireDTO.getPersonCoveredDTOList().size() + " values \n");
                 return new ResponseEntity<>(fireDTO, HttpStatus.OK);
             }
         }
@@ -88,19 +99,19 @@ public class FireStationController {
                 = fireStationService.getFloodByStationNumbers(listOfStationNumbers);
 
         if (listOfFloodDTO == null) {
-            log.error("error when getting the flood for stations: " + listOfStationNumbers);
+            log.error("error when getting the flood for stations: " + listOfStationNumbers + " \n");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
 
             if (listOfFloodDTO.isEmpty()) {
                 log.warn("response to GET request on endpoint /flood/stations for stations: "
-                        + listOfStationNumbers + " is empty, no flood information found");
+                        + listOfStationNumbers + " is empty, no flood information found \n");
                 return new ResponseEntity<>(listOfFloodDTO, HttpStatus.NOT_FOUND);
 
             } else {
                 log.info("response to GET request on endpoint /flood/stations sent for for stations: "
-                        + listOfStationNumbers + " with " + listOfFloodDTO.size() + " values");
+                        + listOfStationNumbers + " with " + listOfFloodDTO.size() + " values \n");
                 return new ResponseEntity<>(listOfFloodDTO, HttpStatus.OK);
             }
         }
@@ -126,16 +137,16 @@ public class FireStationController {
             if (addedFireStation != null) {
                 log.info("new address/fire station mapping has been saved for fire station n°"
                         + fireStationDTOToAdd.getStationNumber()
-                        + " with id: " + addedFireStation.getFireStationId());
+                        + " with id: " + addedFireStation.getFireStationId() + " \n");
                 return new ResponseEntity<>(addedFireStation, HttpStatus.CREATED);
 
             } else {
                 log.error("new address/fire station mapping has not been saved for fire station: "
-                        + fireStationDTOToAdd);
+                        + fireStationDTOToAdd + " \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage() + " \n");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             //TOASK comment remonter le message de l'exception ?
         }

@@ -1,8 +1,8 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.constants.TestConstants;
-import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
@@ -28,11 +28,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -97,19 +95,26 @@ class PersonServiceTest {
     class saveListOfPersonsTest {
         @Test
         @DisplayName("GIVEN a consistent list of persons " +
+                "WHEN saving the list of persons " +
                 "THEN it is saved in repository and return code is true")
         public void saveListOfPersonsTest_WithConsistentList() {
             //GIVEN
             List<Person> listOfPersons = new ArrayList<>();
             listOfPersons.add(person);
+            when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
+
+            //WHEN
+            Iterable<Person> savedListOfPersons = personService.saveListOfPersons(listOfPersons);
 
             //THEN
-            assertTrue(personService.saveListOfPersons(listOfPersons));
+            assertNotNull(savedListOfPersons);
+            assertThat(savedListOfPersons).isNotEmpty();
             verify(personRepositoryMock, Mockito.times(1)).saveAll(anyList());
         }
 
         @Test
         @DisplayName("GIVEN an exception when processing " +
+                "WHEN saving the list of persons " +
                 "THEN no data is saved in repository and return code is false")
         public void saveListOfPersonsTest_WithException() {
             //GIVEN
@@ -118,7 +123,7 @@ class PersonServiceTest {
             when(personRepositoryMock.saveAll(listOfPersons)).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertFalse(personService.saveListOfPersons(listOfPersons));
+            assertNull(personService.saveListOfPersons(listOfPersons));
             verify(personRepositoryMock, Mockito.times(1)).saveAll(anyList());
         }
 
@@ -132,28 +137,41 @@ class PersonServiceTest {
     @DisplayName("getAllPersons tests")
     class GetAllPersonsTest {
         @Test
-        @DisplayName("GIVEN persons in repository WHEN processing a GET /persons request " +
+        @DisplayName("GIVEN persons in repository WHEN asking for all persons " +
                 "THEN a list of persons is returned")
         public void getAllPersonsTest_WithPersonDataInRepository() {
             //GIVEN
-            List<Person> expectedListOfPersons = new ArrayList<>();
-            expectedListOfPersons.add(person);
-            when(personRepositoryMock.findAll()).thenReturn(expectedListOfPersons);
+            List<Person> listOfPersons = new ArrayList<>();
+            person.setPersonId(100L);
+            listOfPersons.add(person);
+            when(personRepositoryMock.findAll()).thenReturn(listOfPersons);
+
+            List<PersonDTO> expectedListOfPersonsDTO = new ArrayList<>();
+            PersonDTO personDTO = new PersonDTO();
+            personDTO.setPersonId(person.getPersonId());
+            personDTO.setFirstName(person.getFirstName());
+            personDTO.setLastName(person.getLastName());
+            personDTO.setPhone(person.getPhone());
+            personDTO.setEmail(person.getEmail());
+            personDTO.setAddress(person.getAddress());
+            personDTO.setZip(person.getZip());
+            personDTO.setCity(person.getCity());
+            expectedListOfPersonsDTO.add(personDTO);
 
             //THEN
-            assertEquals(expectedListOfPersons, personService.getAllPersons());
+            assertEquals(expectedListOfPersonsDTO, personService.getAllPersons());
             verify(personRepositoryMock, Mockito.times(1)).findAll();
         }
 
         @Test
-        @DisplayName("GIVEN an exception WHEN processing a GET /persons request " +
-                "THEN null is returned")
+        @DisplayName("GIVEN an exception WHEN asking for all persons " +
+                "THEN an empty list is returned")
         public void getAllPersonsTest_WithException() {
             //GIVEN
             when(personRepositoryMock.findAll()).thenThrow(IllegalArgumentException.class);
 
             //THEN
-            assertNull(personService.getAllPersons());
+            assertThat(personService.getAllPersons()).isEmpty();
             verify(personRepositoryMock, Mockito.times(1)).findAll();
         }
 

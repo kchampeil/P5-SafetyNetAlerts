@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -34,13 +35,13 @@ public class MedicalRecordService implements IMedicalRecordService {
      * @return true if data saved, else false
      */
     @Override
-    public boolean saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords) {
+    public Iterable<MedicalRecord> saveListOfMedicalRecords(List<MedicalRecord> listOfMedicalRecords) {
+
         try {
-            medicalRecordRepository.saveAll(listOfMedicalRecords);
-            return true;
+            return medicalRecordRepository.saveAll(listOfMedicalRecords);
         } catch (IllegalArgumentException e) {
             log.error("error when saving the list of medical records in DB : " + e.getMessage() + "\n");
-            return false;
+            return null;
         }
     }
 
@@ -51,13 +52,31 @@ public class MedicalRecordService implements IMedicalRecordService {
      * @return a list of MedicalRecord
      */
     @Override
-    public Iterable<MedicalRecord> getAllMedicalRecords() {
+    public Iterable<MedicalRecordDTO> getAllMedicalRecords() {
+        List<MedicalRecordDTO> listOfMedicalRecordDTO = new ArrayList<>();
+
         try {
-            return medicalRecordRepository.findAll();
+            Iterable<MedicalRecord> listOfMedicalRecords = medicalRecordRepository.findAll();
+            listOfMedicalRecords.forEach(medicalRecord ->
+                    listOfMedicalRecordDTO
+                            .add(mapMedicalRecordToMedicalRecordDTO(medicalRecord)));
+
         } catch (Exception exception) {
             log.error("error when getting the list of medical records " + exception.getMessage() + "\n");
-            return null;
         }
+
+        return listOfMedicalRecordDTO;
+    }
+
+    /**
+     * map the MedicalRecord object to the MedicalRecordDTO object
+     *
+     * @param medicalRecord MedicalRecord object to be mapped to MedicalRecordDTO
+     * @return a MedicalRecordDTO
+     */
+    private MedicalRecordDTO mapMedicalRecordToMedicalRecordDTO(MedicalRecord medicalRecord) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(medicalRecord, MedicalRecordDTO.class);
     }
 
 

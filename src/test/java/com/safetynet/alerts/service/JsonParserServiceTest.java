@@ -18,7 +18,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -66,14 +65,17 @@ class JsonParserServiceTest {
 
 
     @Test
-    @DisplayName("GIVEN a correct and complete json file WHEN parsing the file THEN lists of persons, fire stations and medical records are saved")
+    @DisplayName("GIVEN a correct and complete json file WHEN parsing the file " +
+            "THEN lists of persons, fire stations and medical records are saved")
     public void readDataFromFileTest_WithCorrectFile() {
         //GIVEN
         ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "test_complete_data.json");
 
-        List<MedicalRecord> listOfMedicalRecord = new ArrayList<>();
+        /*List<MedicalRecord> listOfMedicalRecord = new ArrayList<>();
         listOfMedicalRecord.add(medicalRecord);
         when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecord);
+
+         */
 
         //WHEN
         jsonParserService.readDataFromFile();
