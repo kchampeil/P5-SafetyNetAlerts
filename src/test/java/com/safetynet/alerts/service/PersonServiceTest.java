@@ -50,7 +50,7 @@ class PersonServiceTest {
     private FireStationRepository fireStationRepositoryMock;
 
     @Autowired
-    private PersonService personService;
+    private IPersonService personService;
 
     private Person person;
 
@@ -593,7 +593,7 @@ class PersonServiceTest {
         @DisplayName("GIVEN a new person to add " +
                 "WHEN saving this new person " +
                 "THEN the returned value is the added person")
-        public void addPersonTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
+        public void addPersonTest_WithSuccess() throws Exception {
             //GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();
             personDTOToAdd.setFirstName("PCT_first_name");
@@ -680,7 +680,7 @@ class PersonServiceTest {
         @DisplayName("GIVEN an empty person " +
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
-        public void addPersonTest_WithMissingPersonInformation() throws AlreadyExistsException, MissingInformationException {
+        public void addPersonTest_WithMissingPersonInformation() {
             //GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();
 
@@ -695,7 +695,7 @@ class PersonServiceTest {
         @DisplayName("GIVEN a new person without firstname " +
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
-        public void addPersonTest_WithoutFirstName() throws AlreadyExistsException, MissingInformationException {
+        public void addPersonTest_WithoutFirstName() {
             //GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();
             personDTOToAdd.setLastName("PCT_last_name");
@@ -716,7 +716,7 @@ class PersonServiceTest {
         @DisplayName("GIVEN a new person without lastname " +
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
-        public void addPersonTest_WithoutLastName() throws AlreadyExistsException, MissingInformationException {
+        public void addPersonTest_WithoutLastName() {
             //GIVEN
             PersonDTO personDTOToAdd = new PersonDTO();
             personDTOToAdd.setFirstName("PCT_first_name");

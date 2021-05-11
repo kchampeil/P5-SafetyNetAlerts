@@ -51,7 +51,7 @@ class FireStationServiceTest {
     private PersonRepository personRepositoryMock;
 
     @Autowired
-    private FireStationService fireStationService;
+    private IFireStationService fireStationService;
 
     private FireStation fireStation;
 
@@ -413,7 +413,7 @@ class FireStationServiceTest {
         @DisplayName("GIVEN a new fire station without address " +
                 "WHEN saving this new fire station " +
                 "THEN an MissingInformationException is thrown")
-        public void addFireStationTest_WithoutAddress() throws AlreadyExistsException, MissingInformationException {
+        public void addFireStationTest_WithoutAddress() {
             //GIVEN
             FireStationDTO fireStationDTOToAdd = new FireStationDTO();
             fireStationDTOToAdd.setStationNumber(3);

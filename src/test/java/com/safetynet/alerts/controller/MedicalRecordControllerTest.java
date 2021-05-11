@@ -5,7 +5,7 @@ import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
-import com.safetynet.alerts.service.MedicalRecordService;
+import com.safetynet.alerts.service.IMedicalRecordService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ class MedicalRecordControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private MedicalRecordService medicalRecordServiceMock;
+    private IMedicalRecordService medicalRecordServiceMock;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

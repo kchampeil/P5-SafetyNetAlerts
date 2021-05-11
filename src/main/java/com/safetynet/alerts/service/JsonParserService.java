@@ -40,6 +40,7 @@ public class JsonParserService implements IFileParserService {
     /**
      * read information in the data.json file
      */
+    @Override
     public void readDataFromFile() {
 
         // read JSON file

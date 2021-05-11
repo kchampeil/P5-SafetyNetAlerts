@@ -9,7 +9,7 @@ import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
-import com.safetynet.alerts.service.PersonService;
+import com.safetynet.alerts.service.IPersonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class PersonControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private PersonService personServiceMock;
+    private IPersonService personServiceMock;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

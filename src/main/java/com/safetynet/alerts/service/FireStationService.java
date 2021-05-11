@@ -188,7 +188,7 @@ public class FireStationService implements IFireStationService {
     @Override
     public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
 
-        FireStationDTO addedFireStationDTO = null;
+        FireStationDTO addedFireStationDTO;
 
         //check if the fireStationDTOToAdd is correctly filled
         if (fireStationDTOToAdd != null

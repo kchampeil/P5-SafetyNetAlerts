@@ -1,7 +1,7 @@
 package com.safetynet.alerts.service;
 
-import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
@@ -384,7 +384,7 @@ public class PersonService implements IPersonService {
     @Override
     public PersonDTO addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
 
-        PersonDTO addedPersonDTO = null;
+        PersonDTO addedPersonDTO;
 
         //check if the personDTOToAdd is correctly filled
         if (checkPersonDTO(personDTOToAdd)) {

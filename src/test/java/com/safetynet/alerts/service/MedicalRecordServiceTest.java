@@ -45,7 +45,7 @@ class MedicalRecordServiceTest {
     private PersonRepository personRepositoryMock;
 
     @Autowired
-    private MedicalRecordService medicalRecordService;
+    private IMedicalRecordService medicalRecordService;
 
     private MedicalRecord medicalRecord;
 
@@ -247,14 +247,14 @@ class MedicalRecordServiceTest {
         @DisplayName("GIVEN an empty medical record " +
                 "WHEN saving this new medical record " +
                 "THEN an MissingInformationException is thrown")
-        public void addMedicalRecordTest_WithMissingInformation() throws AlreadyExistsException, MissingInformationException {
+        public void addMedicalRecordTest_WithMissingInformation() {
             //GIVEN
             MedicalRecordDTO medicalRecordDTOTOAdd = new MedicalRecordDTO();
 
             //THEN
             assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOTOAdd));
             verify(medicalRecordRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null, null);
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(),anyString());
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
         }
 
@@ -262,7 +262,7 @@ class MedicalRecordServiceTest {
         @DisplayName("GIVEN a new person without firstname " +
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
-        public void addMedicalRecordTest_WithoutFirstName() throws AlreadyExistsException, MissingInformationException {
+        public void addMedicalRecordTest_WithoutFirstName() {
             //GIVEN
             MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setLastName("MRST_last_name");
@@ -272,7 +272,7 @@ class MedicalRecordServiceTest {
             assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd));
             verify(medicalRecordRepositoryMock, Mockito.times(0))
                     .findAllByFirstNameAndLastName(null, medicalRecordDTOToAdd.getLastName());
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(),anyString());
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
         }
 
@@ -280,7 +280,7 @@ class MedicalRecordServiceTest {
         @DisplayName("GIVEN a new person without lastname " +
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
-        public void addMedicalRecordTest_WithoutLastName() throws AlreadyExistsException, MissingInformationException {
+        public void addMedicalRecordTest_WithoutLastName() {
             //GIVEN
             MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setFirstName("MRST_first_name");
@@ -289,8 +289,8 @@ class MedicalRecordServiceTest {
             //THEN
             assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd));
             verify(medicalRecordRepositoryMock, Mockito.times(0))
-                    .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(),null);
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(),anyString());
+                    .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), null);
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
         }
     }

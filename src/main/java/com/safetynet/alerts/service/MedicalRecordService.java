@@ -69,7 +69,7 @@ public class MedicalRecordService implements IMedicalRecordService {
      */
     @Override
     public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd) throws AlreadyExistsException, MissingInformationException {
-        MedicalRecordDTO addedMedicalRecordDTO = null;
+        MedicalRecordDTO addedMedicalRecordDTO;
 
         //check if the medicalRecordDTO is correctly filled
         if (checkMedicalRecordDTO(medicalRecordDTOToAdd)) {

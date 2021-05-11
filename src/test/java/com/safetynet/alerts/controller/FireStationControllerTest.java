@@ -8,7 +8,7 @@ import com.safetynet.alerts.model.dto.FireDTO;
 import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
-import com.safetynet.alerts.service.FireStationService;
+import com.safetynet.alerts.service.IFireStationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class FireStationControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private FireStationService fireStationServiceMock;
+    private IFireStationService fireStationServiceMock;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

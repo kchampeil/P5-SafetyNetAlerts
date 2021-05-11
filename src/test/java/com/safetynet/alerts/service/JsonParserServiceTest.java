@@ -1,7 +1,6 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.MedicalRecord;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +34,7 @@ class JsonParserServiceTest {
     private MedicalRecordService medicalRecordServiceMock;
 
     @Autowired
-    private JsonParserService jsonParserService;
+    private IFileParserService jsonParserService;
 
     private MedicalRecord medicalRecord;
 
