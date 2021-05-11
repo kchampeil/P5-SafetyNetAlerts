@@ -54,9 +54,43 @@ class FireStationServiceTest {
 
     private FireStation fireStation;
 
+    private static Person adult;
+    private static Person child;
+
     @BeforeAll
     private static void setUp() {
+        adult = new Person();
+        adult.setFirstName("FSST_first_name_1");
+        adult.setLastName("FSST_last_name_1");
+        adult.setPhone("33 1 23 45 67 89");
+        adult.setAddress("FSST_AddressTest_1");
 
+        MedicalRecord medicalRecord = new MedicalRecord();
+        medicalRecord.setFirstName(adult.getFirstName());
+        medicalRecord.setLastName(adult.getLastName());
+        medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+        List<String> medications = new ArrayList<>();
+        medications.add("FSST_medications_1");
+        medications.add("FSST_medications_2");
+        medications.add("FSST_medications_3");
+        medicalRecord.setMedications(medications);
+        List<String> allergies = new ArrayList<>();
+        allergies.add("FSST_allergies_1");
+        allergies.add("FSST_allergies_2");
+        medicalRecord.setAllergies(allergies);
+        adult.setMedicalRecord(medicalRecord);
+
+        child = new Person();
+        child.setFirstName("FSST_first_name_2");
+        child.setLastName("FSST_last_name_2");
+        child.setPhone("33 1 98 76 54 32");
+        child.setAddress(adult.getAddress());
+
+        MedicalRecord medicalRecord2 = new MedicalRecord();
+        medicalRecord2.setFirstName(child.getFirstName());
+        medicalRecord2.setLastName(child.getLastName());
+        medicalRecord2.setBirthDate(TestConstants.CHILD_BIRTHDATE);
+        child.setMedicalRecord(medicalRecord2);
     }
 
     @BeforeEach
@@ -73,14 +107,21 @@ class FireStationServiceTest {
     @Nested
     @DisplayName("saveListOfFireStations tests")
     class saveListOfFireStationsTest {
+
+        private List<FireStation> listOfFireStations;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfFireStations = new ArrayList<>();
+            listOfFireStations.add(fireStation);
+        }
+
         @Test
         @DisplayName("GIVEN a consistent list of fire stations " +
                 "WHEN saving the list of fire stations " +
                 "THEN it is saved in DB and the saved list of fire stations is returned")
         public void saveListOfFireStationsTest_WithConsistentList() {
             //GIVEN
-            List<FireStation> listOfFireStations = new ArrayList<>();
-            listOfFireStations.add(fireStation);
             when(fireStationRepositoryMock.saveAll(listOfFireStations)).thenReturn(listOfFireStations);
 
             //WHEN
@@ -90,7 +131,6 @@ class FireStationServiceTest {
             assertNotNull(savedListOfFireStations);
             assertThat(savedListOfFireStations).isNotEmpty();
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
-
         }
 
         @Test
@@ -98,15 +138,13 @@ class FireStationServiceTest {
                 "THEN no data is saved in DB and null is returned")
         public void saveListOfFireStationsTest_WithException() {
             //GIVEN
-            List<FireStation> listOfFireStations = new ArrayList<>();
-            listOfFireStations.add(fireStation);
             when(fireStationRepositoryMock.saveAll(listOfFireStations)).thenThrow(IllegalArgumentException.class);
 
             //THEN
             assertNull(fireStationService.saveListOfFireStations(listOfFireStations));
             verify(fireStationRepositoryMock, Mockito.times(1)).saveAll(anyList());
-
         }
+
     }
 
 
@@ -159,6 +197,15 @@ class FireStationServiceTest {
     @Nested
     @DisplayName("getFireStationCoverageByAddress tests")
     class GetFireStationCoverageByAddressTest {
+
+        private FireStation fireStation;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            fireStation = new FireStation();
+            fireStation.setStationNumber(73);
+        }
+
         @Test
         @DisplayName("GIVEN citizens living at the requested address + fire station covering the requested address found in repository " +
                 "WHEN asking for fire station coverage information " +
@@ -166,45 +213,10 @@ class FireStationServiceTest {
         public void getFireStationCoverageByAddressTest_WithInfoInRepository() {
             //GIVEN
             List<Person> listOfPersons = new ArrayList<>();
+            listOfPersons.add(adult);
+            listOfPersons.add(child);
 
-            Person person1 = new Person();
-            person1.setFirstName("FSST_first_name_1");
-            person1.setLastName("FSST_last_name_1");
-            person1.setPhone("33 1 23 45 67 89");
-            person1.setAddress("FSST_AddressTest");
-
-            MedicalRecord medicalRecord = new MedicalRecord();
-            medicalRecord.setFirstName(person1.getFirstName());
-            medicalRecord.setLastName(person1.getLastName());
-            medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("FSST_medications_1");
-            medications.add("FSST_medications_2");
-            medications.add("FSST_medications_3");
-            medicalRecord.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("FSST_allergies_1");
-            allergies.add("FSST_allergies_2");
-            medicalRecord.setAllergies(allergies);
-            person1.setMedicalRecord(medicalRecord);
-            listOfPersons.add(person1);
-
-            Person person2 = new Person();
-            person2.setFirstName("FSST_first_name_2");
-            person2.setLastName("FSST_last_name_2");
-            person2.setPhone("33 1 98 76 54 32");
-            person2.setAddress(person1.getAddress());
-
-            MedicalRecord medicalRecord2 = new MedicalRecord();
-            medicalRecord2.setFirstName(person2.getFirstName());
-            medicalRecord2.setLastName(person2.getLastName());
-            medicalRecord2.setBirthDate(TestConstants.CHILD_BIRTHDATE);
-            person2.setMedicalRecord(medicalRecord2);
-            listOfPersons.add(person2);
-
-            FireStation fireStation = new FireStation();
-            fireStation.setStationNumber(73);
-            fireStation.setAddress(person1.getAddress());
+            fireStation.setAddress(adult.getAddress());
 
             when(personRepositoryMock.findAllByAddress("FSST_AddressTest")).thenReturn(listOfPersons);
             when(fireStationRepositoryMock.findByAddress("FSST_AddressTest")).thenReturn(fireStation);
@@ -226,8 +238,6 @@ class FireStationServiceTest {
                 "THEN in the returned information the list of persons covered is null and the station number is populated")
         public void getFireStationCoverageByAddressTest_WithNoPersonInRepository() {
             //GIVEN
-            FireStation fireStation = new FireStation();
-            fireStation.setStationNumber(73);
             fireStation.setAddress("FSST_AddressTestNotFound");
 
             when(personRepositoryMock.findAllByAddress("FSST_AddressTestNotFound")).thenReturn(new ArrayList<>());
@@ -274,41 +284,8 @@ class FireStationServiceTest {
         public void getFloodByStationNumbersTest_WithInfoInRepository() {
             //GIVEN
             List<Person> listOfPersonsForStation3 = new ArrayList<>();
-
-            Person person1 = new Person();
-            person1.setFirstName("FSST_first_name_1");
-            person1.setLastName("FSST_last_name_1");
-            person1.setPhone("33 1 23 45 67 89");
-            person1.setAddress("FSST_AddressTest1");
-
-            MedicalRecord medicalRecord = new MedicalRecord();
-            medicalRecord.setFirstName(person1.getFirstName());
-            medicalRecord.setLastName(person1.getLastName());
-            medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("FSST_medications_1");
-            medications.add("FSST_medications_2");
-            medications.add("FSST_medications_3");
-            medicalRecord.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("FSST_allergies_1");
-            allergies.add("FSST_allergies_2");
-            medicalRecord.setAllergies(allergies);
-            person1.setMedicalRecord(medicalRecord);
-            listOfPersonsForStation3.add(person1);
-
-            Person person2 = new Person();
-            person2.setFirstName("FSST_first_name_2");
-            person2.setLastName("FSST_last_name_2");
-            person2.setPhone("33 1 98 76 54 32");
-            person2.setAddress(person1.getAddress());
-
-            MedicalRecord medicalRecord2 = new MedicalRecord();
-            medicalRecord2.setFirstName(person2.getFirstName());
-            medicalRecord2.setLastName(person2.getLastName());
-            medicalRecord2.setBirthDate(TestConstants.CHILD_BIRTHDATE);
-            person2.setMedicalRecord(medicalRecord2);
-            listOfPersonsForStation3.add(person2);
+            listOfPersonsForStation3.add(adult);
+            listOfPersonsForStation3.add(child);
 
             List<Person> listOfPersonsForStation4 = new ArrayList<>();
             Person person3 = new Person();
@@ -336,8 +313,8 @@ class FireStationServiceTest {
 
             //THEN
             assertEquals(2, listOfFloodDTO.size());
-            assertTrue(listOfFloodDTO.get(0).getPersonsCoveredByAddress().containsKey("FSST_AddressTest1"));
-            assertTrue(listOfFloodDTO.get(1).getPersonsCoveredByAddress().containsKey("FSST_AddressTest3"));
+            assertTrue(listOfFloodDTO.get(0).getPersonsCoveredByAddress().containsKey(adult.getAddress()));
+            assertTrue(listOfFloodDTO.get(1).getPersonsCoveredByAddress().containsKey(person3.getAddress()));
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(3);
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(4);
         }
@@ -379,16 +356,22 @@ class FireStationServiceTest {
     @Nested
     @DisplayName("addFireStation tests")
     class addFireStationTest {
+
+        private FireStationDTO fireStationDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            fireStationDTOToAdd = new FireStationDTO();
+            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setAddress("FSST_New_Address");
+        }
+
         @Test
         @DisplayName("GIVEN a new mapping address/fire station " +
                 "WHEN saving this new relationship " +
                 "THEN the returned value is the added fire station")
         public void addFireStationTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
             //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-            fireStationDTOToAdd.setAddress("FSST_New_Address");
-
             FireStation expectedFireStation = new FireStation();
             expectedFireStation.setFireStationId(100L);
             expectedFireStation.setStationNumber(fireStationDTOToAdd.getStationNumber());
@@ -411,34 +394,14 @@ class FireStationServiceTest {
 
 
         @Test
-        @DisplayName("GIVEN a new fire station without address " +
-                "WHEN saving this new fire station " +
-                "THEN an MissingInformationException is thrown")
-        public void addFireStationTest_WithoutAddress() {
-            //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-
-            //THEN
-            assertThrows(MissingInformationException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));
-            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
-            verify(fireStationRepositoryMock, Mockito.times(0)).save(any(FireStation.class));
-        }
-
-
-        @Test
         @DisplayName("GIVEN a new mapping address/fire station for an existing address in repository " +
                 "WHEN saving this new relationship " +
-                "THEN the returned value is null (ie no fire station has been added)")
+                "THEN an AlreadyExistsException is thrown and no fire station has been added)")
         public void addFireStationTest_WithExistingAddressInRepository() {
             //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-            fireStationDTOToAdd.setAddress("FSST_Address_Already_Present");
-
             FireStation existingFireStation = new FireStation();
             existingFireStation.setStationNumber(4);
-            existingFireStation.setAddress(existingFireStation.getAddress());
+            existingFireStation.setAddress(fireStationDTOToAdd.getAddress());
 
             when(fireStationRepositoryMock.findByAddress(fireStationDTOToAdd.getAddress())).thenReturn(existingFireStation);
 
@@ -452,11 +415,11 @@ class FireStationServiceTest {
         @Test
         @DisplayName("GIVEN an empty fire station information " +
                 "WHEN saving this new relationship " +
-                "THEN the returned value is null (ie no fire station has been added)")
+                "THEN a MissingInformationException is thrown and no fire station has been added)")
         public void addFireStationTest_WithMissingFireStationInformation() {
             //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setStationNumber(null);
+            fireStationDTOToAdd.setAddress(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));
@@ -468,11 +431,10 @@ class FireStationServiceTest {
         @Test
         @DisplayName("GIVEN a new mapping address/fire station without any address " +
                 "WHEN saving this new relationship " +
-                "THEN the returned value is null (ie no fire station has been added)")
+                "THEN a MissingInformationException is thrown and no fire station has been added)")
         public void addFireStationTest_WithNoAddressForStation() {
             //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setAddress(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));
@@ -484,11 +446,10 @@ class FireStationServiceTest {
         @Test
         @DisplayName("GIVEN a new mapping address/fire station without any station number " +
                 "WHEN saving this new relationship " +
-                "THEN the returned value is null (ie no fire station has been added)")
+                "THEN a MissingInformationException is thrown and no fire station has been added)")
         public void addFireStationTest_WithNoStationNumber() {
             //GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setAddress("FSST_New_Address");
+            fireStationDTOToAdd.setStationNumber(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));

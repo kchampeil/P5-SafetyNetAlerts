@@ -227,12 +227,10 @@ public class FireStationService implements IFireStationService {
                 addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
 
             } else {
-                log.error("address: " + fireStationDTOToAdd.getAddress() + " has already one fire station assigned");
                 throw new AlreadyExistsException("Address: " + fireStationDTOToAdd.getAddress() + " has already one fire station assigned");
             }
 
         } else {
-            log.error("all fire station information must be specified for saving");
             throw new MissingInformationException("All fire station information must be specified for saving");
         }
 

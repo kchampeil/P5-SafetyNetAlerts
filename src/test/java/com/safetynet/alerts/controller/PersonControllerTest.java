@@ -10,6 +10,7 @@ import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.IPersonService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -48,12 +48,57 @@ class PersonControllerTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    @DisplayName("WHEN asking for the list of persons (GET) THEN return status is ok")
-    public void getAllPersonsTest() throws Exception {
-        mockMvc.perform(get("/persons"))
-                .andExpect(status().isOk());
-        //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest ?
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  getAllMedicalRecords tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("getAllPersons tests")
+    class GetAllPersonsTest {
+
+        private List<PersonDTO> listOfPersonsDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfPersonsDTO = new ArrayList<>();
+        }
+
+        @Test
+        @DisplayName("GIVEN data in DB WHEN asking for the list of persons GET /persons " +
+                "THEN return status is ok and a list of persons is returned")
+        public void getAllPersonsTest_WithData() throws Exception {
+            //GIVEN
+            PersonDTO personDTO = new PersonDTO();
+            personDTO.setPersonId(100L);
+            personDTO.setFirstName("PICT_FirstName");
+            personDTO.setLastName("PICT_LastName");
+            personDTO.setEmail("PICT_Email");
+            personDTO.setAddress("PICT_Address");
+            listOfPersonsDTO.add(personDTO);
+            when(personServiceMock.getAllPersons()).thenReturn(listOfPersonsDTO);
+
+            //THEN
+            mockMvc.perform(get("/persons"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("GIVEN no data in DB WHEN asking for the list of fire stations GET /persons " +
+                "THEN return status is 'not found' and an empty list is returned")
+        public void getAllPersonsTest_WithoutData() throws Exception {
+            //GIVEN
+            when(personServiceMock.getAllPersons()).thenReturn(listOfPersonsDTO);
+
+            //THEN
+            mockMvc.perform(get("/persons"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isEmpty());
+        }
+
+
     }
 
 
@@ -63,13 +108,20 @@ class PersonControllerTest {
     @Nested
     @DisplayName("getAllEmailsByCity tests")
     class GetAllEmailsByCityTest {
+
+        private List<String> listOfEmails;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfEmails = new ArrayList<>();
+        }
+
         @Test
         @DisplayName("GIVEN a city name known in the repository" +
                 " WHEN asking for the list of emails of all citizens" +
                 " THEN return status is ok and the result is filled with emails")
         public void getAllEmailsByCityTest_WithResultsForCity() throws Exception {
             // GIVEN
-            List<String> listOfEmails = new ArrayList<>();
             listOfEmails.add("email1@test.com");
             listOfEmails.add("email2@test.com");
             listOfEmails.add("email3@test.com");
@@ -85,23 +137,22 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN a city name not known in the repository" +
                 " WHEN asking for the list of emails of all citizens" +
-                " THEN return status is not found but the result is empty")
+                " THEN return status is 'not found' but the result is empty")
         public void getAllEmailsByCityTest_WithNoResultsForCity() throws Exception {
             // GIVEN
-            List<String> listOfEmails = new ArrayList<>();
             when(personServiceMock.getAllEmailsByCity("CityTestNotKnown")).thenReturn(listOfEmails);
 
             // THEN
             mockMvc.perform(get("/communityEmail").param("city", "CityTestNotKnown"))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$", hasSize(0)));
+                    .andExpect(jsonPath("$").isEmpty());
         }
 
         @Test
         @DisplayName("GIVEN no city name as input" +
                 " WHEN asking for the list of emails of all citizens" +
-                " THEN return status is bad request and the result is null")
+                " THEN return status is 'bad request'")
         public void getAllEmailsByCityTest_WithNoCityAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getAllEmailsByCity(anyString())).thenReturn(null);
@@ -119,13 +170,19 @@ class PersonControllerTest {
     @Nested
     @DisplayName("getPersonInfoByFirstNameAndLastName tests")
     class GetPersonInfoByFirstNameAndLastNameTest {
+        private List<PersonInfoDTO> listOfPersonInfoDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfPersonInfoDTO = new ArrayList<>();
+        }
+
         @Test
         @DisplayName("GIVEN persons in repository for the requested firstname+lastname " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
                 "THEN a list of person information is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithResults() throws Exception {
             // GIVEN
-            List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
             PersonInfoDTO personInfoDTO = new PersonInfoDTO();
             personInfoDTO.setLastName("PICT_LastName");
             personInfoDTO.setEmail("PICT_Email");
@@ -149,12 +206,11 @@ class PersonControllerTest {
 
 
         @Test
-        @DisplayName("GIVEN firstname and lastname not found in repository " +
+        @DisplayName("GIVEN firstname and lastname 'not found' in repository " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
-                "THEN the returned list is null")
+                "THEN return status is 'not found' and an empty list is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoResults() throws Exception {
             // GIVEN
-            List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
             when(personServiceMock.getPersonInfoByFirstNameAndLastName("FirstNameTestNotKnown", "LastNameTestNotKnown"))
                     .thenReturn(listOfPersonInfoDTO);
 
@@ -164,14 +220,14 @@ class PersonControllerTest {
                     .param("lastName", "LastNameTestNotKnown"))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$", hasSize(0)));
+                    .andExpect(jsonPath("$").isEmpty());
         }
 
 
         @Test
         @DisplayName("GIVEN null firstname and lastname " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
-                "THEN the returned list is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoNameAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getPersonInfoByFirstNameAndLastName(anyString(), anyString())).thenReturn(null);
@@ -192,13 +248,19 @@ class PersonControllerTest {
     @Nested
     @DisplayName("getChildAlertByAddress tests")
     class GetChildAlertByAddressTest {
+        private List<ChildAlertDTO> listOfChildAlertDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfChildAlertDTO = new ArrayList<>();
+        }
+
         @Test
         @DisplayName("GIVEN children in repository for the requested address " +
                 "WHEN processing a GET /childAlert request on address " +
                 "THEN a list of child alert is returned")
         public void getChildAlertByAddressTest_WithResults() throws Exception {
             // GIVEN
-            List<ChildAlertDTO> listOfChildAlertDTO = new ArrayList<>();
             ChildAlertDTO childAlertDTO = new ChildAlertDTO();
             childAlertDTO.setFirstName("CACT_FirstName");
             childAlertDTO.setLastName("CACT_LastName");
@@ -227,10 +289,9 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no child found in repository for the address " +
                 "WHEN processing a GET /childAlert request on address " +
-                "THEN the returned list is null")
+                "THEN return status is 'not found' and an empty list is returned")
         public void getChildAlertByAddressTest_WithNoResults() throws Exception {
             // GIVEN
-            List<ChildAlertDTO> listOfChildAlertDTO = new ArrayList<>();
             when(personServiceMock.getChildAlertByAddress("AddressTestNotKnown"))
                     .thenReturn(listOfChildAlertDTO);
 
@@ -238,14 +299,14 @@ class PersonControllerTest {
             mockMvc.perform(get("/childAlert").param("address", "AddressTestNotKnown"))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$", hasSize(0)));
+                    .andExpect(jsonPath("$").isEmpty());
         }
 
 
         @Test
         @DisplayName("GIVEN null address " +
                 "WHEN processing a GET /childAlert request on address " +
-                "THEN the returned list is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getChildAlertByAddressTest_WithNoNameAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getChildAlertByAddress(anyString())).thenReturn(null);
@@ -263,13 +324,19 @@ class PersonControllerTest {
     @Nested
     @DisplayName("getPhoneAlertByFireStation tests")
     class GetPhoneAlertByFireStationTest {
+        private List<String> listOfPhoneNumbers;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfPhoneNumbers = new ArrayList<>();
+        }
+
         @Test
         @DisplayName("GIVEN persons in repository living at one address covered by the requested fire station " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
                 "THEN a list of phone number is returned")
         public void getPhoneAlertByFireStationTest_WithResults() throws Exception {
             // GIVEN
-            List<String> listOfPhoneNumbers = new ArrayList<>();
             listOfPhoneNumbers.add("33-1 23 45 67 89");
             listOfPhoneNumbers.add("33-1 98 76 54 32");
             listOfPhoneNumbers.add("33 1 11 11 11 11");
@@ -289,10 +356,9 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
-                "THEN the returned list is null")
+                "THEN return status is 'not found' and an empty list is returned")
         public void getPhoneAlertByFireStationTest_WithNoResults() throws Exception {
             // GIVEN
-            List<String> listOfPhoneNumbers = new ArrayList<>();
             when(personServiceMock.getPhoneAlertByFireStation(2))
                     .thenReturn(listOfPhoneNumbers);
 
@@ -301,14 +367,14 @@ class PersonControllerTest {
                     .param("firestation", "2"))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$", hasSize(0)));
+                    .andExpect(jsonPath("$").isEmpty());
         }
 
 
         @Test
         @DisplayName("GIVEN null fire station number " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
-                "THEN the returned list is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getPhoneAlertByFireStationTest_WithNoStationNumberAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getPhoneAlertByFireStation(anyInt())).thenReturn(null);
@@ -327,14 +393,19 @@ class PersonControllerTest {
     @Nested
     @DisplayName("getFireStationCoverageByAddress tests")
     class GetFireStationCoverageByAddressTest {
+        private FireStationCoverageDTO fireStationCoverageDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            fireStationCoverageDTO = new FireStationCoverageDTO();
+        }
+
         @Test
         @DisplayName("GIVEN persons in repository living at one address covered by the requested fire station " +
                 "WHEN processing a GET /firestation request on fire station number " +
                 "THEN a list of person info + nb of adults + nb of children is returned")
         public void getFireStationCoverageByAddressTest_WithResults() throws Exception {
             // GIVEN
-            FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
-
             List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
 
             PersonCoveredContactsDTO personCoveredContactsDTO1 = new PersonCoveredContactsDTO();
@@ -377,10 +448,9 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /firestation request on fire station number " +
-                "THEN the returned list is null and number of adults & children equals 0")
+                "THEN return status is 'not found', the returned list is null and number of adults & children equals 0")
         public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
             // GIVEN
-            FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
             when(personServiceMock.getFireStationCoverageByStationNumber(2))
                     .thenReturn(fireStationCoverageDTO);
 
@@ -398,7 +468,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN null fire station number " +
                 "WHEN processing a GET /firestation request on fire station number " +
-                "THEN the returned list is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getFireStationCoverageByAddressTest_WithNoStationNumberAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getFireStationCoverageByStationNumber(anyInt())).thenReturn(null);
@@ -417,13 +487,11 @@ class PersonControllerTest {
     @Nested
     @DisplayName("addPerson tests")
     class AddPersonTest {
-        @Test
-        @DisplayName("GIVEN a person not already present in repository " +
-                "WHEN processing a POST /person request for this person " +
-                "THEN the returned value is the added person")
-        public void addPersonTest_WithSuccess() throws Exception {
-            // GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
+        private PersonDTO personDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            personDTOToAdd = new PersonDTO();
             personDTOToAdd.setFirstName("PCT_first_name");
             personDTOToAdd.setLastName("PCT_last_name");
             personDTOToAdd.setAddress("PCT_address");
@@ -431,7 +499,14 @@ class PersonControllerTest {
             personDTOToAdd.setPhone("PCT_phone");
             personDTOToAdd.setCity("PCT_city");
             personDTOToAdd.setZip("PCT_zip");
+        }
 
+        @Test
+        @DisplayName("GIVEN a person not already present in repository " +
+                "WHEN processing a POST /person request for this person " +
+                "THEN the returned value is the added person")
+        public void addPersonTest_WithSuccess() throws Exception {
+            // GIVEN
             PersonDTO addedPersonDTO = new PersonDTO();
             addedPersonDTO.setPersonId(100L);
             addedPersonDTO.setFirstName(personDTOToAdd.getFirstName());
@@ -462,14 +537,7 @@ class PersonControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addPersonTest_WithMissingInformation() throws Exception {
             // GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setLastName("PCT_last_name");
-            personDTOToAdd.setAddress("PCT_address");
-            personDTOToAdd.setEmail("PCT_email@safety.com");
-            personDTOToAdd.setPhone("PCT_phone");
-            personDTOToAdd.setCity("PCT_city");
-            personDTOToAdd.setZip("PCT_zip");
-
+            personDTOToAdd.setFirstName(null);
             when(personServiceMock.addPerson(personDTOToAdd))
                     .thenThrow(new MissingInformationException("Firstname is missing"));
 
@@ -487,15 +555,6 @@ class PersonControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addPersonTest_AlreadyExisting() throws Exception {
             // GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setFirstName("PCT_Existing_first_name");
-            personDTOToAdd.setLastName("PCT_Existing_last_name");
-            personDTOToAdd.setAddress("PCT_Existing_address");
-            personDTOToAdd.setEmail("PCT_Existing_email@safety.com");
-            personDTOToAdd.setPhone("PCT_Existing_phone");
-            personDTOToAdd.setCity("PCT_Existing_city");
-            personDTOToAdd.setZip("PCT_Existing_zip");
-
             when(personServiceMock.addPerson(personDTOToAdd))
                     .thenThrow(new AlreadyExistsException("Person already exists"));
 

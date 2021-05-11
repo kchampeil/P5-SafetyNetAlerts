@@ -1,7 +1,7 @@
 package com.safetynet.alerts.service;
 
-import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
@@ -76,8 +76,10 @@ public interface IPersonService {
 
     /**
      * save a new person in the repository
+     *
      * @param personToAdd a new person to add
      * @return the added Person
+     * @throws AlreadyExistsException, MissingInformationException
      */
     PersonDTO addPerson(PersonDTO personToAdd) throws Exception, AlreadyExistsException, MissingInformationException;
 }

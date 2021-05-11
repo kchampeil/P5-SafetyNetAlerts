@@ -396,6 +396,7 @@ public class PersonService implements IPersonService {
      *
      * @param personDTOToAdd a new person to add
      * @return the added Person
+     * @throws AlreadyExistsException, MissingInformationException
      */
     @Override
     public PersonDTO addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -422,12 +423,10 @@ public class PersonService implements IPersonService {
                 addedPersonDTO = modelMapper.map(addedPerson, PersonDTO.class);
 
             } else {
-                log.error("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
                 throw new AlreadyExistsException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
             }
 
         } else {
-            log.error("All person information must be specified for saving");
             throw new MissingInformationException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
         }
 

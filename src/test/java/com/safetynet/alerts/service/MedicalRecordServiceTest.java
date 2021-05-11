@@ -8,7 +8,6 @@ import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,11 +47,6 @@ class MedicalRecordServiceTest {
 
     private MedicalRecord medicalRecord;
 
-    @BeforeAll
-    private static void setUp() {
-
-    }
-
     @BeforeEach
     private void setUpPerTest() {
         medicalRecord = new MedicalRecord();
@@ -68,15 +62,21 @@ class MedicalRecordServiceTest {
     @Nested
     @DisplayName("saveListOfMedicalRecords tests")
     class saveListOfMedicalRecordsTest {
-        @Test
 
+        private List<MedicalRecord> listOfMedicalRecords;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfMedicalRecords = new ArrayList<>();
+            listOfMedicalRecords.add(medicalRecord);
+        }
+
+        @Test
         @DisplayName("GIVEN a consistent list of medical records " +
                 "WHEN saving the list of medical records " +
                 "THEN it is saved in DB and the saved list of medical records is returned")
         public void saveListOfMedicalRecordsTest_WithConsistentList() {
             //GIVEN
-            List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
-            listOfMedicalRecords.add(medicalRecord);
             when(medicalRecordRepositoryMock.saveAll(listOfMedicalRecords)).thenReturn(listOfMedicalRecords);
 
             //WHEN
@@ -94,8 +94,6 @@ class MedicalRecordServiceTest {
                 "THEN no data is saved in DB and return code is false")
         public void saveListOfMedicalRecordsTest_WithException() {
             //GIVEN
-            List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
-            listOfMedicalRecords.add(medicalRecord);
             when(medicalRecordRepositoryMock.saveAll(listOfMedicalRecords)).thenThrow(IllegalArgumentException.class);
 
             //THEN
@@ -158,13 +156,13 @@ class MedicalRecordServiceTest {
     @Nested
     @DisplayName("addMedicalRecord tests")
     class AddMedicalRecordTest {
-        @Test
-        @DisplayName("GIVEN a new medical record to add " +
-                "WHEN saving this new medical record " +
-                "THEN the returned value is the added medical record")
-        public void addMedicalRecordTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
-            //GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
+
+        private
+        MedicalRecordDTO medicalRecordDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setFirstName("MRST_first_name");
             medicalRecordDTOToAdd.setLastName("MRST_last_name");
             medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
@@ -177,6 +175,27 @@ class MedicalRecordServiceTest {
             allergies.add("MRST_allergies_1");
             allergies.add("MRST_allergies_2");
             medicalRecordDTOToAdd.setAllergies(allergies);
+        }
+
+        @Test
+        @DisplayName("GIVEN a new medical record to add " +
+                "WHEN saving this new medical record " +
+                "THEN the returned value is the added medical record")
+        public void addMedicalRecordTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
+            //GIVEN
+            /*MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
+            medicalRecordDTOToAdd.setFirstName("MRST_first_name");
+            medicalRecordDTOToAdd.setLastName("MRST_last_name");
+            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            List<String> medications = new ArrayList<>();
+            medications.add("MRST_medications_1");
+            medications.add("MRST_medications_2");
+            medications.add("MRST_medications_3");
+            medicalRecordDTOToAdd.setMedications(medications);
+            List<String> allergies = new ArrayList<>();
+            allergies.add("MRST_allergies_1");
+            allergies.add("MRST_allergies_2");
+            medicalRecordDTOToAdd.setAllergies(allergies);*/
 
             MedicalRecord expectedAddedMedicalRecord = new MedicalRecord();
             expectedAddedMedicalRecord.setMedicalRecordId(100L);
@@ -222,7 +241,7 @@ class MedicalRecordServiceTest {
                 "THEN an AlreadyExistsException is thrown")
         public void addMedicalRecordTest_WithExistingPersonInRepository() {
             //GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
+            /*MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setFirstName("MRST_first_name_Already_Present");
             medicalRecordDTOToAdd.setLastName("MRST_last_name_Already_Present");
             medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
@@ -235,6 +254,8 @@ class MedicalRecordServiceTest {
             allergies.add("MRST_allergies_1");
             allergies.add("MRST_allergies_2");
             medicalRecordDTOToAdd.setAllergies(allergies);
+
+             */
 
             List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
             MedicalRecord existingMedicalRecord = new MedicalRecord();
@@ -262,24 +283,22 @@ class MedicalRecordServiceTest {
                 "THEN an MissingInformationException is thrown")
         public void addMedicalRecordTest_WithMissingInformation() {
             //GIVEN
-            MedicalRecordDTO medicalRecordDTOTOAdd = new MedicalRecordDTO();
+            MedicalRecordDTO emptyMedicalRecordDTOTOAdd = new MedicalRecordDTO();
 
             //THEN
-            assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOTOAdd));
+            assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(emptyMedicalRecordDTOTOAdd));
             verify(medicalRecordRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null, null);
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
         }
 
         @Test
-        @DisplayName("GIVEN a new person without firstname " +
-                "WHEN saving this new person " +
+        @DisplayName("GIVEN a new medical record without firstname " +
+                "WHEN saving this new medical record " +
                 "THEN an MissingInformationException is thrown")
         public void addMedicalRecordTest_WithoutFirstName() {
             //GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setLastName("MRST_last_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            medicalRecordDTOToAdd.setFirstName(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd));
@@ -290,14 +309,12 @@ class MedicalRecordServiceTest {
         }
 
         @Test
-        @DisplayName("GIVEN a new person without lastname " +
-                "WHEN saving this new person " +
+        @DisplayName("GIVEN a new medical record without lastname " +
+                "WHEN saving this new medical record " +
                 "THEN an MissingInformationException is thrown")
         public void addMedicalRecordTest_WithoutLastName() {
             //GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setFirstName("MRST_first_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            medicalRecordDTOToAdd.setLastName(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd));

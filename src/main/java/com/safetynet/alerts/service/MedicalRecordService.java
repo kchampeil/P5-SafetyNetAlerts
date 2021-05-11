@@ -85,6 +85,7 @@ public class MedicalRecordService implements IMedicalRecordService {
      *
      * @param medicalRecordDTOToAdd a new medical record to add
      * @return the added medical record
+     * @throws AlreadyExistsException, MissingInformationException
      */
     @Override
     public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -120,19 +121,15 @@ public class MedicalRecordService implements IMedicalRecordService {
 
                     addedMedicalRecordDTO = modelMapper.map(addedMedicalRecord, MedicalRecordDTO.class);
                 } else {
-                    log.error("No person found for this firstname & lastname, medical record can not be saved.");
                     throw new MissingInformationException("No person found for this firstname & lastname, medical record can not be saved.");
                 }
 
             } else {
-                log.error("medical record for person: " + medicalRecordDTOToAdd.getFirstName()
-                        + " " + medicalRecordDTOToAdd.getLastName() + " already exists");
                 throw new AlreadyExistsException("medical record for person: " + medicalRecordDTOToAdd.getFirstName()
                         + " " + medicalRecordDTOToAdd.getLastName() + " already exists");
             }
 
         } else {
-            log.error("At least firstname, lastname and birthdate must be specified for saving");
             throw new MissingInformationException("At least firstname, lastname and birthdate must be specified for saving");
         }
 

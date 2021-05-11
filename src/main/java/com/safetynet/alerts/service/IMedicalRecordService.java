@@ -29,6 +29,7 @@ public interface IMedicalRecordService {
      *
      * @param medicalRecordToAdd a new medical record to add
      * @return the added medical record
+     * @throws AlreadyExistsException, MissingInformationException
      */
     MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordToAdd) throws AlreadyExistsException, MissingInformationException;
 }

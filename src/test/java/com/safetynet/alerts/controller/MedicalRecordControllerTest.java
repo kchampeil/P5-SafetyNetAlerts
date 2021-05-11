@@ -6,6 +6,7 @@ import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
 import com.safetynet.alerts.service.IMedicalRecordService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,14 +40,53 @@ class MedicalRecordControllerTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /* ----------------------------------------------------------------------------------------------------------------------
-     *                  getAllMedicalRecordsTest tests
+     *                  getAllMedicalRecords tests
      * ----------------------------------------------------------------------------------------------------------------------*/
-    @Test
-    @DisplayName("WHEN asking for the list of medical records (GET) THEN return status is ok")
-    public void getAllMedicalRecordsTest() throws Exception {
-        mockMvc.perform(get("/medicalrecords"))
-                .andExpect(status().isOk());
-        //TODO en tests d'intégration .andExpect(jsonPath("$[0].firstName", is("John"))); avec @SpringBootTest
+    @Nested
+    @DisplayName("getAllMedicalRecords tests")
+    class GetAllMedicalRecordsTest {
+
+        private List<MedicalRecordDTO> listOfMedicalRecordsDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfMedicalRecordsDTO = new ArrayList<>();
+        }
+
+        @Test
+        @DisplayName("GIVEN data in DB WHEN asking for the list of medical records GET /medicalrecords " +
+                "THEN return status is ok and a list of medical records is returned")
+        public void getAllMedicalRecordsTest_WithData() throws Exception {
+            //GIVEN
+            MedicalRecordDTO medicalRecordDTO = new MedicalRecordDTO();
+            medicalRecordDTO.setMedicalRecordId(100L);
+            medicalRecordDTO.setFirstName("MRCT_first_name");
+            medicalRecordDTO.setLastName("MRCT_last_name");
+            medicalRecordDTO.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            listOfMedicalRecordsDTO.add(medicalRecordDTO);
+            when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecordsDTO);
+
+            //THEN
+            mockMvc.perform(get("/medicalrecords"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN no data in DB WHEN asking for the list of medical records GET /medicalrecords " +
+                "THEN return status is 'not found' and an empty list is returned")
+        public void getAllMedicalRecordsTest_WithoutData() throws Exception {
+            //GIVEN
+            when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecordsDTO);
+
+            //THEN
+            mockMvc.perform(get("/medicalrecords"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isEmpty());
+        }
     }
 
 
@@ -56,13 +96,12 @@ class MedicalRecordControllerTest {
     @Nested
     @DisplayName("addMedicalRecord tests")
     class AddMedicalRecordTest {
-        @Test
-        @DisplayName("GIVEN a medical record not already present in repository " +
-                "WHEN processing a POST /medicalRecord request for this medical record " +
-                "THEN the returned value is the added medical record")
-        public void addMedicalRecordTest_WithSuccess() throws Exception {
-            // GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
+
+        private MedicalRecordDTO medicalRecordDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            medicalRecordDTOToAdd = new MedicalRecordDTO();
             medicalRecordDTOToAdd.setFirstName("MRCT_first_name");
             medicalRecordDTOToAdd.setLastName("MRCT_last_name");
             medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
@@ -75,7 +114,14 @@ class MedicalRecordControllerTest {
             allergies.add("MRCT_allergies_1");
             allergies.add("MRCT_allergies_2");
             medicalRecordDTOToAdd.setAllergies(allergies);
+        }
 
+        @Test
+        @DisplayName("GIVEN a medical record not already present in repository " +
+                "WHEN processing a POST /medicalRecord request for this medical record " +
+                "THEN the returned value is the added medical record")
+        public void addMedicalRecordTest_WithSuccess() throws Exception {
+            // GIVEN
             MedicalRecordDTO addedMedicalRecordDTO = new MedicalRecordDTO();
             addedMedicalRecordDTO.setMedicalRecordId(100L);
             addedMedicalRecordDTO.setFirstName(medicalRecordDTOToAdd.getFirstName());
@@ -104,18 +150,7 @@ class MedicalRecordControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addMedicalRecordTest_WithMissingInformation() throws Exception {
             // GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setLastName("MRCT_last_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("MRCT_medications_1");
-            medications.add("MRCT_medications_2");
-            medications.add("MRCT_medications_3");
-            medicalRecordDTOToAdd.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("MRCT_allergies_1");
-            allergies.add("MRCT_allergies_2");
-            medicalRecordDTOToAdd.setAllergies(allergies);
+            medicalRecordDTOToAdd.setFirstName(null);
 
             when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTOToAdd))
                     .thenThrow(new MissingInformationException("Firstname is missing"));
@@ -134,11 +169,6 @@ class MedicalRecordControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addMedicalRecordTest_AlreadyExisting() throws Exception {
             // GIVEN
-            MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setFirstName("MRCT_Existing_first_name");
-            medicalRecordDTOToAdd.setLastName("MRCT_Existing_last_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-
             when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTOToAdd))
                     .thenThrow(new AlreadyExistsException("Medical record already exists"));
 

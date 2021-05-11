@@ -1,7 +1,6 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.MedicalRecord;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,11 +36,6 @@ class JsonParserServiceTest {
 
     private MedicalRecord medicalRecord;
 
-    @BeforeAll
-    private static void setUp() {
-
-    }
-
     @BeforeEach
     private void setUpPerTest() {
         medicalRecord = new MedicalRecord();
@@ -60,7 +54,6 @@ class JsonParserServiceTest {
         allergies.add("JPST_allergies_1");
         allergies.add("JPST_allergies_2");
         medicalRecord.setAllergies(allergies);
-
     }
 
 
@@ -70,12 +63,6 @@ class JsonParserServiceTest {
     public void readDataFromFileTest_WithCorrectFile() {
         //GIVEN
         ReflectionTestUtils.setField(jsonParserService, "dataInputFilePath", "test_complete_data.json");
-
-        /*List<MedicalRecord> listOfMedicalRecord = new ArrayList<>();
-        listOfMedicalRecord.add(medicalRecord);
-        when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecord);
-
-         */
 
         //WHEN
         jsonParserService.readDataFromFile();

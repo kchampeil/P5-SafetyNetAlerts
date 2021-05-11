@@ -12,7 +12,6 @@ import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
 import com.safetynet.alerts.repository.PersonRepository;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -51,14 +50,12 @@ class PersonServiceTest {
     private IPersonService personService;
 
     private Person person;
-
-    @BeforeAll
-    private static void setUp() {
-
-    }
+    private List<Person> listOfPersons;
 
     @BeforeEach
     private void setUpPerTest() {
+        listOfPersons = new ArrayList<>();
+
         person = new Person();
         person.setFirstName("PST_first_name");
         person.setLastName("PST_last_name");
@@ -99,7 +96,6 @@ class PersonServiceTest {
                 "THEN it is saved in repository and return code is true")
         public void saveListOfPersonsTest_WithConsistentList() {
             //GIVEN
-            List<Person> listOfPersons = new ArrayList<>();
             listOfPersons.add(person);
             when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
 
@@ -118,7 +114,6 @@ class PersonServiceTest {
                 "THEN no data is saved in repository and return code is false")
         public void saveListOfPersonsTest_WithException() {
             //GIVEN
-            List<Person> listOfPersons = new ArrayList<>();
             listOfPersons.add(person);
             when(personRepositoryMock.saveAll(listOfPersons)).thenThrow(IllegalArgumentException.class);
 
@@ -141,7 +136,6 @@ class PersonServiceTest {
                 "THEN a list of persons is returned")
         public void getAllPersonsTest_WithPersonDataInRepository() {
             //GIVEN
-            List<Person> listOfPersons = new ArrayList<>();
             person.setPersonId(100L);
             listOfPersons.add(person);
             when(personRepositoryMock.findAll()).thenReturn(listOfPersons);
@@ -190,7 +184,6 @@ class PersonServiceTest {
                 "THEN a list of citizens' emails is returned")
         public void getAllEmailsByCityTest_WithInfoInRepository() {
             //GIVEN
-            List<Person> listOfPersons = new ArrayList<>();
             listOfPersons.add(person);
             when(personRepositoryMock.findAllByCity("PST_city")).thenReturn(listOfPersons);
 
@@ -254,8 +247,7 @@ class PersonServiceTest {
                 "THEN a list of person information is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithConsistentList() {
             //GIVEN
-            List<Person> listOfPerson = new ArrayList<>();
-            listOfPerson.add(person);
+            listOfPersons.add(person);
 
             List<PersonInfoDTO> expectedListOfPersonInfo = new ArrayList<>();
             PersonInfoDTO personInfoDTO = new PersonInfoDTO();
@@ -267,7 +259,7 @@ class PersonServiceTest {
             personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
             expectedListOfPersonInfo.add(personInfoDTO);
 
-            when(personRepositoryMock.findAllByFirstNameAndLastName("TestFirstName", "TestLastName")).thenReturn(listOfPerson);
+            when(personRepositoryMock.findAllByFirstNameAndLastName("TestFirstName", "TestLastName")).thenReturn(listOfPersons);
 
             //THEN
             assertEquals(expectedListOfPersonInfo, personService.getPersonInfoByFirstNameAndLastName("TestFirstName", "TestLastName"));
@@ -342,8 +334,6 @@ class PersonServiceTest {
                 "THEN a list of child alert information is returned")
         public void getChildAlertByAddressTest_WithConsistentList() {
             //GIVEN
-            List<Person> listOfPerson = new ArrayList<>();
-
             Person aChild = new Person();
             aChild.setFirstName("PST_first_name");
             aChild.setLastName("PST_last_name");
@@ -356,7 +346,7 @@ class PersonServiceTest {
             medicalRecord.setBirthDate(TestConstants.CHILD_BIRTHDATE);
             aChild.setMedicalRecord(medicalRecord);
 
-            listOfPerson.add(aChild);
+            listOfPersons.add(aChild);
 
             Person hisParent = new Person();
             hisParent.setFirstName("PST_first_name_parent");
@@ -370,9 +360,9 @@ class PersonServiceTest {
             medicalRecord2.setLastName(hisParent.getLastName());
             medicalRecord2.setBirthDate(TestConstants.ADULT_BIRTHDATE);
             hisParent.setMedicalRecord(medicalRecord2);
-            listOfPerson.add(hisParent);
+            listOfPersons.add(hisParent);
 
-            when(personRepositoryMock.findAllByAddress(aChild.getAddress())).thenReturn(listOfPerson);
+            when(personRepositoryMock.findAllByAddress(aChild.getAddress())).thenReturn(listOfPersons);
 
             //WHEN
             List<ChildAlertDTO> returnedListOfChildAlert = personService.getChildAlertByAddress(aChild.getAddress());
@@ -453,8 +443,6 @@ class PersonServiceTest {
                 "THEN a list of citizens' phone numbers covered by the fire station is returned")
         public void getPhoneAlertByFireStationTest_WithInfoInRepository() {
             //GIVEN 3 persons but only 2 distinct phone numbers
-            List<Person> listOfPersons = new ArrayList<>();
-
             Person person1 = new Person();
             person1.setFirstName("PST_first_name_1");
             person1.setLastName("PST_last_name_1");
@@ -516,6 +504,7 @@ class PersonServiceTest {
     @Nested
     @DisplayName("getFireStationCoverageByStationNumber tests")
     class GetFireStationCoverageByStationNumberTest {
+
         @Test
         @DisplayName("GIVEN citizens covered by the requested fire station found in repository " +
                 "WHEN asking for the person information list " +
@@ -523,8 +512,6 @@ class PersonServiceTest {
                 " and the number of adults and children is returned")
         public void getFireStationCoverageByStationNumberTest_WithInfoInRepository() {
             //GIVEN 3 persons of which 1 child
-            List<Person> listOfPersons = new ArrayList<>();
-
             Person person1 = new Person();
             person1.setFirstName("PST_first_name_1");
             person1.setLastName("PST_last_name_1");
@@ -607,13 +594,11 @@ class PersonServiceTest {
     @Nested
     @DisplayName("addPerson tests")
     class AddPersonTest {
-        @Test
-        @DisplayName("GIVEN a new person to add " +
-                "WHEN saving this new person " +
-                "THEN the returned value is the added person")
-        public void addPersonTest_WithSuccess() throws Exception {
-            //GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
+        private PersonDTO personDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            personDTOToAdd = new PersonDTO();
             personDTOToAdd.setFirstName("PCT_first_name");
             personDTOToAdd.setLastName("PCT_last_name");
             personDTOToAdd.setAddress("PCT_address");
@@ -621,7 +606,14 @@ class PersonServiceTest {
             personDTOToAdd.setPhone("PCT_phone");
             personDTOToAdd.setCity("PCT_city");
             personDTOToAdd.setZip("PCT_zip");
+        }
 
+        @Test
+        @DisplayName("GIVEN a new person to add " +
+                "WHEN saving this new person " +
+                "THEN the returned value is the added person")
+        public void addPersonTest_WithSuccess() throws Exception {
+            //GIVEN
             Person expectedAddedPerson = new Person();
             expectedAddedPerson.setPersonId(100L);
             expectedAddedPerson.setFirstName(personDTOToAdd.getFirstName());
@@ -631,13 +623,12 @@ class PersonServiceTest {
             expectedAddedPerson.setPhone(personDTOToAdd.getPhone());
             expectedAddedPerson.setCity(personDTOToAdd.getCity());
             expectedAddedPerson.setZip(personDTOToAdd.getZip());
+
             FireStation fireStation = new FireStation();
             fireStation.setFireStationId(100L);
             fireStation.setStationNumber(73);
             fireStation.setAddress(personDTOToAdd.getAddress());
             expectedAddedPerson.setFireStation(fireStation);
-
-            List<Person> listOfPersons = new ArrayList<>();
 
             when(personRepositoryMock
                     .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName()))
@@ -666,16 +657,6 @@ class PersonServiceTest {
                 "THEN an AlreadyExistsException is thrown")
         public void addPersonTest_WithExistingPersonInRepository() {
             //GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setFirstName("PCT_first_name_Already_Present");
-            personDTOToAdd.setLastName("PCT_last_name_Already_Present");
-            personDTOToAdd.setAddress("PCT_address");
-            personDTOToAdd.setEmail("PCT_email_Already_Present@safety.com");
-            personDTOToAdd.setPhone("PCT_phone");
-            personDTOToAdd.setCity("PCT_city");
-            personDTOToAdd.setZip("PCT_zip");
-
-            List<Person> listOfPersons = new ArrayList<>();
             Person existingPerson = new Person();
             person.setPersonId(1L);
             person.setFirstName(personDTOToAdd.getFirstName());
@@ -700,11 +681,11 @@ class PersonServiceTest {
                 "THEN an MissingInformationException is thrown")
         public void addPersonTest_WithMissingPersonInformation() {
             //GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
+            PersonDTO emptyPersonDTOToAdd = new PersonDTO();
 
             //THEN
-            assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null,null);
+            assertThrows(MissingInformationException.class, () -> personService.addPerson(emptyPersonDTOToAdd));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null, null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
         }
@@ -715,17 +696,12 @@ class PersonServiceTest {
                 "THEN an MissingInformationException is thrown")
         public void addPersonTest_WithoutFirstName() {
             //GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setLastName("PCT_last_name");
-            personDTOToAdd.setAddress("PCT_address");
-            personDTOToAdd.setEmail("PCT_email@safety.com");
-            personDTOToAdd.setPhone("PCT_phone");
-            personDTOToAdd.setCity("PCT_city");
-            personDTOToAdd.setZip("PCT_zip");
+            personDTOToAdd.setFirstName(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null,personDTOToAdd.getLastName());
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findAllByFirstNameAndLastName(null, personDTOToAdd.getLastName());
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
         }
@@ -736,17 +712,11 @@ class PersonServiceTest {
                 "THEN an MissingInformationException is thrown")
         public void addPersonTest_WithoutLastName() {
             //GIVEN
-            PersonDTO personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setFirstName("PCT_first_name");
-            personDTOToAdd.setAddress("PCT_address");
-            personDTOToAdd.setEmail("PCT_email@safety.com");
-            personDTOToAdd.setPhone("PCT_phone");
-            personDTOToAdd.setCity("PCT_city");
-            personDTOToAdd.setZip("PCT_zip");
+            personDTOToAdd.setLastName(null);
 
             //THEN
             assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
-            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(),null);
+            verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
         }

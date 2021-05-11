@@ -9,6 +9,8 @@ import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 import com.safetynet.alerts.model.dto.PersonCoveredDTO;
 import com.safetynet.alerts.service.IFireStationService;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,20 @@ class FireStationControllerTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static List<PersonCoveredDTO> listOfPersonsCovered;
+
+    @BeforeAll
+    private static void setUp() {
+        listOfPersonsCovered = new ArrayList<>();
+        PersonCoveredDTO personCoveredDTO = new PersonCoveredDTO();
+        personCoveredDTO.setLastName("FSCT_lastname");
+        personCoveredDTO.setPhone("FSCT_phone");
+        personCoveredDTO.setAge(TestConstants.ADULT_AGE);
+        personCoveredDTO.setMedications(new ArrayList<>());
+        personCoveredDTO.setAllergies(new ArrayList<>());
+        listOfPersonsCovered.add(personCoveredDTO);
+    }
+
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  getAllFireStations tests
      * ----------------------------------------------------------------------------------------------------------------------*/
@@ -55,9 +71,9 @@ class FireStationControllerTest {
 
         @Test
         @DisplayName("GIVEN data in DB WHEN asking for the list of fire stations GET /firestations " +
-                "THEN return status is ok and a list is returned")
+                "THEN return status is ok and a list of fire stations is returned")
         public void getAllFireStationsTest_WithData() throws Exception {
-
+            // GIVEN
             List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
             FireStationDTO fireStationDTO = new FireStationDTO();
             fireStationDTO.setFireStationId(100L);
@@ -66,6 +82,7 @@ class FireStationControllerTest {
             listOfFireStationsDTO.add(fireStationDTO);
             when(fireStationServiceMock.getAllFireStations()).thenReturn(listOfFireStationsDTO);
 
+            //THEN
             mockMvc.perform(get("/firestations"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -75,18 +92,20 @@ class FireStationControllerTest {
 
         @Test
         @DisplayName("GIVEN no data in DB WHEN asking for the list of fire stations GET /firestations " +
-                "THEN return status is not found and an empty list is returned")
+                "THEN return status is 'not found' and an empty list is returned")
         public void getAllFireStationsTest_WithoutData() throws Exception {
+            // GIVEN
+            List<FireStationDTO> emptyListOfFireStationsDTO = new ArrayList<>();
+            when(fireStationServiceMock.getAllFireStations()).thenReturn(emptyListOfFireStationsDTO);
 
-            List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
-            when(fireStationServiceMock.getAllFireStations()).thenReturn(listOfFireStationsDTO);
-
+            //THEN
             mockMvc.perform(get("/firestations"))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
         }
     }
+
 
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  getFireStationCoverageByAddress tests
@@ -95,22 +114,19 @@ class FireStationControllerTest {
     @DisplayName("getFireStationCoverageByAddress tests")
     class GetFireStationCoverageByAddressTest {
 
+        private FireDTO fireDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            fireDTO = new FireDTO();
+        }
+
         @Test
         @DisplayName("GIVEN persons in repository living at the requested address and one fire station covering this address " +
                 "WHEN processing a GET /fire request on address " +
                 "THEN coverage information is returned")
         public void getFireStationCoverageByAddressTest_WithResults() throws Exception {
             // GIVEN
-            List<PersonCoveredDTO> listOfPersonsCovered = new ArrayList<>();
-            PersonCoveredDTO personCoveredDTO = new PersonCoveredDTO();
-            personCoveredDTO.setLastName("FSCT_lastname");
-            personCoveredDTO.setPhone("FSCT_phone");
-            personCoveredDTO.setAge(TestConstants.ADULT_AGE);
-            personCoveredDTO.setMedications(new ArrayList<>());
-            personCoveredDTO.setAllergies(new ArrayList<>());
-            listOfPersonsCovered.add(personCoveredDTO);
-
-            FireDTO fireDTO = new FireDTO();
             fireDTO.setPersonCoveredDTOList(listOfPersonsCovered);
             fireDTO.setStationNumber(73);
 
@@ -129,24 +145,25 @@ class FireStationControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested address in repository " +
                 "WHEN processing a GET /fire request on address " +
-                "THEN the returned coverage information is null")
+                "THEN return status is 'not found' and an empty coverage info is returned")
         public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
             // GIVEN
-            FireDTO fireDTO = new FireDTO();
             when(fireStationServiceMock.getFireStationCoverageByAddress("AddressTestNotFound"))
                     .thenReturn(fireDTO);
 
             // THEN
             mockMvc.perform(get("/fire")
                     .param("address", "AddressTestNotFound"))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.personCoveredDTO").doesNotExist());
         }
 
 
         @Test
         @DisplayName("GIVEN null address " +
                 "WHEN processing a GET /fire request on address " +
-                "THEN the returned coverage information is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getFireStationCoverageByAddressTest_WithNoAddressAsInput() throws Exception {
             // GIVEN
             when(fireStationServiceMock.getFireStationCoverageByAddress(anyString())).thenReturn(null);
@@ -166,27 +183,25 @@ class FireStationControllerTest {
     @Nested
     @DisplayName("getFloodByStationNumbers tests")
     class GetFloodByStationNumbersTest {
+
+        private List<FloodDTO> listOfFloodDTO;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            listOfFloodDTO = new ArrayList<>();
+        }
+
         @Test
         @DisplayName("GIVEN persons in repository living at one address covered by one of the fire station of the given list " +
                 "WHEN processing a GET /flood/stations request on station numbers " +
                 "THEN coverage information is returned")
         public void getFloodByStationNumbersTest_WithResults() throws Exception {
             // GIVEN
-            List<PersonCoveredDTO> listOfPersonsCovered = new ArrayList<>();
-            PersonCoveredDTO personCoveredDTO = new PersonCoveredDTO();
-            personCoveredDTO.setLastName("FSCT_lastname");
-            personCoveredDTO.setPhone("FSCT_phone");
-            personCoveredDTO.setAge(TestConstants.ADULT_AGE);
-            personCoveredDTO.setMedications(new ArrayList<>());
-            personCoveredDTO.setAllergies(new ArrayList<>());
-            listOfPersonsCovered.add(personCoveredDTO);
-
             FloodDTO floodDTO = new FloodDTO();
             floodDTO.setStationNumber(73);
             Map<String, List<PersonCoveredDTO>> personCoveredDTOByAddress = new HashMap<>();
             personCoveredDTOByAddress.put("FSCT_Address", listOfPersonsCovered);
             floodDTO.setPersonsCoveredByAddress(personCoveredDTOByAddress);
-            List<FloodDTO> listOfFloodDTO = new ArrayList<>();
             listOfFloodDTO.add(floodDTO);
 
             when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(73)))
@@ -204,24 +219,25 @@ class FireStationControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire stations in repository " +
                 "WHEN processing a GET /flood/stations request on station numbers " +
-                "THEN the returned coverage information is null")
+                "THEN return status is 'not found' and an empty coverage info is returned")
         public void getFloodByStationNumbersTest_WithNoResults() throws Exception {
             // GIVEN
-            List<FloodDTO> listOfFloodDTO = new ArrayList<>();
             when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(999)))
                     .thenReturn(listOfFloodDTO);
 
             // THEN
             mockMvc.perform(get("/flood/stations")
                     .param("stations", "999"))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.personsCoveredByAddress").doesNotExist());
         }
 
 
         @Test
         @DisplayName("GIVEN null list of station numbers " +
                 "WHEN processing a GET /flood/stations request on address " +
-                "THEN the returned coverage information is null and no request has been sent to repository")
+                "THEN return status is 'bad request'")
         public void getFloodByStationNumbersTest_WithNoAddressAsInput() throws Exception {
             // GIVEN
             when(fireStationServiceMock.getFloodByStationNumbers(null)).thenReturn(null);
@@ -240,15 +256,22 @@ class FireStationControllerTest {
     @Nested
     @DisplayName("addFireStation tests")
     class AddFireStationTest {
+
+        private FireStationDTO fireStationDTOToAdd;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            fireStationDTOToAdd = new FireStationDTO();
+            fireStationDTOToAdd.setStationNumber(3);
+            fireStationDTOToAdd.setAddress("FSCT_Add_Address");
+        }
+
         @Test
         @DisplayName("GIVEN a new mapping address/fire station " +
                 "WHEN processing a POST /firestation request for this fire station " +
                 "THEN the returned value is the added fire station")
         public void addFireStationTest_WithSuccess() throws Exception {
             // GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-            fireStationDTOToAdd.setAddress("FSCT_New_Address");
             FireStationDTO addedFireStationDTO = new FireStationDTO();
             addedFireStationDTO.setFireStationId(3L);
             addedFireStationDTO.setStationNumber(fireStationDTOToAdd.getStationNumber());
@@ -275,9 +298,6 @@ class FireStationControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addFireStationTest_WithMissingInformation() throws Exception {
             // GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
                     .thenThrow(new MissingInformationException("Address is missing"));
 
@@ -295,9 +315,6 @@ class FireStationControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addFireStationTest_WithExistingFireStation() throws Exception {
             // GIVEN
-            FireStationDTO fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-            fireStationDTOToAdd.setAddress("FSCT_Existing_Address");
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
                     .thenThrow(new AlreadyExistsException("Person already exists"));
 
