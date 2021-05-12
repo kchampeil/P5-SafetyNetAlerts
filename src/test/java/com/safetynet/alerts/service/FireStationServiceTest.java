@@ -507,8 +507,8 @@ class FireStationServiceTest {
         @Test
         @DisplayName("GIVEN a new station number for a given address not existing in repository " +
                 "WHEN updating this relationship " +
-                "THEN an DoesNotExistException is thrown and no fire station has been updated)")
-        public void updateFireStationTest_WithExistingAddressInRepository() {
+                "THEN an DoesNotExistException is thrown and no fire station has been updated")
+        public void updateFireStationTest_WithNoExistingAddressInRepository() {
             //GIVEN
             when(fireStationRepositoryMock.findByAddress(fireStationDTOToUpdate.getAddress())).thenReturn(null);
 

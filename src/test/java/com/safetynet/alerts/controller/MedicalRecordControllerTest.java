@@ -3,6 +3,7 @@ package com.safetynet.alerts.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
 import com.safetynet.alerts.service.IMedicalRecordService;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,6 +40,25 @@ class MedicalRecordControllerTest {
     private IMedicalRecordService medicalRecordServiceMock;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private MedicalRecordDTO medicalRecordDTO;
+
+    @BeforeEach
+    private void setUpPerTest() {
+        medicalRecordDTO = new MedicalRecordDTO();
+        medicalRecordDTO.setFirstName("MRCT_first_name");
+        medicalRecordDTO.setLastName("MRCT_last_name");
+        medicalRecordDTO.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+        List<String> medications = new ArrayList<>();
+        medications.add("MRCT_medications_1");
+        medications.add("MRCT_medications_2");
+        medications.add("MRCT_medications_3");
+        medicalRecordDTO.setMedications(medications);
+        List<String> allergies = new ArrayList<>();
+        allergies.add("MRCT_allergies_1");
+        allergies.add("MRCT_allergies_2");
+        medicalRecordDTO.setAllergies(allergies);
+    }
 
     /* ----------------------------------------------------------------------------------------------------------------------
      *                  getAllMedicalRecords tests
@@ -58,11 +79,6 @@ class MedicalRecordControllerTest {
                 "THEN return status is ok and a list of medical records is returned")
         public void getAllMedicalRecordsTest_WithData() throws Exception {
             //GIVEN
-            MedicalRecordDTO medicalRecordDTO = new MedicalRecordDTO();
-            medicalRecordDTO.setMedicalRecordId(100L);
-            medicalRecordDTO.setFirstName("MRCT_first_name");
-            medicalRecordDTO.setLastName("MRCT_last_name");
-            medicalRecordDTO.setBirthDate(TestConstants.ADULT_BIRTHDATE);
             listOfMedicalRecordsDTO.add(medicalRecordDTO);
             when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecordsDTO);
 
@@ -97,25 +113,6 @@ class MedicalRecordControllerTest {
     @DisplayName("addMedicalRecord tests")
     class AddMedicalRecordTest {
 
-        private MedicalRecordDTO medicalRecordDTOToAdd;
-
-        @BeforeEach
-        private void setUpPerTest() {
-            medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setFirstName("MRCT_first_name");
-            medicalRecordDTOToAdd.setLastName("MRCT_last_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("MRCT_medications_1");
-            medications.add("MRCT_medications_2");
-            medications.add("MRCT_medications_3");
-            medicalRecordDTOToAdd.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("MRCT_allergies_1");
-            allergies.add("MRCT_allergies_2");
-            medicalRecordDTOToAdd.setAllergies(allergies);
-        }
-
         @Test
         @DisplayName("GIVEN a medical record not already present in repository " +
                 "WHEN processing a POST /medicalRecord request for this medical record " +
@@ -124,23 +121,23 @@ class MedicalRecordControllerTest {
             // GIVEN
             MedicalRecordDTO addedMedicalRecordDTO = new MedicalRecordDTO();
             addedMedicalRecordDTO.setMedicalRecordId(100L);
-            addedMedicalRecordDTO.setFirstName(medicalRecordDTOToAdd.getFirstName());
-            addedMedicalRecordDTO.setLastName(medicalRecordDTOToAdd.getLastName());
-            addedMedicalRecordDTO.setBirthDate(medicalRecordDTOToAdd.getBirthDate());
-            addedMedicalRecordDTO.setMedications(medicalRecordDTOToAdd.getMedications());
-            addedMedicalRecordDTO.setAllergies(medicalRecordDTOToAdd.getAllergies());
+            addedMedicalRecordDTO.setFirstName(medicalRecordDTO.getFirstName());
+            addedMedicalRecordDTO.setLastName(medicalRecordDTO.getLastName());
+            addedMedicalRecordDTO.setBirthDate(medicalRecordDTO.getBirthDate());
+            addedMedicalRecordDTO.setMedications(medicalRecordDTO.getMedications());
+            addedMedicalRecordDTO.setAllergies(medicalRecordDTO.getAllergies());
 
-            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTOToAdd))
+            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTO))
                     .thenReturn(addedMedicalRecordDTO);
 
             // THEN
             mockMvc.perform(post("/medicalRecord")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(medicalRecordDTOToAdd)))
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
-            verify(medicalRecordServiceMock, Mockito.times(1)).addMedicalRecord(medicalRecordDTOToAdd);
+            verify(medicalRecordServiceMock, Mockito.times(1)).addMedicalRecord(medicalRecordDTO);
         }
 
 
@@ -150,15 +147,15 @@ class MedicalRecordControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addMedicalRecordTest_WithMissingInformation() throws Exception {
             // GIVEN
-            medicalRecordDTOToAdd.setFirstName(null);
+            medicalRecordDTO.setFirstName(null);
 
-            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTOToAdd))
+            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTO))
                     .thenThrow(new MissingInformationException("Firstname is missing"));
 
             // THEN
             mockMvc.perform(post("/medicalRecord")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(medicalRecordDTOToAdd)))
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
                     .andExpect(status().isBadRequest());
         }
 
@@ -169,15 +166,89 @@ class MedicalRecordControllerTest {
                 "THEN the returned code is 'bad request'")
         public void addMedicalRecordTest_AlreadyExisting() throws Exception {
             // GIVEN
-            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTOToAdd))
+            when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTO))
                     .thenThrow(new AlreadyExistsException("Medical record already exists"));
 
             // THEN
             mockMvc.perform(post("/medicalRecord")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(medicalRecordDTOToAdd)))
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
                     .andExpect(status().isBadRequest());
-            verify(medicalRecordServiceMock, Mockito.times(1)).addMedicalRecord(medicalRecordDTOToAdd);
+            verify(medicalRecordServiceMock, Mockito.times(1)).addMedicalRecord(medicalRecordDTO);
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  updateMedicalRecord tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("updateMedicalRecord tests")
+    class UpdateMedicalRecordTest {
+
+        @Test
+        @DisplayName("GIVEN a medical record present in repository " +
+                "WHEN processing a PUT /medicalRecord request for this medical record " +
+                "THEN the returned value is the updated medical record")
+        public void updateMedicalRecordTest_WithSuccess() throws Exception {
+            // GIVEN
+            MedicalRecordDTO updatedMedicalRecordDTO = new MedicalRecordDTO();
+            updatedMedicalRecordDTO.setMedicalRecordId(100L);
+            updatedMedicalRecordDTO.setFirstName(medicalRecordDTO.getFirstName());
+            updatedMedicalRecordDTO.setLastName(medicalRecordDTO.getLastName());
+            updatedMedicalRecordDTO.setBirthDate(medicalRecordDTO.getBirthDate());
+            updatedMedicalRecordDTO.setMedications(medicalRecordDTO.getMedications());
+            updatedMedicalRecordDTO.setAllergies(medicalRecordDTO.getAllergies());
+
+            when(medicalRecordServiceMock.updateMedicalRecord(medicalRecordDTO))
+                    .thenReturn(updatedMedicalRecordDTO);
+
+            // THEN
+            mockMvc.perform(put("/medicalRecord")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+            verify(medicalRecordServiceMock, Mockito.times(1)).updateMedicalRecord(medicalRecordDTO);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a medical record with missing firstname " +
+                "WHEN processing a PUT /medicalRecord request for this medical record " +
+                "THEN the returned code is 'bad request'")
+        public void updateMedicalRecordTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            medicalRecordDTO.setFirstName(null);
+
+            when(medicalRecordServiceMock.updateMedicalRecord(medicalRecordDTO))
+                    .thenThrow(new MissingInformationException("Firstname is missing"));
+
+            // THEN
+            mockMvc.perform(put("/medicalRecord")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
+                    .andExpect(status().isBadRequest());
+            verify(medicalRecordServiceMock, Mockito.times(1)).updateMedicalRecord(medicalRecordDTO);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a medical record not present in repository " +
+                "WHEN processing a PUT /medicalRecord request for this medical record " +
+                "THEN the returned code is 'bad request'")
+        public void updateMedicalRecordTest_NotExisting() throws Exception {
+            // GIVEN
+            when(medicalRecordServiceMock.updateMedicalRecord(medicalRecordDTO))
+                    .thenThrow(new DoesNotExistException("Medical record does not exist"));
+
+            // THEN
+            mockMvc.perform(put("/medicalRecord")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(medicalRecordDTO)))
+                    .andExpect(status().isBadRequest());
+            verify(medicalRecordServiceMock, Mockito.times(1)).updateMedicalRecord(medicalRecordDTO);
         }
     }
 

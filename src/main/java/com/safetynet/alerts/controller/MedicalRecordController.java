@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,24 +49,24 @@ public class MedicalRecordController {
     /**
      * Create - Post a new medical record
      *
-     * @param medicalRecordToAdd to add to repository
+     * @param medicalRecordDTOToAdd to add to repository
      * @return the added MedicalRecordDTO
      */
     @PostMapping(value = "/medicalRecord")
-    public ResponseEntity<MedicalRecordDTO> addPerson(@RequestBody MedicalRecordDTO medicalRecordToAdd) {
+    public ResponseEntity<MedicalRecordDTO> addMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTOToAdd) {
 
-        log.info("POST request on endpoint /medicalRecord received for person "
-                + medicalRecordToAdd.getFirstName() + " " + medicalRecordToAdd.getLastName());
+        log.info("POST request on endpoint /medicalRecord received for medical record "
+                + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName());
 
         try {
-            MedicalRecordDTO addedMedicalRecord = medicalRecordService.addMedicalRecord(medicalRecordToAdd);
+            MedicalRecordDTO addedMedicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd);
 
-            if (addedMedicalRecord != null) {
-                log.info("new person " + medicalRecordToAdd.getFirstName() + medicalRecordToAdd.getLastName() + " has been saved "
-                        + " with id: " + addedMedicalRecord.getMedicalRecordId() + "\n");
-                return new ResponseEntity<>(addedMedicalRecord, HttpStatus.CREATED);
+            if (addedMedicalRecordDTO != null) {
+                log.info("new medical record " + medicalRecordDTOToAdd.getFirstName() + medicalRecordDTOToAdd.getLastName() + " has been saved "
+                        + " with id: " + addedMedicalRecordDTO.getMedicalRecordId() + "\n");
+                return new ResponseEntity<>(addedMedicalRecordDTO, HttpStatus.CREATED);
             } else {
-                log.error("new person " + medicalRecordToAdd + " has not been saved \n");
+                log.error("new medical record " + medicalRecordDTOToAdd + " has not been saved \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
@@ -76,4 +77,38 @@ public class MedicalRecordController {
         }
 
     }
+
+
+    /**
+     * Update - Put a medical record for a given firstname+lastname
+     *
+     * @param medicalRecordDTOToUpdate to update in repository
+     * @return the added MedicalRecordDTO
+     */
+    @PutMapping(value = "/medicalRecord")
+    public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTOToUpdate) {
+
+        log.info("PUT request on endpoint /medicalRecord received for person "
+                + medicalRecordDTOToUpdate.getFirstName() + " " + medicalRecordDTOToUpdate.getLastName());
+
+        try {
+            MedicalRecordDTO updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
+
+            if (updatedMedicalRecordDTO != null) {
+                log.info("Medical record " + medicalRecordDTOToUpdate.getFirstName() + medicalRecordDTOToUpdate.getLastName() + " has been updated "
+                        + " with id: " + updatedMedicalRecordDTO.getMedicalRecordId() + "\n");
+                return new ResponseEntity<>(updatedMedicalRecordDTO, HttpStatus.OK);
+            } else {
+                log.error("Medical record " + medicalRecordDTOToUpdate + " has not been updated \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            //TOASK comment remonter le message de l'exception ?
+        }
+
+    }
+
 }

@@ -205,7 +205,8 @@ public class FireStationService implements IFireStationService {
      *
      * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
-     * @throws AlreadyExistsException, MissingInformationException
+     * @throws AlreadyExistsException
+     * @throws MissingInformationException
      */
     @Override
     public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -244,7 +245,8 @@ public class FireStationService implements IFireStationService {
      *
      * @param fireStationDTOToUpdate an address / fire station relationship to update
      * @return the updated fireStation
-     * @throws DoesNotExistException, MissingInformationException
+     * @throws DoesNotExistException
+     * @throws MissingInformationException
      */
     @Override
     public FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException {

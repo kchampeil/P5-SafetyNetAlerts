@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
@@ -85,7 +86,8 @@ public class MedicalRecordService implements IMedicalRecordService {
      *
      * @param medicalRecordDTOToAdd a new medical record to add
      * @return the added medical record
-     * @throws AlreadyExistsException, MissingInformationException
+     * @throws AlreadyExistsException
+     * @throws MissingInformationException
      */
     @Override
     public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -103,6 +105,7 @@ public class MedicalRecordService implements IMedicalRecordService {
                 List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(
                         medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
 
+                //check if the person already exist in the repository
                 if (listOfPersons.size() != 0) {
                     //map DTO to DAO, save in repository,
                     //TODO-0 add the medical record to the person, save the person in repository
@@ -134,6 +137,49 @@ public class MedicalRecordService implements IMedicalRecordService {
         }
 
         return addedMedicalRecordDTO;
+    }
+
+
+    /**
+     * update a medical record of a given firstname+lastname
+     *
+     * @param medicalRecordDTOToUpdate a medical record to update
+     * @return the updated medical record
+     * @throws DoesNotExistException
+     * @throws MissingInformationException
+     */
+    @Override
+    public MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+
+        MedicalRecordDTO updatedMedicalRecordDTO;
+
+        //check if the medicalRecordDTOToUpdate is correctly filled
+        if (checkMedicalRecordDTO(medicalRecordDTOToUpdate)) {
+
+            //check if the medical record exists in the repository
+            MedicalRecord existingMedicalRecord = medicalRecordRepository
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName());
+
+            if (existingMedicalRecord != null) {
+                //map DTO to DAO, save in repository and map back to FireStationDTO for return
+                ModelMapper modelMapper = new ModelMapper();
+                MedicalRecord medicalRecordToUpdate = modelMapper.map(medicalRecordDTOToUpdate, MedicalRecord.class);
+                medicalRecordToUpdate.setMedicalRecordId(existingMedicalRecord.getMedicalRecordId());
+
+                MedicalRecord updatedMedicalRecord = medicalRecordRepository.save(medicalRecordToUpdate);
+
+                updatedMedicalRecordDTO = modelMapper.map(updatedMedicalRecord, MedicalRecordDTO.class);
+
+            } else {
+                throw new DoesNotExistException("Medical record for: " + medicalRecordDTOToUpdate.getFirstName()
+                        + " " + medicalRecordDTOToUpdate.getLastName() + " does not exist");
+            }
+
+        } else {
+            throw new MissingInformationException("At least firstname, lastname and birthdate must be specified for updating");
+        }
+
+        return updatedMedicalRecordDTO;
     }
 
 

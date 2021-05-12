@@ -2,6 +2,7 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.Person;
@@ -183,20 +184,6 @@ class MedicalRecordServiceTest {
                 "THEN the returned value is the added medical record")
         public void addMedicalRecordTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
             //GIVEN
-            /*MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setFirstName("MRST_first_name");
-            medicalRecordDTOToAdd.setLastName("MRST_last_name");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("MRST_medications_1");
-            medications.add("MRST_medications_2");
-            medications.add("MRST_medications_3");
-            medicalRecordDTOToAdd.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("MRST_allergies_1");
-            allergies.add("MRST_allergies_2");
-            medicalRecordDTOToAdd.setAllergies(allergies);*/
-
             MedicalRecord expectedAddedMedicalRecord = new MedicalRecord();
             expectedAddedMedicalRecord.setMedicalRecordId(100L);
             expectedAddedMedicalRecord.setFirstName(medicalRecordDTOToAdd.getFirstName());
@@ -239,24 +226,8 @@ class MedicalRecordServiceTest {
         @DisplayName("GIVEN a medical record already present in repository " +
                 "WHEN saving this new medical record " +
                 "THEN an AlreadyExistsException is thrown")
-        public void addMedicalRecordTest_WithExistingPersonInRepository() {
+        public void addMedicalRecordTest_WithExistingMedicalRecordInRepository() {
             //GIVEN
-            /*MedicalRecordDTO medicalRecordDTOToAdd = new MedicalRecordDTO();
-            medicalRecordDTOToAdd.setFirstName("MRST_first_name_Already_Present");
-            medicalRecordDTOToAdd.setLastName("MRST_last_name_Already_Present");
-            medicalRecordDTOToAdd.setBirthDate(TestConstants.ADULT_BIRTHDATE);
-            List<String> medications = new ArrayList<>();
-            medications.add("MRST_medications_1");
-            medications.add("MRST_medications_2");
-            medications.add("MRST_medications_3");
-            medicalRecordDTOToAdd.setMedications(medications);
-            List<String> allergies = new ArrayList<>();
-            allergies.add("MRST_allergies_1");
-            allergies.add("MRST_allergies_2");
-            medicalRecordDTOToAdd.setAllergies(allergies);
-
-             */
-
             List<MedicalRecord> listOfMedicalRecords = new ArrayList<>();
             MedicalRecord existingMedicalRecord = new MedicalRecord();
             existingMedicalRecord.setMedicalRecordId(1L);
@@ -321,6 +292,129 @@ class MedicalRecordServiceTest {
             verify(medicalRecordRepositoryMock, Mockito.times(0))
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), null);
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
+            verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  updateMedicalRecord tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("updateMedicalRecord tests")
+    class UpdateMedicalRecordTest {
+
+        private
+        MedicalRecordDTO medicalRecordDTOToUpdate;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            medicalRecordDTOToUpdate = new MedicalRecordDTO();
+            medicalRecordDTOToUpdate.setFirstName("MRST_first_name");
+            medicalRecordDTOToUpdate.setLastName("MRST_last_name");
+            medicalRecordDTOToUpdate.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            List<String> medications = new ArrayList<>();
+            medications.add("MRST_medications_1");
+            medications.add("MRST_medications_2");
+            medications.add("MRST_medications_3");
+            medicalRecordDTOToUpdate.setMedications(medications);
+            List<String> allergies = new ArrayList<>();
+            allergies.add("MRST_allergies_1");
+            allergies.add("MRST_allergies_2");
+            medicalRecordDTOToUpdate.setAllergies(allergies);
+        }
+
+        @Test
+        @DisplayName("GIVEN a medical record to update " +
+                "WHEN updating this medical record " +
+                "THEN the returned value is the updated medical record")
+        public void updateMedicalRecordTest_WithSuccess() throws DoesNotExistException, MissingInformationException {
+            //GIVEN
+            MedicalRecord expectedUpdatedMedicalRecord = new MedicalRecord();
+            expectedUpdatedMedicalRecord.setMedicalRecordId(100L);
+            expectedUpdatedMedicalRecord.setFirstName(medicalRecordDTOToUpdate.getFirstName());
+            expectedUpdatedMedicalRecord.setLastName(medicalRecordDTOToUpdate.getLastName());
+            expectedUpdatedMedicalRecord.setBirthDate(medicalRecordDTOToUpdate.getBirthDate());
+            when(medicalRecordRepositoryMock
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(),medicalRecordDTOToUpdate.getLastName()))
+                    .thenReturn(expectedUpdatedMedicalRecord);
+
+            expectedUpdatedMedicalRecord.setMedications(medicalRecordDTOToUpdate.getMedications());
+            expectedUpdatedMedicalRecord.setAllergies(medicalRecordDTOToUpdate.getAllergies());
+            when(medicalRecordRepositoryMock.save(any(MedicalRecord.class))).thenReturn(expectedUpdatedMedicalRecord);
+
+            //WHEN
+            MedicalRecordDTO updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
+
+            //THEN
+            medicalRecordDTOToUpdate.setMedicalRecordId(expectedUpdatedMedicalRecord.getMedicalRecordId());
+            assertEquals(medicalRecordDTOToUpdate, updatedMedicalRecordDTO);
+            assertNotNull(updatedMedicalRecordDTO.getMedicalRecordId());
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName());
+            verify(medicalRecordRepositoryMock, Mockito.times(1)).save(any(MedicalRecord.class));
+
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a medical record to update not present in repository " +
+                "WHEN updating this medical record " +
+                "THEN an DoesNotExistException is thrown and no medical record has been updated")
+        public void updateMedicalRecordTest_WithNoExistingMedicalRecordInRepository() {
+            //GIVEN
+            when(medicalRecordRepositoryMock
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(),medicalRecordDTOToUpdate.getLastName()))
+                    .thenReturn(null);
+
+            //THEN
+            assertThrows(DoesNotExistException.class, () -> medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate));
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName());
+            verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any(MedicalRecord.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN an empty medical record " +
+                "WHEN updating this medical record " +
+                "THEN an MissingInformationException is thrown")
+        public void updateMedicalRecordTest_WithMissingInformation() {
+            //GIVEN
+            MedicalRecordDTO emptyMedicalRecordDTOToUpdate = new MedicalRecordDTO();
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> medicalRecordService.updateMedicalRecord(emptyMedicalRecordDTOToUpdate));
+            verify(medicalRecordRepositoryMock, Mockito.times(0)).findByFirstNameAndLastName(null, null);
+            verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a medical record to update without firstname " +
+                "WHEN updating this medical record " +
+                "THEN an MissingInformationException is thrown")
+        public void updateMedicalRecordTest_WithoutFirstName() {
+            //GIVEN
+            medicalRecordDTOToUpdate.setFirstName(null);
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate));
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(null, medicalRecordDTOToUpdate.getLastName());
+            verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a medical record to update without lastname " +
+                "WHEN updating this new medical record " +
+                "THEN an MissingInformationException is thrown")
+        public void updateMedicalRecordTest_WithoutLastName() {
+            //GIVEN
+            medicalRecordDTOToUpdate.setLastName(null);
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate));
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), null);
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
         }
     }
