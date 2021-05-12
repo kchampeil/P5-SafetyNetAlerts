@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.Person;
@@ -44,7 +45,7 @@ public class FireStationService implements IFireStationService {
     public Iterable<FireStation> saveListOfFireStations(List<FireStation> listOfFireStations) {
 
         try {
-             return fireStationRepository.saveAll(listOfFireStations);
+            return fireStationRepository.saveAll(listOfFireStations);
         } catch (IllegalArgumentException e) {
             log.error("error when saving the list of fire stations in DB : " + e.getMessage() + "\n");
             return null;
@@ -235,6 +236,46 @@ public class FireStationService implements IFireStationService {
         }
 
         return addedFireStationDTO;
+    }
+
+
+    /**
+     * update the station number of a given address in the repository
+     *
+     * @param fireStationDTOToUpdate an address / fire station relationship to update
+     * @return the updated fireStation
+     * @throws DoesNotExistException, MissingInformationException
+     */
+    @Override
+    public FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+        FireStationDTO updatedFireStationDTO;
+
+        //check if the fireStationDTOToUpdate is correctly filled
+        if (fireStationDTOToUpdate != null
+                && fireStationDTOToUpdate.getStationNumber() != null
+                && fireStationDTOToUpdate.getAddress() != null && !fireStationDTOToUpdate.getAddress().isEmpty()) {
+
+            //check the address exists in the repository
+            FireStation existingFireStation = fireStationRepository.findByAddress(fireStationDTOToUpdate.getAddress());
+            if (existingFireStation != null) {
+                //map DTO to DAO, save in repository and map back to FireStationDTO for return
+                ModelMapper modelMapper = new ModelMapper();
+                FireStation fireStationToUpdate = modelMapper.map(fireStationDTOToUpdate, FireStation.class);
+                fireStationToUpdate.setFireStationId(existingFireStation.getFireStationId());
+
+                FireStation updatedFireStation = fireStationRepository.save(fireStationToUpdate);
+
+                updatedFireStationDTO = modelMapper.map(updatedFireStation, FireStationDTO.class);
+
+            } else {
+                throw new DoesNotExistException("Address: " + fireStationDTOToUpdate.getAddress() + " does not exist");
+            }
+
+        } else {
+            throw new MissingInformationException("All fire station information must be specified for updating");
+        }
+
+        return updatedFireStationDTO;
     }
 
 

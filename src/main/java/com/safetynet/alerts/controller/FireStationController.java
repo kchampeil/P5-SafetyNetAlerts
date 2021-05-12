@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -131,18 +132,51 @@ public class FireStationController {
                 + fireStationDTOToAdd.getStationNumber());
 
         try {
-            FireStationDTO addedFireStation = fireStationService.addFireStation(fireStationDTOToAdd);
+            FireStationDTO addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
 
-
-            if (addedFireStation != null) {
-                log.info("new address/fire station mapping has been saved for fire station n°"
+            if (addedFireStationDTO != null) {
+                log.info("address/fire station mapping has been updated for fire station n°"
                         + fireStationDTOToAdd.getStationNumber()
-                        + " with id: " + addedFireStation.getFireStationId() + " \n");
-                return new ResponseEntity<>(addedFireStation, HttpStatus.CREATED);
+                        + " with id: " + addedFireStationDTO.getFireStationId() + " \n");
+                return new ResponseEntity<>(addedFireStationDTO, HttpStatus.CREATED);
 
             } else {
-                log.error("new address/fire station mapping has not been saved for fire station: "
+                log.error("address/fire station mapping has not been updated for fire station: "
                         + fireStationDTOToAdd + " \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage() + " \n");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            //TOASK comment remonter le message de l'exception ?
+        }
+    }
+
+
+    /**
+     * Update - Put a new station number for a given address
+     *
+     * @param fireStationDTOToUpdate to update ino repository
+     * @return the updated FireStationDTO
+     */
+    @PutMapping(value = "/firestation")
+    public ResponseEntity<FireStationDTO> updateFireStation(@RequestBody FireStationDTO fireStationDTOToUpdate) {
+
+        log.info("PUT request on endpoint /firestation received for address: "
+                + fireStationDTOToUpdate.getAddress());
+
+        try {
+            FireStationDTO updatedFireStationDTO = fireStationService.updateFireStation(fireStationDTOToUpdate);
+
+            if (updatedFireStationDTO != null) {
+                log.info("new station number has been saved for address : "
+                        + fireStationDTOToUpdate.getAddress()
+                        + " at id: " + updatedFireStationDTO.getFireStationId() + " \n");
+                return new ResponseEntity<>(updatedFireStationDTO, HttpStatus.OK);
+
+            } else {
+                log.error("new station number has not been saved for address: "
+                        + fireStationDTOToUpdate.getAddress() + " \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
         } catch (Exception e) {

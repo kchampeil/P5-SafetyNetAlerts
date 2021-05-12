@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
@@ -45,9 +46,18 @@ public interface IFireStationService {
     /**
      * save a new address / fire station relationship in the repository
      *
-     * @param fireStationToAdd a new address / fire station relationship to add
+     * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
      * @throws AlreadyExistsException, MissingInformationException
      */
-    FireStationDTO addFireStation(FireStationDTO fireStationToAdd) throws AlreadyExistsException, MissingInformationException;
+    FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException;
+
+    /**
+     * update the station number of a given address in the repository
+     *
+     * @param fireStationDTOToUpdate an address / fire station relationship to update
+     * @return the updated fireStation
+     * @throws DoesNotExistException, MissingInformationException
+     */
+    FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 }
