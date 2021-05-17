@@ -2,6 +2,7 @@ package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.MedicalRecord;
@@ -718,6 +719,151 @@ class PersonServiceTest {
             assertThrows(MissingInformationException.class, () -> personService.addPerson(personDTOToAdd));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToAdd.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  updatePerson tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("updatePerson tests")
+    class UpdatePersonTest {
+        private PersonDTO personDTOToUpdate;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            personDTOToUpdate = new PersonDTO();
+            personDTOToUpdate.setFirstName("PCT_first_name");
+            personDTOToUpdate.setLastName("PCT_last_name");
+            personDTOToUpdate.setAddress("PCT_address");
+            personDTOToUpdate.setEmail("PCT_email@safety.com");
+            personDTOToUpdate.setPhone("PCT_phone");
+            personDTOToUpdate.setCity("PCT_city");
+            personDTOToUpdate.setZip("PCT_zip");
+        }
+
+        @Test
+        @DisplayName("GIVEN a new person to update " +
+                "WHEN updating this person " +
+                "THEN the returned value is the updated person")
+        public void updatePersonTest_WithSuccess() throws Exception {
+            //GIVEN
+            Person existingPerson = new Person();
+            existingPerson.setPersonId(100L);
+            existingPerson.setFirstName(personDTOToUpdate.getFirstName());
+            existingPerson.setLastName(personDTOToUpdate.getLastName());
+            existingPerson.setAddress("old address");
+            existingPerson.setEmail("old_email@safety.net");
+            existingPerson.setPhone(personDTOToUpdate.getPhone());
+            existingPerson.setCity(personDTOToUpdate.getCity());
+            existingPerson.setZip(personDTOToUpdate.getZip());
+            FireStation fireStation = new FireStation();
+            fireStation.setFireStationId(100L);
+            fireStation.setStationNumber(73);
+            fireStation.setAddress(personDTOToUpdate.getAddress());
+            existingPerson.setFireStation(fireStation);
+
+            Person expectedUpdatedPerson = new Person();
+            expectedUpdatedPerson.setPersonId(100L);
+            expectedUpdatedPerson.setFirstName(personDTOToUpdate.getFirstName());
+            expectedUpdatedPerson.setLastName(personDTOToUpdate.getLastName());
+            expectedUpdatedPerson.setAddress(personDTOToUpdate.getAddress());
+            expectedUpdatedPerson.setEmail(personDTOToUpdate.getEmail());
+            expectedUpdatedPerson.setPhone(personDTOToUpdate.getPhone());
+            expectedUpdatedPerson.setCity(personDTOToUpdate.getCity());
+            expectedUpdatedPerson.setZip(personDTOToUpdate.getZip());
+            FireStation expectedFireStation = new FireStation();
+            expectedFireStation.setFireStationId(200L);
+            expectedFireStation.setStationNumber(2021);
+            expectedFireStation.setAddress(personDTOToUpdate.getAddress());
+            expectedUpdatedPerson.setFireStation(expectedFireStation);
+
+            when(personRepositoryMock
+                    .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName()))
+                    .thenReturn(existingPerson);
+
+            when(fireStationRepositoryMock.findByAddress(personDTOToUpdate.getAddress()))
+                    .thenReturn(expectedFireStation);
+
+            when(personRepositoryMock.save(any(Person.class))).thenReturn(expectedUpdatedPerson);
+
+            //WHEN
+            PersonDTO updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
+
+            //THEN
+            personDTOToUpdate.setPersonId(expectedUpdatedPerson.getPersonId());
+            assertEquals(personDTOToUpdate, updatedPersonDTO);
+            assertNotNull(updatedPersonDTO.getPersonId());
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToUpdate.getAddress());
+            verify(personRepositoryMock, Mockito.times(1)).save(any(Person.class));
+
+        }
+
+        @Test
+        @DisplayName("GIVEN a person to update not present in repository " +
+                "WHEN updating this new person " +
+                "THEN an DoesNotExistException is thrown and no person has been updated")
+        public void updatePersonTest_WithNoExistingPersonInRepository() {
+            //GIVEN
+            when(personRepositoryMock
+                    .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName()))
+                    .thenReturn(null);
+
+            //THEN
+            assertThrows(DoesNotExistException.class, () -> personService.updatePerson(personDTOToUpdate));
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToUpdate.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN an empty person " +
+                "WHEN updating this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void updatePersonTest_WithMissingPersonInformation() {
+            //GIVEN
+            PersonDTO emptyPersonDTOToUpdate = new PersonDTO();
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.updatePerson(emptyPersonDTOToUpdate));
+            verify(personRepositoryMock, Mockito.times(0)).findByFirstNameAndLastName(null, null);
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a person to update without firstname " +
+                "WHEN updating this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void updatePersonTest_WithoutFirstName() {
+            //GIVEN
+            personDTOToUpdate.setFirstName(null);
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.updatePerson(personDTOToUpdate));
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(null, personDTOToUpdate.getLastName());
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToUpdate.getAddress());
+            verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+
+        @Test
+        @DisplayName("GIVEN a person to update without lastname " +
+                "WHEN updating this new person " +
+                "THEN an MissingInformationException is thrown")
+        public void updatePersonTest_WithoutLastName() {
+            //GIVEN
+            personDTOToUpdate.setLastName(null);
+
+            //THEN
+            assertThrows(MissingInformationException.class, () -> personService.updatePerson(personDTOToUpdate));
+            verify(personRepositoryMock, Mockito.times(0)).findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), null);
+            verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToUpdate.getAddress());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
         }
     }

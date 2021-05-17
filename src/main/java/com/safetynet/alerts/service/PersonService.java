@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
@@ -396,7 +397,8 @@ public class PersonService implements IPersonService {
      *
      * @param personDTOToAdd a new person to add
      * @return the added Person
-     * @throws AlreadyExistsException, MissingInformationException
+     * @throws AlreadyExistsException if the person to add already exists in repository
+     * @throws MissingInformationException if there are missing properties for the person to save
      */
     @Override
     public PersonDTO addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -423,14 +425,61 @@ public class PersonService implements IPersonService {
                 addedPersonDTO = modelMapper.map(addedPerson, PersonDTO.class);
 
             } else {
-                throw new AlreadyExistsException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+                throw new AlreadyExistsException("Person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
             }
 
         } else {
-            throw new MissingInformationException("person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+            throw new MissingInformationException("All information must be present to add a new person");
         }
 
         return addedPersonDTO;
+    }
+
+
+    /**
+     * update a person of a given firstname+lastname
+     *
+     * @param personDTOToUpdate a person to update
+     * @return the updated person
+     * @throws DoesNotExistException if the person to update does not exist in repository
+     * @throws MissingInformationException if there are missing properties for the person to update
+     */
+    @Override
+    public PersonDTO updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+        PersonDTO updatedPersonDTO;
+
+        //check if the personDTOToUpdate is correctly filled
+        if (checkPersonDTO(personDTOToUpdate)) {
+
+            //check if the person exists in the repository
+            Person existingPerson = personRepository
+                    .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
+
+            if (existingPerson != null) {
+                //map DTO to DAO, save in repository and map back to FireStationDTO for return
+                ModelMapper modelMapper = new ModelMapper();
+                Person personToUpdate = modelMapper.map(personDTOToUpdate, Person.class);
+                personToUpdate.setPersonId(existingPerson.getPersonId());
+                personToUpdate.setMedicalRecord(existingPerson.getMedicalRecord());
+
+                //if address is updated, search and assign the fire station covering the new address
+                if (!personToUpdate.getAddress().equals(existingPerson.getAddress())) {
+                    personToUpdate.setFireStation(fireStationRepository.findByAddress(personToUpdate.getAddress()));
+                }
+
+                Person updatedPerson = personRepository.save(personToUpdate);
+                updatedPersonDTO = modelMapper.map(updatedPerson, PersonDTO.class);
+
+            } else {
+                throw new DoesNotExistException("Person for: " + personDTOToUpdate.getFirstName()
+                        + " " + personDTOToUpdate.getLastName() + " does not exist");
+            }
+
+        } else {
+            throw new MissingInformationException("All information must be present to update a person");
+        }
+
+        return updatedPersonDTO;
     }
 
 

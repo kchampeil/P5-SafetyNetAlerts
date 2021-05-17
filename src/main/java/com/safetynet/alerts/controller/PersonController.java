@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -249,5 +250,39 @@ public class PersonController {
         }
 
     }
+
+
+    /**
+     * Update - Put a person for a given firstname+lastname
+     *
+     * @param personDTOToUpdate to update in repository
+     * @return the added PersonDTO
+     */
+    @PutMapping(value = "/person")
+    public ResponseEntity<PersonDTO> updatePerson(@RequestBody PersonDTO personDTOToUpdate) {
+
+        log.info("PUT request on endpoint /person received for person "
+                + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName());
+
+        try {
+            PersonDTO updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
+
+            if (updatedPersonDTO != null) {
+                log.info("Person " + personDTOToUpdate.getFirstName() + personDTOToUpdate.getLastName() + " has been updated "
+                        + " with id: " + updatedPersonDTO.getPersonId() + "\n");
+                return new ResponseEntity<>(updatedPersonDTO, HttpStatus.OK);
+            } else {
+                log.error("Person " + personDTOToUpdate + " has not been updated \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            //TOASK comment remonter le message de l'exception ?
+        }
+
+    }
+
 
 }

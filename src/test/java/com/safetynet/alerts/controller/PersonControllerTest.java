@@ -2,6 +2,7 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
+import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -566,6 +568,95 @@ class PersonControllerTest {
             verify(personServiceMock, Mockito.times(1)).addPerson(personDTOToAdd);
         }
 
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  updatePerson tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("updatePerson tests")
+    class UpdatePersonTest {
+        private PersonDTO personDTOToUpdate;
+
+        @BeforeEach
+        private void setUpPerTest() {
+            personDTOToUpdate = new PersonDTO();
+            personDTOToUpdate.setFirstName("PCT_first_name");
+            personDTOToUpdate.setLastName("PCT_last_name");
+            personDTOToUpdate.setAddress("PCT_address");
+            personDTOToUpdate.setEmail("PCT_email@safety.com");
+            personDTOToUpdate.setPhone("PCT_phone");
+            personDTOToUpdate.setCity("PCT_city");
+            personDTOToUpdate.setZip("PCT_zip");
+        }
+
+        @Test
+        @DisplayName("GIVEN a person present in repository " +
+                "WHEN processing a PUT /person request for this person " +
+                "THEN the returned value is the updated person")
+        public void updatePersonTest_WithSuccess() throws Exception {
+            // GIVEN
+            PersonDTO updatedPersonDTO = new PersonDTO();
+            updatedPersonDTO.setPersonId(100L);
+            updatedPersonDTO.setFirstName(personDTOToUpdate.getFirstName());
+            updatedPersonDTO.setLastName(personDTOToUpdate.getLastName());
+            updatedPersonDTO.setAddress(personDTOToUpdate.getAddress());
+            updatedPersonDTO.setZip(personDTOToUpdate.getZip());
+            updatedPersonDTO.setCity(personDTOToUpdate.getCity());
+            updatedPersonDTO.setEmail(personDTOToUpdate.getEmail());
+            updatedPersonDTO.setPhone(personDTOToUpdate.getPhone());
+
+            when(personServiceMock.updatePerson(personDTOToUpdate))
+                    .thenReturn(updatedPersonDTO);
+
+            // THEN
+            mockMvc.perform(put("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToUpdate)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1)).updatePerson(personDTOToUpdate);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person with missing firstname " +
+                "WHEN processing a PUT /person request for this person " +
+                "THEN the returned code is 'bad request'")
+        public void updatePersonTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            personDTOToUpdate.setFirstName(null);
+
+            when(personServiceMock.updatePerson(personDTOToUpdate))
+                    .thenThrow(new MissingInformationException("Firstname is missing"));
+
+            // THEN
+            mockMvc.perform(put("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToUpdate)))
+                    .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1)).updatePerson(personDTOToUpdate);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person not present in repository " +
+                "WHEN processing a PUT /person request for this person " +
+                "THEN the returned code is 'bad request'")
+        public void updatePersonTest_NotExisting() throws Exception {
+            // GIVEN
+            when(personServiceMock.updatePerson(personDTOToUpdate))
+                    .thenThrow(new DoesNotExistException("Person does not exist"));
+
+            // THEN
+            mockMvc.perform(put("/person")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(personDTOToUpdate)))
+                    .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1)).updatePerson(personDTOToUpdate);
+        }
     }
 
 }
