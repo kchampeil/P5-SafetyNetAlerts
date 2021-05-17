@@ -182,7 +182,7 @@ class MedicalRecordServiceTest {
         @DisplayName("GIVEN a new medical record to add " +
                 "WHEN saving this new medical record " +
                 "THEN the returned value is the added medical record")
-        public void addMedicalRecordTest_WithSuccess() throws AlreadyExistsException, MissingInformationException {
+        public void addMedicalRecordTest_WithSuccess() throws AlreadyExistsException, MissingInformationException, DoesNotExistException {
             //GIVEN
             MedicalRecord expectedAddedMedicalRecord = new MedicalRecord();
             expectedAddedMedicalRecord.setMedicalRecordId(100L);
@@ -193,17 +193,16 @@ class MedicalRecordServiceTest {
             expectedAddedMedicalRecord.setAllergies(medicalRecordDTOToAdd.getAllergies());
 
             Person person = new Person();
+            person.setPersonId(100L);
             person.setFirstName(medicalRecordDTOToAdd.getFirstName());
             person.setLastName(medicalRecordDTOToAdd.getLastName());
-            List<Person> listOfPersons = new ArrayList<>();
-            listOfPersons.add(person);
 
             when(medicalRecordRepositoryMock
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName()))
                     .thenReturn(new ArrayList<>());
             when(personRepositoryMock
-                    .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName()))
-                    .thenReturn(listOfPersons);
+                    .findByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName()))
+                    .thenReturn(person);
             when(medicalRecordRepositoryMock.save(any(MedicalRecord.class))).thenReturn(expectedAddedMedicalRecord);
 
             //WHEN
@@ -216,9 +215,9 @@ class MedicalRecordServiceTest {
             verify(medicalRecordRepositoryMock, Mockito.times(1))
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
             verify(personRepositoryMock, Mockito.times(1))
-                    .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
+                    .findByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
             verify(medicalRecordRepositoryMock, Mockito.times(1)).save(any(MedicalRecord.class));
-
+            verify(personRepositoryMock, Mockito.times(1)).save(any(Person.class));
         }
 
 
@@ -246,6 +245,7 @@ class MedicalRecordServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any(MedicalRecord.class));
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
         }
 
         @Test
@@ -261,6 +261,7 @@ class MedicalRecordServiceTest {
             verify(medicalRecordRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null, null);
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
         }
 
         @Test
@@ -277,6 +278,7 @@ class MedicalRecordServiceTest {
                     .findAllByFirstNameAndLastName(null, medicalRecordDTOToAdd.getLastName());
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
         }
 
         @Test
@@ -293,6 +295,7 @@ class MedicalRecordServiceTest {
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), null);
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(anyString(), anyString());
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+            verify(personRepositoryMock, Mockito.times(0)).save(any(Person.class));
         }
     }
 

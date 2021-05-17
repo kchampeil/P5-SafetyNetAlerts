@@ -80,8 +80,8 @@ public interface IPersonService {
      *
      * @param personToAdd a new person to add
      * @return the added Person
-     * @throws AlreadyExistsException
-     * @throws MissingInformationException
+     * @throws AlreadyExistsException      if the person to add already exists in repository
+     * @throws MissingInformationException if there are missing properties for the person to save
      */
     PersonDTO addPerson(PersonDTO personToAdd) throws Exception, AlreadyExistsException, MissingInformationException;
 
@@ -90,8 +90,9 @@ public interface IPersonService {
      *
      * @param personDTOToUpdate a person to update
      * @return the updated person
-     * @throws DoesNotExistException
-     * @throws MissingInformationException
+     * @throws DoesNotExistException       if the person to update does not exist in repository
+     * @throws MissingInformationException if there are missing properties for the person to update
      */
     PersonDTO updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+
 }

@@ -86,11 +86,14 @@ public class MedicalRecordService implements IMedicalRecordService {
      *
      * @param medicalRecordDTOToAdd a new medical record to add
      * @return the added medical record
-     * @throws AlreadyExistsException
-     * @throws MissingInformationException
+     * @throws AlreadyExistsException      if the medical record to add already exists in repository
+     * @throws MissingInformationException if there are missing properties for the medical to save
+     * @throws DoesNotExistException       if the person related to medical record to add does not exist in repository
      */
     @Override
-    public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd) throws AlreadyExistsException, MissingInformationException {
+    public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd)
+            throws AlreadyExistsException, MissingInformationException, DoesNotExistException {
+
         MedicalRecordDTO addedMedicalRecordDTO;
 
         //check if the medicalRecordDTO is correctly filled
@@ -102,29 +105,24 @@ public class MedicalRecordService implements IMedicalRecordService {
 
             if (listOfMedicalRecords.size() == 0) {
 
-                List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(
+                Person personToUpdate = personRepository.findByFirstNameAndLastName(
                         medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
 
                 //check if the person already exist in the repository
-                if (listOfPersons.size() != 0) {
+                if (personToUpdate != null) {
                     //map DTO to DAO, save in repository,
-                    //TODO-0 add the medical record to the person, save the person in repository
-                    //and map back to MedicalRecordDTO for return
                     ModelMapper modelMapper = new ModelMapper();
                     MedicalRecord medicalRecordToAdd = modelMapper.map(medicalRecordDTOToAdd, MedicalRecord.class);
-
                     MedicalRecord addedMedicalRecord = medicalRecordRepository.save(medicalRecordToAdd);
 
-                    /* TODO-0 à faire une fois update dans personService implémenté (tests à faire aussi dans MRST)
-                                            Person personToUpdate=listOfPersons.get(0);
-                                            personToUpdate.setMedicalRecord(addedMedicalRecord);
-                                            Person updatedPerson = personService.update(personToUpdate);
+                    //add the medical record to the person, save the person in repository
+                    personToUpdate.setMedicalRecord(addedMedicalRecord);
+                    personRepository.save(personToUpdate);
 
-                     */
-
+                    //and map back to MedicalRecordDTO for return
                     addedMedicalRecordDTO = modelMapper.map(addedMedicalRecord, MedicalRecordDTO.class);
                 } else {
-                    throw new MissingInformationException("No person found for this firstname & lastname, medical record can not be saved.");
+                    throw new DoesNotExistException("No person found for this firstname & lastname, medical record can not be saved.");
                 }
 
             } else {
@@ -145,8 +143,8 @@ public class MedicalRecordService implements IMedicalRecordService {
      *
      * @param medicalRecordDTOToUpdate a medical record to update
      * @return the updated medical record
-     * @throws DoesNotExistException
-     * @throws MissingInformationException
+     * @throws DoesNotExistException       if the medical record to update does not exist in repository
+     * @throws MissingInformationException if there are missing properties for the medical to update
      */
     @Override
     public MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException {

@@ -30,18 +30,19 @@ public interface IMedicalRecordService {
      *
      * @param medicalRecordToAdd a new medical record to add
      * @return the added medical record
-     * @throws AlreadyExistsException
-     * @throws MissingInformationException
+     * @throws AlreadyExistsException if the medical record to add already exists in repository
+     * @throws MissingInformationException if there are missing properties for the medical to save
+     * @throws DoesNotExistException if the person related to medical record to add does not exist in repository
      */
-    MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordToAdd) throws AlreadyExistsException, MissingInformationException;
+    MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordToAdd) throws AlreadyExistsException, MissingInformationException, DoesNotExistException;
 
     /**
      * update a medical record of a given firstname+lastname
      *
      * @param medicalRecordDTOToUpdate a medical record to update
      * @return the updated medical record
-     * @throws DoesNotExistException
-     * @throws MissingInformationException
+     * @throws DoesNotExistException if the medical record to update does not exist in repository
+     * @throws MissingInformationException if there are missing properties for the medical to update
      */
     MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 }

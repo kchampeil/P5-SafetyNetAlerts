@@ -397,7 +397,7 @@ public class PersonService implements IPersonService {
      *
      * @param personDTOToAdd a new person to add
      * @return the added Person
-     * @throws AlreadyExistsException if the person to add already exists in repository
+     * @throws AlreadyExistsException      if the person to add already exists in repository
      * @throws MissingInformationException if there are missing properties for the person to save
      */
     @Override
@@ -441,7 +441,7 @@ public class PersonService implements IPersonService {
      *
      * @param personDTOToUpdate a person to update
      * @return the updated person
-     * @throws DoesNotExistException if the person to update does not exist in repository
+     * @throws DoesNotExistException       if the person to update does not exist in repository
      * @throws MissingInformationException if there are missing properties for the person to update
      */
     @Override
