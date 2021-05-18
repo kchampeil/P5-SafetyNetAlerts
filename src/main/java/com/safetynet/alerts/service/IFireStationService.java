@@ -48,8 +48,8 @@ public interface IFireStationService {
      *
      * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
-     * @throws AlreadyExistsException
-     * @throws MissingInformationException
+     * @throws AlreadyExistsException      if the fire station already exists in repository
+     * @throws MissingInformationException if no address or station number has been given
      */
     FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException;
 
@@ -58,8 +58,28 @@ public interface IFireStationService {
      *
      * @param fireStationDTOToUpdate an address / fire station relationship to update
      * @return the updated fireStation
-     * @throws DoesNotExistException
-     * @throws MissingInformationException
+     * @throws DoesNotExistException       if the fire station to update does not exist in repository
+     * @throws MissingInformationException if no address or station number has been given
      */
     FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+
+    /**
+     * delete the fire stations for the given address in the repository
+     *
+     * @param address the address we want to delete the fire station relationships
+     * @return the deleted fire station
+     * @throws DoesNotExistException       if no fire station has been found for the given address
+     * @throws MissingInformationException if no address has been given
+     */
+    FireStation deleteFireStationByAddress(String address) throws DoesNotExistException, MissingInformationException;
+
+    /**
+     * delete the fire stations for the given station number in the repository
+     *
+     * @param stationNumber the station number we want to delete the fire station relationships
+     * @return the list of deleted fire stations
+     * @throws DoesNotExistException       if no fire station has been found for the given station number
+     * @throws MissingInformationException if no station number has been given
+     */
+    List<FireStation> deleteFireStationByStationNumber(Integer stationNumber) throws DoesNotExistException, MissingInformationException;
 }

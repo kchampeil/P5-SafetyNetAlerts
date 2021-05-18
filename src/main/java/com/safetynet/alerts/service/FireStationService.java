@@ -1,5 +1,6 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.constants.ExceptionConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -27,13 +28,17 @@ import java.util.stream.Collectors;
 @Service
 public class FireStationService implements IFireStationService {
 
-    @Autowired
-    FireStationRepository fireStationRepository;
+    private final FireStationRepository fireStationRepository;
 
-    @Autowired
-    PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
     private static final DateUtil dateUtil = new DateUtil();
+
+    @Autowired
+    public FireStationService(FireStationRepository fireStationRepository, PersonRepository personRepository) {
+        this.fireStationRepository = fireStationRepository;
+        this.personRepository = personRepository;
+    }
 
     /**
      * save a list of fire stations in DB
@@ -152,14 +157,15 @@ public class FireStationService implements IFireStationService {
 
                 listOfStationNumbers.forEach(station -> {
                             //get the list of persons covered by the fire station
-                            List<Person> listOfPersons = new ArrayList<>();
-                            listOfPersons.addAll(personRepository.findAllByFireStation_StationNumber(station));
+                            List<Person> listOfPersons
+                                    = new ArrayList<>(personRepository.findAllByFireStation_StationNumber(station));
 
                             if (!listOfPersons.isEmpty()) {
                                 log.info(listOfPersons.size() + " persons found for the stations : " + listOfStationNumbers);
 
                                 //group persons by address
-                                Map<String, List<Person>> personsGroupedByAddress = listOfPersons.stream().collect(Collectors.groupingBy(Person::getAddress));
+                                Map<String, List<Person>> personsGroupedByAddress
+                                        = listOfPersons.stream().collect(Collectors.groupingBy(Person::getAddress));
 
                                 //then convert to DTO
                                 Map<String, List<PersonCoveredDTO>> personsCoveredDTOByAddress = new HashMap<>();
@@ -182,7 +188,8 @@ public class FireStationService implements IFireStationService {
                                 listOfFloodDTO.add(floodDTO);
 
                             } else {
-                                log.warn("no person found for station " + station + ", list of person information is empty for this station");
+                                log.warn("no person found for station " + station
+                                        + ", list of person information is empty for this station");
                             }
                         }
                 );
@@ -190,7 +197,8 @@ public class FireStationService implements IFireStationService {
                 return listOfFloodDTO;
 
             } catch (Exception exception) {
-                log.error("error when getting the fire station coverage information for stations " + listOfStationNumbers + " : " + exception.getMessage());
+                log.error("error when getting the fire station coverage information for stations " + listOfStationNumbers
+                        + " : " + exception.getMessage());
                 return null;
             }
         } else {
@@ -205,8 +213,8 @@ public class FireStationService implements IFireStationService {
      *
      * @param fireStationDTOToAdd a new address / fire station relationship to add
      * @return the added fireStation
-     * @throws AlreadyExistsException
-     * @throws MissingInformationException
+     * @throws AlreadyExistsException      if the fire station already exists in repository
+     * @throws MissingInformationException if no address or station number has been given
      */
     @Override
     public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
@@ -229,11 +237,12 @@ public class FireStationService implements IFireStationService {
                 addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
 
             } else {
-                throw new AlreadyExistsException("Address: " + fireStationDTOToAdd.getAddress() + " has already one fire station assigned");
+                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS
+                        + fireStationDTOToAdd.getAddress());
             }
 
         } else {
-            throw new MissingInformationException("All fire station information must be specified for saving");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ALL);
         }
 
         return addedFireStationDTO;
@@ -245,8 +254,8 @@ public class FireStationService implements IFireStationService {
      *
      * @param fireStationDTOToUpdate an address / fire station relationship to update
      * @return the updated fireStation
-     * @throws DoesNotExistException
-     * @throws MissingInformationException
+     * @throws DoesNotExistException       if the fire station to update does not exist in repository
+     * @throws MissingInformationException if no address or station number has been given
      */
     @Override
     public FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException {
@@ -270,14 +279,94 @@ public class FireStationService implements IFireStationService {
                 updatedFireStationDTO = modelMapper.map(updatedFireStation, FireStationDTO.class);
 
             } else {
-                throw new DoesNotExistException("Address: " + fireStationDTOToUpdate.getAddress() + " does not exist");
+                throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS
+                        + fireStationDTOToUpdate.getAddress());
             }
 
         } else {
-            throw new MissingInformationException("All fire station information must be specified for updating");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ALL);
         }
 
         return updatedFireStationDTO;
+    }
+
+
+    /**
+     * delete the fire stations for the given address in the repository
+     *
+     * @param address the address we want to delete the fire station relationships to delete
+     * @return the deleted fire station
+     * @throws DoesNotExistException       if no fire station has been found for the given address
+     * @throws MissingInformationException if no address has been given
+     */
+    @Override
+    public FireStation deleteFireStationByAddress(String address) throws DoesNotExistException, MissingInformationException {
+        FireStation deletedFireStation;
+
+        //check if the address is correctly filled
+        if (address != null && !address.isEmpty()) {
+
+            //check if there is a fire station associated to this address in the repository
+            if (fireStationRepository.findByAddress(address) != null) {
+
+                //delete the fire station id for persons whom address is the same as the fire station
+                List<Person> listOfPersons = personRepository.findAllByAddress(address);
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    listOfPersons.forEach(person -> person.setFireStation(null));
+                    personRepository.saveAll(listOfPersons);
+                }
+
+                deletedFireStation = fireStationRepository.deleteByAddress(address);
+
+            } else {
+                throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS + address);
+            }
+
+        } else {
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS);
+        }
+
+        return deletedFireStation;
+    }
+
+
+    /**
+     * delete the fire stations for the given station number in the repository
+     *
+     * @param stationNumber the station number we want to delete the fire station relationships
+     * @return the list of deleted fire stations
+     * @throws DoesNotExistException       if no fire station has been found for the given station number
+     * @throws MissingInformationException if no station number has been given
+     */
+    @Override
+    public List<FireStation> deleteFireStationByStationNumber(Integer stationNumber) throws DoesNotExistException, MissingInformationException {
+        List<FireStation> deletedFireStations;
+
+        //check if the address is correctly filled
+        if (stationNumber != null) {
+
+            //check if there is at least one fire station associated to this station number in the repository
+            List<FireStation> fireStationsToDelete = fireStationRepository.findAllByStationNumber(stationNumber);
+            if (fireStationsToDelete != null && !fireStationsToDelete.isEmpty()) {
+
+                //delete the fire station id for persons covered by the fire station
+                List<Person> listOfPersons = personRepository.findAllByFireStation_StationNumber(stationNumber);
+                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                    listOfPersons.forEach(person -> person.setFireStation(null));
+                    personRepository.saveAll(listOfPersons);
+                }
+
+                deletedFireStations = fireStationRepository.deleteAllByStationNumber(stationNumber);
+
+            } else {
+                throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_STATION_NUMBER + stationNumber);
+            }
+
+        } else {
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_STATION_NUMBER);
+        }
+
+        return deletedFireStations;
     }
 
 

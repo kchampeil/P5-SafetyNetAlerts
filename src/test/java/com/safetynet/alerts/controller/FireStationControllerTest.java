@@ -1,10 +1,12 @@
 package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alerts.constants.ExceptionConstants;
 import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
+import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
 import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
@@ -27,10 +29,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -51,6 +56,7 @@ class FireStationControllerTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static List<PersonCoveredDTO> listOfPersonsCovered;
+    private static FireStation deletedFireStation;
 
     @BeforeAll
     private static void setUp() {
@@ -62,6 +68,11 @@ class FireStationControllerTest {
         personCoveredDTO.setMedications(new ArrayList<>());
         personCoveredDTO.setAllergies(new ArrayList<>());
         listOfPersonsCovered.add(personCoveredDTO);
+
+        deletedFireStation = new FireStation();
+        deletedFireStation.setFireStationId(TestConstants.EXISTING_STATION_NUMBER.longValue());
+        deletedFireStation.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
+        deletedFireStation.setAddress(TestConstants.EXISTING_ADDRESS);
     }
 
     /* ----------------------------------------------------------------------------------------------------------------------
@@ -78,9 +89,9 @@ class FireStationControllerTest {
             // GIVEN
             List<FireStationDTO> listOfFireStationsDTO = new ArrayList<>();
             FireStationDTO fireStationDTO = new FireStationDTO();
-            fireStationDTO.setFireStationId(100L);
-            fireStationDTO.setStationNumber(2021);
-            fireStationDTO.setAddress("FSCT_Address");
+            fireStationDTO.setFireStationId(TestConstants.EXISTING_STATION_NUMBER.longValue());
+            fireStationDTO.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
+            fireStationDTO.setAddress(TestConstants.EXISTING_ADDRESS);
             listOfFireStationsDTO.add(fireStationDTO);
             when(fireStationServiceMock.getAllFireStations()).thenReturn(listOfFireStationsDTO);
 
@@ -89,6 +100,7 @@ class FireStationControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(fireStationServiceMock, Mockito.times(1)).getAllFireStations();
         }
 
 
@@ -105,6 +117,7 @@ class FireStationControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(fireStationServiceMock, Mockito.times(1)).getAllFireStations();
         }
     }
 
@@ -130,17 +143,19 @@ class FireStationControllerTest {
         public void getFireStationCoverageByAddressTest_WithResults() throws Exception {
             // GIVEN
             fireDTO.setPersonCoveredDTOList(listOfPersonsCovered);
-            fireDTO.setStationNumber(73);
+            fireDTO.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
 
-            when(fireStationServiceMock.getFireStationCoverageByAddress("AddressTest"))
+            when(fireStationServiceMock.getFireStationCoverageByAddress(TestConstants.EXISTING_ADDRESS))
                     .thenReturn(fireDTO);
 
             // THEN
             mockMvc.perform(get("/fire")
-                    .param("address", "AddressTest"))
+                    .param("address", TestConstants.EXISTING_ADDRESS))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .getFireStationCoverageByAddress(TestConstants.EXISTING_ADDRESS);
         }
 
 
@@ -150,15 +165,17 @@ class FireStationControllerTest {
                 "THEN return status is 'not found' and an empty coverage info is returned")
         public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
             // GIVEN
-            when(fireStationServiceMock.getFireStationCoverageByAddress("AddressTestNotFound"))
+            when(fireStationServiceMock.getFireStationCoverageByAddress(TestConstants.ADDRESS_NOT_FOUND))
                     .thenReturn(fireDTO);
 
             // THEN
             mockMvc.perform(get("/fire")
-                    .param("address", "AddressTestNotFound"))
+                    .param("address", TestConstants.ADDRESS_NOT_FOUND))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.personCoveredDTO").doesNotExist());
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .getFireStationCoverageByAddress(TestConstants.ADDRESS_NOT_FOUND);
         }
 
 
@@ -200,21 +217,23 @@ class FireStationControllerTest {
         public void getFloodByStationNumbersTest_WithResults() throws Exception {
             // GIVEN
             FloodDTO floodDTO = new FloodDTO();
-            floodDTO.setStationNumber(73);
+            floodDTO.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
             Map<String, List<PersonCoveredDTO>> personCoveredDTOByAddress = new HashMap<>();
-            personCoveredDTOByAddress.put("FSCT_Address", listOfPersonsCovered);
+            personCoveredDTOByAddress.put(TestConstants.EXISTING_ADDRESS, listOfPersonsCovered);
             floodDTO.setPersonsCoveredByAddress(personCoveredDTOByAddress);
             listOfFloodDTO.add(floodDTO);
 
-            when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(73)))
+            when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(TestConstants.EXISTING_STATION_NUMBER)))
                     .thenReturn(listOfFloodDTO);
 
             // THEN
             mockMvc.perform(get("/flood/stations")
-                    .param("stations", "73"))
+                    .param("stations", TestConstants.EXISTING_STATION_NUMBER.toString()))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .getFloodByStationNumbers(Collections.singletonList(TestConstants.EXISTING_STATION_NUMBER));
         }
 
 
@@ -224,15 +243,17 @@ class FireStationControllerTest {
                 "THEN return status is 'not found' and an empty coverage info is returned")
         public void getFloodByStationNumbersTest_WithNoResults() throws Exception {
             // GIVEN
-            when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(999)))
+            when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(TestConstants.STATION_NUMBER_NOT_FOUND)))
                     .thenReturn(listOfFloodDTO);
 
             // THEN
             mockMvc.perform(get("/flood/stations")
-                    .param("stations", "999"))
+                    .param("stations", TestConstants.STATION_NUMBER_NOT_FOUND.toString()))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.personsCoveredByAddress").doesNotExist());
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .getFloodByStationNumbers(Collections.singletonList(TestConstants.STATION_NUMBER_NOT_FOUND));
         }
 
 
@@ -264,8 +285,8 @@ class FireStationControllerTest {
         @BeforeEach
         private void setUpPerTest() {
             fireStationDTOToAdd = new FireStationDTO();
-            fireStationDTOToAdd.setStationNumber(3);
-            fireStationDTOToAdd.setAddress("FSCT_Add_Address");
+            fireStationDTOToAdd.setStationNumber(TestConstants.NEW_STATION_NUMBER);
+            fireStationDTOToAdd.setAddress(TestConstants.NEW_ADDRESS);
         }
 
         @Test
@@ -275,7 +296,7 @@ class FireStationControllerTest {
         public void addFireStationTest_WithSuccess() throws Exception {
             // GIVEN
             FireStationDTO addedFireStationDTO = new FireStationDTO();
-            addedFireStationDTO.setFireStationId(3L);
+            addedFireStationDTO.setFireStationId(fireStationDTOToAdd.getStationNumber().longValue());
             addedFireStationDTO.setStationNumber(fireStationDTOToAdd.getStationNumber());
             addedFireStationDTO.setAddress(fireStationDTOToAdd.getAddress());
 
@@ -301,13 +322,16 @@ class FireStationControllerTest {
         public void addFireStationTest_WithMissingInformation() throws Exception {
             // GIVEN
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
-                    .thenThrow(new MissingInformationException("Address is missing"));
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS));
 
             // THEN
             mockMvc.perform(post("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS)));
+            verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
         }
 
 
@@ -318,13 +342,15 @@ class FireStationControllerTest {
         public void addFireStationTest_WithExistingFireStation() throws Exception {
             // GIVEN
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
-                    .thenThrow(new AlreadyExistsException("Fire station already exists"));
+                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS));
 
             // THEN
             mockMvc.perform(post("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
         }
 
@@ -343,8 +369,8 @@ class FireStationControllerTest {
         @BeforeEach
         private void setUpPerTest() {
             fireStationDTOToUpdate = new FireStationDTO();
-            fireStationDTOToUpdate.setStationNumber(3);
-            fireStationDTOToUpdate.setAddress("FSCT_Update_Address");
+            fireStationDTOToUpdate.setStationNumber(TestConstants.NEW_STATION_NUMBER);
+            fireStationDTOToUpdate.setAddress(TestConstants.EXISTING_ADDRESS);
         }
 
         @Test
@@ -354,7 +380,7 @@ class FireStationControllerTest {
         public void updateFireStationTest_WithSuccess() throws Exception {
             // GIVEN
             FireStationDTO updatedFireStationDTO = new FireStationDTO();
-            updatedFireStationDTO.setFireStationId(3L);
+            updatedFireStationDTO.setFireStationId(fireStationDTOToUpdate.getStationNumber().longValue());
             updatedFireStationDTO.setStationNumber(fireStationDTOToUpdate.getStationNumber());
             updatedFireStationDTO.setAddress(fireStationDTOToUpdate.getAddress());
 
@@ -380,13 +406,15 @@ class FireStationControllerTest {
         public void updateFireStationTest_WithMissingInformation() throws Exception {
             // GIVEN
             when(fireStationServiceMock.updateFireStation(fireStationDTOToUpdate))
-                    .thenThrow(new MissingInformationException("Address is missing"));
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS));
 
             // THEN
             mockMvc.perform(put("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToUpdate)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).updateFireStation(fireStationDTOToUpdate);
         }
 
@@ -398,14 +426,153 @@ class FireStationControllerTest {
         public void updateFireStationTest_WithNoExistingAddressInRepository() throws Exception {
             // GIVEN
             when(fireStationServiceMock.updateFireStation(fireStationDTOToUpdate))
-                    .thenThrow(new DoesNotExistException("Address does not exists"));
+                    .thenThrow(new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS));
 
             // THEN
             mockMvc.perform(put("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToUpdate)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).updateFireStation(fireStationDTOToUpdate);
+        }
+
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  deleteFireStationByAddress tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("deleteFireStationByAddress tests")
+    class DeleteFireStationByAddressTest {
+
+        @Test
+        @DisplayName("GIVEN an existing fire station for a given address " +
+                "WHEN processing a DELETE /firestation/address request for this address " +
+                "THEN the return status is 'No content'")
+        public void deleteFireStationByAddressTest_WithSuccess() throws Exception {
+            // GIVEN
+            when(fireStationServiceMock.deleteFireStationByAddress(TestConstants.EXISTING_ADDRESS))
+                    .thenReturn(deletedFireStation);
+
+            // THEN
+            mockMvc.perform(delete("/firestation/address")
+                    .param("address", TestConstants.EXISTING_ADDRESS))
+                    .andExpect(status().isNoContent());
+
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .deleteFireStationByAddress(TestConstants.EXISTING_ADDRESS);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a missing address " +
+                "WHEN processing a DELETE /firestation/address request for this address " +
+                "THEN the returned code is 'bad request'")
+        public void deleteFireStationByAddressTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            when(fireStationServiceMock.deleteFireStationByAddress(""))
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS));
+
+            // THEN
+            mockMvc.perform(delete("/firestation/address")
+                    .param("address", ""))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS)));
+
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .deleteFireStationByAddress("");
+        }
+
+
+        @Test
+        @DisplayName("GIVEN an address to delete with no existing address in repository " +
+                "WHEN processing a DELETE /firestation/address request for this address " +
+                "THEN the returned code is 'not found'")
+        public void deleteFireStationByAddressTest_WithNoExistingAddressInRepository() throws Exception {
+            // GIVEN
+            when(fireStationServiceMock.deleteFireStationByAddress(TestConstants.ADDRESS_NOT_FOUND))
+                    .thenThrow(new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS));
+
+            // THEN
+            mockMvc.perform(delete("/firestation/address")
+                    .param("address", TestConstants.ADDRESS_NOT_FOUND))
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS)));
+
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .deleteFireStationByAddress(TestConstants.ADDRESS_NOT_FOUND);
+        }
+
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  deleteFireStationByStationNumber tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("deleteFireStationByStationNumber tests")
+    class DeleteFireStationByStationNumberTest {
+
+        @Test
+        @DisplayName("GIVEN an existing fire station for a given station number " +
+                "WHEN processing a DELETE /firestation/station request for this station number " +
+                "THEN the return status is 'No content'")
+        public void deleteFireStationByStationNumberTest_WithSuccess() throws Exception {
+            // GIVEN
+            List<FireStation> deletedFireStations = new ArrayList<>();
+            deletedFireStations.add(deletedFireStation);
+            when(fireStationServiceMock.deleteFireStationByStationNumber(TestConstants.EXISTING_STATION_NUMBER))
+                    .thenReturn(deletedFireStations);
+
+            // THEN
+            mockMvc.perform(delete("/firestation/station")
+                    .param("stationNumber", TestConstants.EXISTING_STATION_NUMBER.toString()))
+                    .andExpect(status().isNoContent());
+
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .deleteFireStationByStationNumber(TestConstants.EXISTING_STATION_NUMBER);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a missing station number " +
+                "WHEN processing a DELETE /firestation/station request for this station number " +
+                "THEN the returned code is 'bad request'")
+        public void deleteFireStationByStationNumberTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            when(fireStationServiceMock.deleteFireStationByStationNumber(null))
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_STATION_NUMBER));
+
+            // THEN
+            mockMvc.perform(delete("/firestation/station")
+                    .param("stationNumber", (String) null))
+                    .andExpect(status().isBadRequest());
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a station number to delete with no existing related fire station in repository " +
+                "WHEN processing a DELETE /firestation/station request for this station number " +
+                "THEN the returned code is 'not found'")
+        public void deleteFireStationByStationNumberTest_WithNoExistingFireStationInRepository() throws Exception {
+            // GIVEN
+            when(fireStationServiceMock.deleteFireStationByStationNumber(TestConstants.STATION_NUMBER_NOT_FOUND))
+                    .thenThrow(new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_STATION_NUMBER));
+
+            // THEN
+            mockMvc.perform(delete("/firestation/station")
+                    .param("stationNumber", TestConstants.STATION_NUMBER_NOT_FOUND.toString()))
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_STATION_NUMBER)));
+
+            verify(fireStationServiceMock, Mockito.times(1))
+                    .deleteFireStationByStationNumber(TestConstants.STATION_NUMBER_NOT_FOUND);
         }
 
     }

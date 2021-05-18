@@ -1,5 +1,7 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.exceptions.DoesNotExistException;
+import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
 import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
@@ -8,12 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,8 +25,12 @@ import java.util.List;
 @RestController
 public class FireStationController {
 
+    private final IFireStationService fireStationService;
+
     @Autowired
-    private IFireStationService fireStationService;
+    public FireStationController(IFireStationService fireStationService) {
+        this.fireStationService = fireStationService;
+    }
 
 
     /**
@@ -147,8 +155,7 @@ public class FireStationController {
             }
         } catch (Exception e) {
             log.error(e.getMessage() + " \n");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            //TOASK comment remonter le message de l'exception ?
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -156,7 +163,7 @@ public class FireStationController {
     /**
      * Update - Put a new station number for a given address
      *
-     * @param fireStationDTOToUpdate to update ino repository
+     * @param fireStationDTOToUpdate to update in repository
      * @return the updated FireStationDTO
      */
     @PutMapping(value = "/firestation")
@@ -181,8 +188,77 @@ public class FireStationController {
             }
         } catch (Exception e) {
             log.error(e.getMessage() + " \n");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            //TOASK comment remonter le message de l'exception ?
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+
+    /**
+     * Delete - Delete a fire station for a given address
+     *
+     * @param address the address we want to delete the fire station relationships
+     * @return Http status
+     */
+    @DeleteMapping(value = "/firestation/address")
+    public ResponseEntity<?> deleteFireStationByAddress(@RequestParam String address) {
+
+        log.info("DELETE request on endpoint /firestation/address received for address: " + address);
+
+        try {
+            FireStation deletedFireStation = fireStationService.deleteFireStationByAddress(address);
+
+            if (deletedFireStation != null) {
+                log.info("fire station with id :" + deletedFireStation.getFireStationId()
+                        + " and station number: " + deletedFireStation.getStationNumber()
+                        + " has been deleted for address " + address + " \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+            } else {
+                log.info("no fire station has been deleted for address " + address + " \n");
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
+
+        } catch (Exception e) {
+            log.error(e.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+
+    /**
+     * Delete - Delete a fire station for a given station number
+     *
+     * @param stationNumber the station number of the fire station we want to delete
+     * @return Http status
+     */
+    @DeleteMapping(value = "/firestation/station")
+    public ResponseEntity<?> deleteFireStationByStationNumber(@RequestParam("stationNumber") Integer stationNumber) {
+
+        log.info("DELETE request on endpoint /firestation/station received for station n° " + stationNumber);
+
+        try {
+            List<FireStation> deletedFireStations = fireStationService.deleteFireStationByStationNumber(stationNumber);
+
+            if (deletedFireStations != null && !deletedFireStations.isEmpty()) {
+                log.info(deletedFireStations.size() + "fire stations have been deleted for station n°" + stationNumber + " \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+            } else {
+                log.info("no fire station has been deleted for station n°" + stationNumber + " \n");
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
+
+        } catch (Exception e) {
+            log.error(e.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
