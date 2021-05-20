@@ -15,7 +15,7 @@ public interface FireStationRepository extends CrudRepository<FireStation, Long>
     List<FireStation> findAllByStationNumber(Integer stationNumber);
 
     @Transactional
-    FireStation deleteByAddress(String address);
+    Integer deleteByAddress(String address);
 
     @Transactional
     List<FireStation> deleteAllByStationNumber(Integer stationNumber);

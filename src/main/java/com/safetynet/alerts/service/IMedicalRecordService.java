@@ -45,4 +45,15 @@ public interface IMedicalRecordService {
      * @throws MissingInformationException if there are missing properties for the medical to update
      */
     MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+
+    /**
+     * delete the medical record for the given firstname+lastname in the repository
+     *
+     * @param firstName the firstname of the person we want to delete the medical record
+     * @param lastName the lastname of the person we want to delete the medical record
+     * @return the deleted medical record
+     * @throws DoesNotExistException       if no medical record has been found for the given firstname+lastname
+     * @throws MissingInformationException if no firstname+lastname has been given
+     */
+    MedicalRecord deleteMedicalRecordByFirstNameAndLastName(String firstName, String lastName) throws DoesNotExistException, MissingInformationException;
 }

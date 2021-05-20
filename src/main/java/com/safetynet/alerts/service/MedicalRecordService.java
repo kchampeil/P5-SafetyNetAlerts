@@ -1,5 +1,6 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.constants.ExceptionConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -23,11 +24,15 @@ public class MedicalRecordService implements IMedicalRecordService {
 
     private static final DateUtil dateUtil = new DateUtil();
 
-    @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+
+    private final PersonRepository personRepository;
 
     @Autowired
-    private PersonRepository personRepository;
+    public MedicalRecordService(MedicalRecordRepository medicalRecordRepository, PersonRepository personRepository) {
+        this.medicalRecordRepository = medicalRecordRepository;
+        this.personRepository = personRepository;
+    }
 
     /**
      * save a list of medical records in DB
@@ -122,16 +127,18 @@ public class MedicalRecordService implements IMedicalRecordService {
                     //and map back to MedicalRecordDTO for return
                     addedMedicalRecordDTO = modelMapper.map(addedMedicalRecord, MedicalRecordDTO.class);
                 } else {
-                    throw new DoesNotExistException("No person found for this firstname & lastname, medical record can not be saved.");
+                    throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                            + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName()
+                            + ", medical record can not be saved.");
                 }
 
             } else {
-                throw new AlreadyExistsException("medical record for person: " + medicalRecordDTOToAdd.getFirstName()
-                        + " " + medicalRecordDTOToAdd.getLastName() + " already exists");
+                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOUND_FOR_PERSON
+                        + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName());
             }
 
         } else {
-            throw new MissingInformationException("At least firstname, lastname and birthdate must be specified for saving");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_MEDICAL_RECORD_WHEN_ADDING_OR_UPDATING);
         }
 
         return addedMedicalRecordDTO;
@@ -169,15 +176,59 @@ public class MedicalRecordService implements IMedicalRecordService {
                 updatedMedicalRecordDTO = modelMapper.map(updatedMedicalRecord, MedicalRecordDTO.class);
 
             } else {
-                throw new DoesNotExistException("Medical record for: " + medicalRecordDTOToUpdate.getFirstName()
-                        + " " + medicalRecordDTOToUpdate.getLastName() + " does not exist");
+                throw new DoesNotExistException(ExceptionConstants.NO_MEDICAL_RECORD_FOUND_FOR_PERSON
+                        + medicalRecordDTOToUpdate.getFirstName() + " " + medicalRecordDTOToUpdate.getLastName());
             }
 
         } else {
-            throw new MissingInformationException("At least firstname, lastname and birthdate must be specified for updating");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_MEDICAL_RECORD_WHEN_ADDING_OR_UPDATING);
         }
 
         return updatedMedicalRecordDTO;
+    }
+
+
+    /**
+     * delete the medical record for the given firstname+lastname in the repository
+     *
+     * @param firstName the firstname of the person we want to delete the medical record
+     * @param lastName  the lastname of the person we want to delete the medical record
+     * @return the deleted medical record
+     * @throws DoesNotExistException       if no medical record has been found for the given firstname+lastname
+     * @throws MissingInformationException if no firstname+lastname has been given
+     */
+    @Override
+    public MedicalRecord deleteMedicalRecordByFirstNameAndLastName(String firstName, String lastName) throws DoesNotExistException, MissingInformationException {
+        MedicalRecord medicalRecordToDelete;
+
+        //check if the firstname+lastname is correctly filled
+        if (firstName != null && !firstName.equals("")
+                && lastName != null && !lastName.equals("")) {
+
+            //check if there is a medical record associated to this firstname+lastname in the repository
+            medicalRecordToDelete = medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName);
+            if (medicalRecordToDelete != null) {
+
+                //delete the medical record id for person
+                Person person = personRepository.findByFirstNameAndLastName(firstName, lastName);
+                if (person != null) {
+                    person.setMedicalRecord(null);
+                    personRepository.save(person);
+                }
+
+                if (medicalRecordRepository.deleteByFirstNameAndLastName(firstName, lastName)==0) {
+                    medicalRecordToDelete = null;
+                }
+
+            } else {
+                throw new DoesNotExistException(ExceptionConstants.NO_MEDICAL_RECORD_FOUND_FOR_PERSON + firstName + " " + lastName);
+            }
+
+        } else {
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_MEDICAL_RECORD_WHEN_DELETING);
+        }
+
+        return medicalRecordToDelete;
     }
 
 

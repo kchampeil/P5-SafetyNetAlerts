@@ -608,7 +608,7 @@ class FireStationServiceTest {
             when(personRepositoryMock.findAllByAddress(TestConstants.EXISTING_ADDRESS)).thenReturn(listOfPersons);
             when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
 
-            when(fireStationRepositoryMock.deleteByAddress(TestConstants.EXISTING_ADDRESS)).thenReturn(existingFireStation);
+            when(fireStationRepositoryMock.deleteByAddress(TestConstants.EXISTING_ADDRESS)).thenReturn(1);
 
             //WHEN
             FireStation deletedFireStation = fireStationService.deleteFireStationByAddress(TestConstants.EXISTING_ADDRESS);

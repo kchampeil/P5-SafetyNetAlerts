@@ -301,13 +301,14 @@ public class FireStationService implements IFireStationService {
      */
     @Override
     public FireStation deleteFireStationByAddress(String address) throws DoesNotExistException, MissingInformationException {
-        FireStation deletedFireStation;
+        FireStation fireStationToDelete;
 
         //check if the address is correctly filled
-        if (address != null && !address.isEmpty()) {
+        if (address != null && !address.equals("")) {
 
             //check if there is a fire station associated to this address in the repository
-            if (fireStationRepository.findByAddress(address) != null) {
+            fireStationToDelete = fireStationRepository.findByAddress(address);
+            if (fireStationToDelete != null) {
 
                 //delete the fire station id for persons whom address is the same as the fire station
                 List<Person> listOfPersons = personRepository.findAllByAddress(address);
@@ -316,7 +317,9 @@ public class FireStationService implements IFireStationService {
                     personRepository.saveAll(listOfPersons);
                 }
 
-                deletedFireStation = fireStationRepository.deleteByAddress(address);
+                if (fireStationRepository.deleteByAddress(address) == 0) {
+                    fireStationToDelete = null;
+                }
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS + address);
@@ -326,7 +329,7 @@ public class FireStationService implements IFireStationService {
             throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_ADDRESS);
         }
 
-        return deletedFireStation;
+        return fireStationToDelete;
     }
 
 

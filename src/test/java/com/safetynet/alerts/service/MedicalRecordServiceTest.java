@@ -87,7 +87,6 @@ class MedicalRecordServiceTest {
             assertNotNull(savedListOfMedicalRecords);
             assertThat(savedListOfMedicalRecords).isNotEmpty();
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
-
         }
 
         @Test
@@ -100,7 +99,6 @@ class MedicalRecordServiceTest {
             //THEN
             assertNull(medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords));
             verify(medicalRecordRepositoryMock, Mockito.times(1)).saveAll(anyList());
-
         }
     }
 
@@ -134,7 +132,6 @@ class MedicalRecordServiceTest {
             //THEN
             assertEquals(expectedListOfMedicalRecordsDTO, medicalRecordService.getAllMedicalRecords());
             verify(medicalRecordRepositoryMock, Mockito.times(1)).findAll();
-
         }
 
         @Test
@@ -146,7 +143,6 @@ class MedicalRecordServiceTest {
             //THEN
             assertThat(medicalRecordService.getAllMedicalRecords()).isEmpty();
             verify(medicalRecordRepositoryMock, Mockito.times(1)).findAll();
-
         }
     }
 
@@ -203,6 +199,7 @@ class MedicalRecordServiceTest {
             when(personRepositoryMock
                     .findByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName()))
                     .thenReturn(person);
+            when(personRepositoryMock.save(person)).thenReturn(person);
             when(medicalRecordRepositoryMock.save(any(MedicalRecord.class))).thenReturn(expectedAddedMedicalRecord);
 
             //WHEN
@@ -339,7 +336,7 @@ class MedicalRecordServiceTest {
             expectedUpdatedMedicalRecord.setLastName(medicalRecordDTOToUpdate.getLastName());
             expectedUpdatedMedicalRecord.setBirthDate(medicalRecordDTOToUpdate.getBirthDate());
             when(medicalRecordRepositoryMock
-                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(),medicalRecordDTOToUpdate.getLastName()))
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName()))
                     .thenReturn(expectedUpdatedMedicalRecord);
 
             expectedUpdatedMedicalRecord.setMedications(medicalRecordDTOToUpdate.getMedications());
@@ -367,7 +364,7 @@ class MedicalRecordServiceTest {
         public void updateMedicalRecordTest_WithNoExistingMedicalRecordInRepository() {
             //GIVEN
             when(medicalRecordRepositoryMock
-                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(),medicalRecordDTOToUpdate.getLastName()))
+                    .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName()))
                     .thenReturn(null);
 
             //THEN
@@ -419,6 +416,105 @@ class MedicalRecordServiceTest {
             verify(medicalRecordRepositoryMock, Mockito.times(0))
                     .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), null);
             verify(medicalRecordRepositoryMock, Mockito.times(0)).save(any((MedicalRecord.class)));
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  deleteMedicalRecordByFirstNameAndLastName tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("deleteMedicalRecordByFirstNameAndLastName tests")
+    class DeleteMedicalRecordByFirstNameAndLastNameTest {
+
+        @Test
+        @DisplayName("GIVEN an existing medical record for a given firstname+lastname " +
+                "WHEN deleting this medical record " +
+                "THEN the returned value is the deleted medical record")
+        public void deleteMedicalRecordByFirstNameAndLastNameTest_WithSuccess() throws DoesNotExistException, MissingInformationException {
+            //GIVEN
+            MedicalRecord existingMedicalRecord = new MedicalRecord();
+            existingMedicalRecord.setMedicalRecordId(100L);
+            existingMedicalRecord.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            existingMedicalRecord.setLastName(TestConstants.EXISTING_LASTNAME);
+            existingMedicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
+            when(medicalRecordRepositoryMock
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(existingMedicalRecord);
+
+            //TODO-0 revoir si mutualisation person sur l'ensemble des MRST
+            Person person = new Person();
+            person.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            person.setLastName(TestConstants.EXISTING_LASTNAME);
+            person.setMedicalRecord(existingMedicalRecord);
+            when(personRepositoryMock
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(person);
+            when(personRepositoryMock.save(person)).thenReturn(person);
+
+            when(medicalRecordRepositoryMock
+                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(1);
+
+            //WHEN
+            MedicalRecord deletedMedicalRecord = medicalRecordService
+                    .deleteMedicalRecordByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+
+
+            //THEN
+            assertEquals(existingMedicalRecord, deletedMedicalRecord);
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+            verify(personRepositoryMock, Mockito.times(1))
+                    .save(person);
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a medical record not existing in repository " +
+                "WHEN deleting this medical record " +
+                "THEN a DoesNotExistException is thrown and no medical record has been deleted")
+        public void deleteMedicalRecordByFirstNameAndLastNameTest_WithNoExistingMedicalRecordInRepository() {
+            //GIVEN
+            when(medicalRecordRepositoryMock
+                    .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND)).thenReturn(null);
+
+            //THEN
+            assertThrows(DoesNotExistException.class, () -> medicalRecordService.deleteMedicalRecordByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND));
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .saveAll(anyList());
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .deleteByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN an empty firstname+lastname " +
+                "WHEN deleting this medical record " +
+                "THEN a MissingInformationException is thrown and no medical record has been deleted)")
+        public void deleteMedicalRecordByFirstNameAndLastNameTest_WithMissingInformation() {
+            //GIVEN
+
+            //THEN
+            assertThrows(MissingInformationException.class,
+                    () -> medicalRecordService.deleteMedicalRecordByFirstNameAndLastName(null, null));
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(null, null);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(null, null);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .saveAll(anyList());
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .deleteByFirstNameAndLastName(null, null);
         }
     }
 
