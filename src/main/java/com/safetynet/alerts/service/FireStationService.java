@@ -234,6 +234,11 @@ public class FireStationService implements IFireStationService {
 
                 FireStation addedFireStation = fireStationRepository.save(fireStationToAdd);
 
+                //add the fire station to the persons living at the given address, save the person in repository
+                List<Person> personsToUpdate = personRepository.findAllByAddress(addedFireStation.getAddress());
+                personsToUpdate.forEach(person -> person.setFireStation(addedFireStation));
+                personRepository.saveAll(personsToUpdate);
+
                 addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
 
             } else {

@@ -390,6 +390,13 @@ class FireStationServiceTest {
             when(fireStationRepositoryMock.findByAddress(fireStationDTOToAdd.getAddress())).thenReturn(null);
             when(fireStationRepositoryMock.save(any(FireStation.class))).thenReturn(expectedFireStation);
 
+            List<Person> listOfPersons = new ArrayList<>();
+            adult.setAddress(expectedFireStation.getAddress());
+            adult.setFireStation(null);
+            listOfPersons.add(adult);
+            when(personRepositoryMock.findAllByAddress(expectedFireStation.getAddress())).thenReturn(listOfPersons);
+            when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
+
             //WHEN
             FireStationDTO addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
 
@@ -401,7 +408,10 @@ class FireStationServiceTest {
                     .findByAddress(fireStationDTOToAdd.getAddress());
             verify(fireStationRepositoryMock, Mockito.times(1))
                     .save(any(FireStation.class));
-
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findAllByAddress(expectedFireStation.getAddress());
+            verify(personRepositoryMock, Mockito.times(1))
+                    .saveAll(listOfPersons);
         }
 
 
@@ -421,8 +431,9 @@ class FireStationServiceTest {
             assertThrows(AlreadyExistsException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));
             verify(fireStationRepositoryMock, Mockito.times(1))
                     .findByAddress(fireStationDTOToAdd.getAddress());
-            verify(fireStationRepositoryMock, Mockito.times(0))
-                    .save(any(FireStation.class));
+            verify(fireStationRepositoryMock, Mockito.times(0)).save(any(FireStation.class));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByAddress(anyString());
+            verify(personRepositoryMock, Mockito.times(0)).saveAll(anyList());
         }
 
 
@@ -439,6 +450,8 @@ class FireStationServiceTest {
             assertThrows(MissingInformationException.class, () -> fireStationService.addFireStation(fireStationDTOToAdd));
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
             verify(fireStationRepositoryMock, Mockito.times(0)).save(any((FireStation.class)));
+            verify(personRepositoryMock, Mockito.times(0)).findAllByAddress(anyString());
+            verify(personRepositoryMock, Mockito.times(0)).saveAll(anyList());
         }
 
 
