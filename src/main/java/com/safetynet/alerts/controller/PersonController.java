@@ -1,5 +1,7 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.exceptions.DoesNotExistException;
+import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
@@ -9,12 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,8 +26,12 @@ import java.util.List;
 @RestController
 public class PersonController {
 
+    private final IPersonService personService;
+
     @Autowired
-    private IPersonService personService;
+    public PersonController(IPersonService personService) {
+        this.personService = personService;
+    }
 
 
     /**
@@ -37,6 +45,7 @@ public class PersonController {
 
         List<PersonDTO> listOfPersonsDTO = (List<PersonDTO>) personService.getAllPersons();
 
+        //TODO-review ne garder que le else (et changer tests associer)
         if (listOfPersonsDTO.isEmpty()) {
             log.warn("response to GET request on endpoint /persons is empty, " +
                     "no person found \n");
@@ -225,6 +234,9 @@ public class PersonController {
      * @param personDTOToAdd to add to repository
      * @return the added PersonDTO
      */
+
+    /*TODO-review @GetMapping(value="/apir/tartanpion",consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)*/
     @PostMapping(value = "/person")
     public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTOToAdd) {
 
@@ -240,13 +252,12 @@ public class PersonController {
                 return new ResponseEntity<>(addedPerson, HttpStatus.CREATED);
             } else {
                 log.error("new person " + personDTOToAdd + " has not been saved\n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
         } catch (Exception e) {
             log.error(e.getMessage() + "\n");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            //TOASK comment remonter le message de l'exception ?
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
     }
@@ -273,16 +284,52 @@ public class PersonController {
                 return new ResponseEntity<>(updatedPersonDTO, HttpStatus.OK);
             } else {
                 log.error("Person " + personDTOToUpdate + " has not been updated \n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
         } catch (Exception e) {
             log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            //TOASK comment remonter le message de l'exception ?
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
     }
 
+
+    /**
+     * Delete - Delete a person for a firstname+lastname
+     *
+     * @param firstName the firstname of the person we want to delete
+     * @param lastName  the lastname of the person we want to delete
+     * @return Http status
+     */
+    @DeleteMapping(value = "/person")
+    public ResponseEntity<?> deletePersonByFirstNameAndLastName(
+            @RequestParam String firstName, @RequestParam String lastName) {
+
+        log.info("DELETE request on endpoint /person received for person: " + firstName + " " + lastName);
+
+        try {
+            Person deletedPerson = personService.deletePersonByFirstNameAndLastName(firstName, lastName);
+
+            if (deletedPerson != null) {
+                log.info("Person with id :" + deletedPerson.getPersonId()
+                        + " has been deleted for " + deletedPerson.getFirstName()
+                        + " " + deletedPerson.getLastName() + " \n");
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+            } else {
+                log.info("No person has been deleted for : " + firstName + " " + lastName + " \n");
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
+
+        } catch (Exception e) {
+            log.error(e.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 
 }

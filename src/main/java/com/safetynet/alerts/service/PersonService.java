@@ -1,5 +1,6 @@
 package com.safetynet.alerts.service;
 
+import com.safetynet.alerts.constants.ExceptionConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -11,6 +12,7 @@ import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
+import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -30,11 +32,16 @@ public class PersonService implements IPersonService {
 
     private static final DateUtil dateUtil = new DateUtil();
 
-    @Autowired
-    private PersonRepository personRepository;
+    private final PersonRepository personRepository;
+    private final FireStationRepository fireStationRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
 
     @Autowired
-    private FireStationRepository fireStationRepository;
+    public PersonService(PersonRepository personRepository, FireStationRepository fireStationRepository, MedicalRecordRepository medicalRecordRepository) {
+        this.personRepository = personRepository;
+        this.fireStationRepository = fireStationRepository;
+        this.medicalRecordRepository = medicalRecordRepository;
+    }
 
     /**
      * save a list of persons in DB
@@ -425,11 +432,12 @@ public class PersonService implements IPersonService {
                 addedPersonDTO = modelMapper.map(addedPerson, PersonDTO.class);
 
             } else {
-                throw new AlreadyExistsException("Person: " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() + " already exists");
+                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME
+                        + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName());
             }
 
         } else {
-            throw new MissingInformationException("All information must be present to add a new person");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING);
         }
 
         return addedPersonDTO;
@@ -456,7 +464,7 @@ public class PersonService implements IPersonService {
                     .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
 
             if (existingPerson != null) {
-                //map DTO to DAO, save in repository and map back to FireStationDTO for return
+                //map DTO to DAO, save in repository and map back to PersonDTO for return
                 ModelMapper modelMapper = new ModelMapper();
                 Person personToUpdate = modelMapper.map(personDTOToUpdate, Person.class);
                 personToUpdate.setPersonId(existingPerson.getPersonId());
@@ -471,15 +479,57 @@ public class PersonService implements IPersonService {
                 updatedPersonDTO = modelMapper.map(updatedPerson, PersonDTO.class);
 
             } else {
-                throw new DoesNotExistException("Person for: " + personDTOToUpdate.getFirstName()
-                        + " " + personDTOToUpdate.getLastName() + " does not exist");
+                throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                        + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName());
             }
 
         } else {
-            throw new MissingInformationException("All information must be present to update a person");
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING);
         }
 
         return updatedPersonDTO;
+    }
+
+
+    /**
+     * delete the person for the given firstname+lastname in the repository
+     *
+     * @param firstName the firstname of the person we want to delete
+     * @param lastName  the lastname of the person we want to delete
+     * @return the deleted person
+     * @throws DoesNotExistException       if no person has been found for the given firstname+lastname
+     * @throws MissingInformationException if no firstname+lastname has been given
+     */
+    @Override
+    public Person deletePersonByFirstNameAndLastName(String firstName, String lastName) throws DoesNotExistException, MissingInformationException {
+        Person personToDelete;
+
+        //check if the firstname+lastname is correctly filled
+        if (firstName != null && !firstName.equals("")
+                && lastName != null && !lastName.equals("")) {
+
+            //check if there is a person associated to this firstname+lastname in the repository
+            personToDelete = personRepository.findByFirstNameAndLastName(firstName, lastName);
+            if (personToDelete != null) {
+
+                if (personToDelete.getMedicalRecord().getMedicalRecordId() != null) {
+                    medicalRecordRepository.deleteById(personToDelete.getMedicalRecord().getMedicalRecordId());
+                }
+
+                if (personRepository.deleteByFirstNameAndLastName(firstName, lastName) == 0) {
+                    personToDelete = null;
+                }
+
+            } else {
+                throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                        + firstName + " " + lastName);
+            }
+
+        } else {
+            throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_DELETING);
+        }
+
+        return personToDelete;
     }
 
 

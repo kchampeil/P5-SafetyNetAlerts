@@ -12,6 +12,7 @@ import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
+import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +48,9 @@ class PersonServiceTest {
     @MockBean
     private FireStationRepository fireStationRepositoryMock;
 
+    @MockBean
+    private MedicalRecordRepository medicalRecordRepositoryMock;
+
     @Autowired
     private IPersonService personService;
 
@@ -58,14 +62,16 @@ class PersonServiceTest {
         listOfPersons = new ArrayList<>();
 
         person = new Person();
-        person.setFirstName("PST_first_name");
-        person.setLastName("PST_last_name");
+        person.setPersonId(1L);
+        person.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+        person.setLastName(TestConstants.EXISTING_LASTNAME);
         person.setEmail("PST_email");
         person.setCity("PST_city");
         person.setZip("PST_zip");
-        person.setAddress("PST_address");
+        person.setAddress(TestConstants.EXISTING_ADDRESS);
 
         MedicalRecord medicalRecord = new MedicalRecord();
+        medicalRecord.setMedicalRecordId(1L);
         medicalRecord.setFirstName(person.getFirstName());
         medicalRecord.setLastName(person.getLastName());
         medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
@@ -186,12 +192,12 @@ class PersonServiceTest {
         public void getAllEmailsByCityTest_WithInfoInRepository() {
             //GIVEN
             listOfPersons.add(person);
-            when(personRepositoryMock.findAllByCity("PST_city")).thenReturn(listOfPersons);
+            when(personRepositoryMock.findAllByCity(TestConstants.EXISTING_CITY)).thenReturn(listOfPersons);
 
             //THEN
             assertEquals(1,
-                    personService.getAllEmailsByCity("PST_city").size());
-            verify(personRepositoryMock, Mockito.times(1)).findAllByCity("PST_city");
+                    personService.getAllEmailsByCity(TestConstants.EXISTING_CITY).size());
+            verify(personRepositoryMock, Mockito.times(1)).findAllByCity(TestConstants.EXISTING_CITY);
         }
 
         @Test
@@ -200,11 +206,11 @@ class PersonServiceTest {
                 "THEN an empty list of citizens' emails is returned")
         public void getAllEmailsByCityTest_WithNoInfoInRepository() {
             //GIVEN
-            when(personRepositoryMock.findAllByCity("PST_city_not_in_repository")).thenReturn(new ArrayList<>());
+            when(personRepositoryMock.findAllByCity(TestConstants.CITY_NOT_FOUND)).thenReturn(new ArrayList<>());
 
             //THEN
-            assertThat(personService.getAllEmailsByCity("PST_city_not_in_repository")).isEmpty();
-            verify(personRepositoryMock, Mockito.times(1)).findAllByCity("PST_city_not_in_repository");
+            assertThat(personService.getAllEmailsByCity(TestConstants.CITY_NOT_FOUND)).isEmpty();
+            verify(personRepositoryMock, Mockito.times(1)).findAllByCity(TestConstants.CITY_NOT_FOUND);
         }
 
         @Test
@@ -260,11 +266,15 @@ class PersonServiceTest {
             personInfoDTO.setAllergies(person.getMedicalRecord().getAllergies());
             expectedListOfPersonInfo.add(personInfoDTO);
 
-            when(personRepositoryMock.findAllByFirstNameAndLastName("TestFirstName", "TestLastName")).thenReturn(listOfPersons);
+            when(personRepositoryMock
+                    .findAllByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(listOfPersons);
 
             //THEN
-            assertEquals(expectedListOfPersonInfo, personService.getPersonInfoByFirstNameAndLastName("TestFirstName", "TestLastName"));
-            verify(personRepositoryMock, Mockito.times(1)).findAllByFirstNameAndLastName("TestFirstName", "TestLastName");
+            assertEquals(expectedListOfPersonInfo,
+                    personService.getPersonInfoByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME));
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findAllByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
 
         }
 
@@ -275,11 +285,16 @@ class PersonServiceTest {
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoDataInRepository() {
 
             //GIVEN
-            when(personRepositoryMock.findAllByFirstNameAndLastName("TestFirstName", "TestLastName")).thenReturn(null);
+            when(personRepositoryMock
+                    .findAllByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND))
+                    .thenReturn(null);
 
             //THEN
-            assertThat(personService.getPersonInfoByFirstNameAndLastName("TestFirstName", "TestLastName")).isEmpty();
-            verify(personRepositoryMock, Mockito.times(1)).findAllByFirstNameAndLastName("TestFirstName", "TestLastName");
+            assertThat(personService
+                    .getPersonInfoByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND))
+                    .isEmpty();
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findAllByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
         }
 
         @Test
@@ -336,10 +351,10 @@ class PersonServiceTest {
         public void getChildAlertByAddressTest_WithConsistentList() {
             //GIVEN
             Person aChild = new Person();
-            aChild.setFirstName("PST_first_name");
-            aChild.setLastName("PST_last_name");
+            aChild.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            aChild.setLastName(TestConstants.EXISTING_LASTNAME);
             aChild.setEmail("PST_email");
-            aChild.setAddress("PST_address");
+            aChild.setAddress(TestConstants.EXISTING_ADDRESS);
 
             MedicalRecord medicalRecord = new MedicalRecord();
             medicalRecord.setFirstName(aChild.getFirstName());
@@ -350,10 +365,10 @@ class PersonServiceTest {
             listOfPersons.add(aChild);
 
             Person hisParent = new Person();
-            hisParent.setFirstName("PST_first_name_parent");
-            hisParent.setLastName("PST_last_name");
-            hisParent.setEmail("PST_email_parent");
-            hisParent.setPhone("PST_phone_parent");
+            hisParent.setFirstName(aChild.getFirstName()+"_parent");
+            hisParent.setLastName(aChild.getLastName());
+            hisParent.setEmail(aChild.getEmail()+"_parent");
+            hisParent.setPhone(aChild.getPhone()+"_parent");
             hisParent.setAddress(aChild.getAddress());
 
             MedicalRecord medicalRecord2 = new MedicalRecord();
@@ -385,11 +400,11 @@ class PersonServiceTest {
         public void getChildAlertByAddressTest_WithNoDataInRepository() {
 
             //GIVEN
-            when(personRepositoryMock.findAllByAddress("TestAddress")).thenReturn(null);
+            when(personRepositoryMock.findAllByAddress(TestConstants.ADDRESS_NOT_FOUND)).thenReturn(null);
 
             //THEN
-            assertThat(personService.getChildAlertByAddress("TestAddress")).isEmpty();
-            verify(personRepositoryMock, Mockito.times(1)).findAllByAddress("TestAddress");
+            assertThat(personService.getChildAlertByAddress(TestConstants.ADDRESS_NOT_FOUND)).isEmpty();
+            verify(personRepositoryMock, Mockito.times(1)).findAllByAddress(TestConstants.ADDRESS_NOT_FOUND);
         }
 
         @Test
@@ -400,7 +415,6 @@ class PersonServiceTest {
 
             assertNull(personService.getChildAlertByAddress(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByAddress(null);
-
         }
 
         @Test
@@ -411,7 +425,6 @@ class PersonServiceTest {
 
             assertNull(personService.getChildAlertByAddress(""));
             verify(personRepositoryMock, Mockito.times(0)).findAllByAddress("");
-
         }
 
         @Test
@@ -426,9 +439,7 @@ class PersonServiceTest {
             assertNull(personService.getChildAlertByAddress(""));
             verify(personRepositoryMock, Mockito.times(0))
                     .findAllByAddress(anyString());
-
         }
-
     }
 
 
@@ -495,7 +506,6 @@ class PersonServiceTest {
             assertNull(personService.getPhoneAlertByFireStation(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
         }
-
     }
 
 
@@ -585,7 +595,6 @@ class PersonServiceTest {
             assertNull(personService.getFireStationCoverageByStationNumber(null));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFireStation_StationNumber(null);
         }
-
     }
 
 
@@ -600,9 +609,9 @@ class PersonServiceTest {
         @BeforeEach
         private void setUpPerTest() {
             personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setFirstName("PCT_first_name");
-            personDTOToAdd.setLastName("PCT_last_name");
-            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setFirstName(TestConstants.NEW_FIRSTNAME);
+            personDTOToAdd.setLastName(TestConstants.NEW_LASTNAME);
+            personDTOToAdd.setAddress(TestConstants.EXISTING_ADDRESS);
             personDTOToAdd.setEmail("PCT_email@safety.com");
             personDTOToAdd.setPhone("PCT_phone");
             personDTOToAdd.setCity("PCT_city");
@@ -626,8 +635,8 @@ class PersonServiceTest {
             expectedAddedPerson.setZip(personDTOToAdd.getZip());
 
             FireStation fireStation = new FireStation();
-            fireStation.setFireStationId(100L);
-            fireStation.setStationNumber(73);
+            fireStation.setFireStationId(TestConstants.EXISTING_STATION_NUMBER.longValue());
+            fireStation.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
             fireStation.setAddress(personDTOToAdd.getAddress());
             expectedAddedPerson.setFireStation(fireStation);
 
@@ -649,7 +658,6 @@ class PersonServiceTest {
                     .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName());
             verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToAdd.getAddress());
             verify(personRepositoryMock, Mockito.times(1)).save(any(Person.class));
-
         }
 
         @Test
@@ -658,11 +666,9 @@ class PersonServiceTest {
                 "THEN an AlreadyExistsException is thrown")
         public void addPersonTest_WithExistingPersonInRepository() {
             //GIVEN
-            Person existingPerson = new Person();
-            person.setPersonId(1L);
             person.setFirstName(personDTOToAdd.getFirstName());
             person.setLastName(personDTOToAdd.getLastName());
-            listOfPersons.add(existingPerson);
+            listOfPersons.add(person);
 
             when(personRepositoryMock
                     .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName()))
@@ -681,11 +687,9 @@ class PersonServiceTest {
                 "WHEN saving this new person " +
                 "THEN an MissingInformationException is thrown")
         public void addPersonTest_WithMissingPersonInformation() {
-            //GIVEN
-            PersonDTO emptyPersonDTOToAdd = new PersonDTO();
 
             //THEN
-            assertThrows(MissingInformationException.class, () -> personService.addPerson(emptyPersonDTOToAdd));
+            assertThrows(MissingInformationException.class, () -> personService.addPerson(new PersonDTO()));
             verify(personRepositoryMock, Mockito.times(0)).findAllByFirstNameAndLastName(null, null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
@@ -735,10 +739,10 @@ class PersonServiceTest {
         @BeforeEach
         private void setUpPerTest() {
             personDTOToUpdate = new PersonDTO();
-            personDTOToUpdate.setFirstName("PCT_first_name");
-            personDTOToUpdate.setLastName("PCT_last_name");
-            personDTOToUpdate.setAddress("PCT_address");
-            personDTOToUpdate.setEmail("PCT_email@safety.com");
+            personDTOToUpdate.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            personDTOToUpdate.setLastName(TestConstants.EXISTING_LASTNAME);
+            personDTOToUpdate.setAddress(TestConstants.NEW_ADDRESS);
+            personDTOToUpdate.setEmail("new_email@safety.com");
             personDTOToUpdate.setPhone("PCT_phone");
             personDTOToUpdate.setCity("PCT_city");
             personDTOToUpdate.setZip("PCT_zip");
@@ -750,23 +754,18 @@ class PersonServiceTest {
                 "THEN the returned value is the updated person")
         public void updatePersonTest_WithSuccess() throws Exception {
             //GIVEN
-            Person existingPerson = new Person();
-            existingPerson.setPersonId(100L);
-            existingPerson.setFirstName(personDTOToUpdate.getFirstName());
-            existingPerson.setLastName(personDTOToUpdate.getLastName());
-            existingPerson.setAddress("old address");
-            existingPerson.setEmail("old_email@safety.net");
-            existingPerson.setPhone(personDTOToUpdate.getPhone());
-            existingPerson.setCity(personDTOToUpdate.getCity());
-            existingPerson.setZip(personDTOToUpdate.getZip());
+            person.setFirstName(personDTOToUpdate.getFirstName());
+            person.setLastName(personDTOToUpdate.getLastName());
+            person.setAddress(TestConstants.EXISTING_ADDRESS);
+            person.setEmail("old_email@safety.net");
             FireStation fireStation = new FireStation();
-            fireStation.setFireStationId(100L);
-            fireStation.setStationNumber(73);
+            fireStation.setFireStationId(TestConstants.EXISTING_STATION_NUMBER.longValue());
+            fireStation.setStationNumber(TestConstants.EXISTING_STATION_NUMBER);
             fireStation.setAddress(personDTOToUpdate.getAddress());
-            existingPerson.setFireStation(fireStation);
+            person.setFireStation(fireStation);
 
             Person expectedUpdatedPerson = new Person();
-            expectedUpdatedPerson.setPersonId(100L);
+            expectedUpdatedPerson.setPersonId(person.getPersonId());
             expectedUpdatedPerson.setFirstName(personDTOToUpdate.getFirstName());
             expectedUpdatedPerson.setLastName(personDTOToUpdate.getLastName());
             expectedUpdatedPerson.setAddress(personDTOToUpdate.getAddress());
@@ -775,14 +774,14 @@ class PersonServiceTest {
             expectedUpdatedPerson.setCity(personDTOToUpdate.getCity());
             expectedUpdatedPerson.setZip(personDTOToUpdate.getZip());
             FireStation expectedFireStation = new FireStation();
-            expectedFireStation.setFireStationId(200L);
-            expectedFireStation.setStationNumber(2021);
+            expectedFireStation.setFireStationId(TestConstants.NEW_STATION_NUMBER.longValue());
+            expectedFireStation.setStationNumber(TestConstants.NEW_STATION_NUMBER);
             expectedFireStation.setAddress(personDTOToUpdate.getAddress());
             expectedUpdatedPerson.setFireStation(expectedFireStation);
 
             when(personRepositoryMock
                     .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName()))
-                    .thenReturn(existingPerson);
+                    .thenReturn(person);
 
             when(fireStationRepositoryMock.findByAddress(personDTOToUpdate.getAddress()))
                     .thenReturn(expectedFireStation);
@@ -800,7 +799,6 @@ class PersonServiceTest {
                     .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
             verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToUpdate.getAddress());
             verify(personRepositoryMock, Mockito.times(1)).save(any(Person.class));
-
         }
 
         @Test
@@ -826,11 +824,9 @@ class PersonServiceTest {
                 "WHEN updating this new person " +
                 "THEN an MissingInformationException is thrown")
         public void updatePersonTest_WithMissingPersonInformation() {
-            //GIVEN
-            PersonDTO emptyPersonDTOToUpdate = new PersonDTO();
 
             //THEN
-            assertThrows(MissingInformationException.class, () -> personService.updatePerson(emptyPersonDTOToUpdate));
+            assertThrows(MissingInformationException.class, () -> personService.updatePerson(new PersonDTO()));
             verify(personRepositoryMock, Mockito.times(0)).findByFirstNameAndLastName(null, null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(anyString());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
@@ -865,6 +861,78 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(0)).findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), null);
             verify(fireStationRepositoryMock, Mockito.times(0)).findByAddress(personDTOToUpdate.getAddress());
             verify(personRepositoryMock, Mockito.times(0)).save(any((Person.class)));
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  deletePersonByFirstNameAndLastName tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("deletePersonByFirstNameAndLastName tests")
+    class DeletePersonByFirstNameAndLastNameTest {
+
+        @Test
+        @DisplayName("GIVEN an existing person for a given firstname+lastname " +
+                "WHEN deleting this person " +
+                "THEN the returned value is the deleted person")
+        public void deletePersonByFirstNameAndLastNameTest_WithSuccess() throws DoesNotExistException, MissingInformationException {
+            //GIVEN
+            when(personRepositoryMock
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(person);
+
+            when(personRepositoryMock
+                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(1);
+
+            //WHEN
+            Person deletedPerson = personService
+                    .deletePersonByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+
+            //THEN
+            assertEquals(person, deletedPerson);
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+            verify(personRepositoryMock, Mockito.times(1))
+                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person not existing in repository " +
+                "WHEN deleting this person record " +
+                "THEN a DoesNotExistException is thrown and no person has been deleted")
+        public void deletePersonByFirstNameAndLastNameTest_WithNoExistingPersonInRepository() {
+            //GIVEN
+            when(personRepositoryMock
+                    .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND))
+                    .thenReturn(null);
+
+            //THEN
+            assertThrows(DoesNotExistException.class, () -> personService
+                    .deletePersonByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND));
+            verify(personRepositoryMock, Mockito.times(1))
+                    .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .deleteByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN an empty firstname+lastname " +
+                "WHEN deleting this person " +
+                "THEN a MissingInformationException is thrown and no person has been deleted)")
+        public void deletePersonByFirstNameAndLastNameTest_WithMissingInformation() {
+            //GIVEN
+
+            //THEN
+            assertThrows(MissingInformationException.class,
+                    () -> personService.deletePersonByFirstNameAndLastName(null, null));
+            verify(personRepositoryMock, Mockito.times(0))
+                    .findByFirstNameAndLastName(null, null);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .deleteByFirstNameAndLastName(null, null);
         }
     }
 

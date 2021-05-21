@@ -1,9 +1,12 @@
 package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alerts.constants.ExceptionConstants;
+import com.safetynet.alerts.constants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
+import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
 import com.safetynet.alerts.model.dto.FireStationCoverageDTO;
 import com.safetynet.alerts.model.dto.HouseholdMemberDTO;
@@ -24,13 +27,15 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -49,6 +54,16 @@ class PersonControllerTest {
     private IPersonService personServiceMock;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private Person deletedPerson;
+
+    @BeforeEach
+    private void setUpPerTest() {
+        deletedPerson = new Person();
+        deletedPerson.setPersonId(100L);
+        deletedPerson.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+        deletedPerson.setLastName(TestConstants.EXISTING_LASTNAME);
+    }
 
 
     /* ----------------------------------------------------------------------------------------------------------------------
@@ -72,10 +87,10 @@ class PersonControllerTest {
             //GIVEN
             PersonDTO personDTO = new PersonDTO();
             personDTO.setPersonId(100L);
-            personDTO.setFirstName("PICT_FirstName");
-            personDTO.setLastName("PICT_LastName");
+            personDTO.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            personDTO.setLastName(TestConstants.EXISTING_LASTNAME);
             personDTO.setEmail("PICT_Email");
-            personDTO.setAddress("PICT_Address");
+            personDTO.setAddress(TestConstants.EXISTING_ADDRESS);
             listOfPersonsDTO.add(personDTO);
             when(personServiceMock.getAllPersons()).thenReturn(listOfPersonsDTO);
 
@@ -84,6 +99,7 @@ class PersonControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1)).getAllPersons();
         }
 
         @Test
@@ -98,6 +114,7 @@ class PersonControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(personServiceMock, Mockito.times(1)).getAllPersons();
         }
 
 
@@ -127,13 +144,14 @@ class PersonControllerTest {
             listOfEmails.add("email1@test.com");
             listOfEmails.add("email2@test.com");
             listOfEmails.add("email3@test.com");
-            when(personServiceMock.getAllEmailsByCity("CityTest")).thenReturn(listOfEmails);
+            when(personServiceMock.getAllEmailsByCity(TestConstants.EXISTING_CITY)).thenReturn(listOfEmails);
 
             // THEN
-            mockMvc.perform(get("/communityEmail").param("city", "CityTest"))
+            mockMvc.perform(get("/communityEmail").param("city", TestConstants.EXISTING_CITY))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(content().string("[\"email1@test.com\",\"email2@test.com\",\"email3@test.com\"]"));
+            verify(personServiceMock, Mockito.times(1)).getAllEmailsByCity(TestConstants.EXISTING_CITY);
         }
 
         @Test
@@ -142,13 +160,14 @@ class PersonControllerTest {
                 " THEN return status is 'not found' but the result is empty")
         public void getAllEmailsByCityTest_WithNoResultsForCity() throws Exception {
             // GIVEN
-            when(personServiceMock.getAllEmailsByCity("CityTestNotKnown")).thenReturn(listOfEmails);
+            when(personServiceMock.getAllEmailsByCity(TestConstants.CITY_NOT_FOUND)).thenReturn(listOfEmails);
 
             // THEN
-            mockMvc.perform(get("/communityEmail").param("city", "CityTestNotKnown"))
+            mockMvc.perform(get("/communityEmail").param("city", TestConstants.CITY_NOT_FOUND))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(personServiceMock, Mockito.times(1)).getAllEmailsByCity(TestConstants.CITY_NOT_FOUND);
         }
 
         @Test
@@ -157,11 +176,12 @@ class PersonControllerTest {
                 " THEN return status is 'bad request'")
         public void getAllEmailsByCityTest_WithNoCityAsInput() throws Exception {
             // GIVEN
-            when(personServiceMock.getAllEmailsByCity(anyString())).thenReturn(null);
+            when(personServiceMock.getAllEmailsByCity("")).thenReturn(null);
 
             // THEN
-            mockMvc.perform(get("/communityEmail").param("city", "CityTestNull"))
+            mockMvc.perform(get("/communityEmail").param("city", ""))
                     .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1)).getAllEmailsByCity("");
         }
     }
 
@@ -186,24 +206,27 @@ class PersonControllerTest {
         public void getPersonInfoByFirstNameAndLastNameTest_WithResults() throws Exception {
             // GIVEN
             PersonInfoDTO personInfoDTO = new PersonInfoDTO();
-            personInfoDTO.setLastName("PICT_LastName");
+            personInfoDTO.setLastName(TestConstants.EXISTING_LASTNAME);
             personInfoDTO.setEmail("PICT_Email");
             personInfoDTO.setAge(21);
-            personInfoDTO.setAddress("PICT_Address");
+            personInfoDTO.setAddress(TestConstants.EXISTING_ADDRESS);
             personInfoDTO.setMedications(new ArrayList<>());
             personInfoDTO.setAllergies(new ArrayList<>());
             listOfPersonInfoDTO.add(personInfoDTO);
 
-            when(personServiceMock.getPersonInfoByFirstNameAndLastName("FirstNameTest", "LastNameTest"))
+            when(personServiceMock
+                    .getPersonInfoByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
                     .thenReturn(listOfPersonInfoDTO);
 
             // THEN
             mockMvc.perform(get("/personInfo")
-                    .param("firstName", "FirstNameTest")
-                    .param("lastName", "LastNameTest"))
+                    .param("firstName", TestConstants.EXISTING_FIRSTNAME)
+                    .param("lastName", TestConstants.EXISTING_LASTNAME))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPersonInfoByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
         }
 
 
@@ -213,16 +236,19 @@ class PersonControllerTest {
                 "THEN return status is 'not found' and an empty list is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoResults() throws Exception {
             // GIVEN
-            when(personServiceMock.getPersonInfoByFirstNameAndLastName("FirstNameTestNotKnown", "LastNameTestNotKnown"))
+            when(personServiceMock
+                    .getPersonInfoByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND))
                     .thenReturn(listOfPersonInfoDTO);
 
             // THEN
             mockMvc.perform(get("/personInfo")
-                    .param("firstName", "FirstNameTestNotKnown")
-                    .param("lastName", "LastNameTestNotKnown"))
+                    .param("firstName", TestConstants.FIRSTNAME_NOT_FOUND)
+                    .param("lastName", TestConstants.LASTNAME_NOT_FOUND))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPersonInfoByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
         }
 
 
@@ -232,15 +258,16 @@ class PersonControllerTest {
                 "THEN return status is 'bad request'")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoNameAsInput() throws Exception {
             // GIVEN
-            when(personServiceMock.getPersonInfoByFirstNameAndLastName(anyString(), anyString())).thenReturn(null);
+            when(personServiceMock.getPersonInfoByFirstNameAndLastName("", "")).thenReturn(null);
 
             // THEN
             mockMvc.perform(get("/personInfo")
-                    .param("firstName", "FirstNameTestNull")
-                    .param("lastName", "LastNameTestNull"))
+                    .param("firstName", "")
+                    .param("lastName", ""))
                     .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPersonInfoByFirstNameAndLastName("", "");
         }
-
     }
 
 
@@ -264,11 +291,11 @@ class PersonControllerTest {
         public void getChildAlertByAddressTest_WithResults() throws Exception {
             // GIVEN
             ChildAlertDTO childAlertDTO = new ChildAlertDTO();
-            childAlertDTO.setFirstName("CACT_FirstName");
-            childAlertDTO.setLastName("CACT_LastName");
-            childAlertDTO.setAge(21);
+            childAlertDTO.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            childAlertDTO.setLastName(TestConstants.EXISTING_LASTNAME);
+            childAlertDTO.setAge(TestConstants.CHILD_AGE);
             HouseholdMemberDTO parent = new HouseholdMemberDTO();
-            parent.setFirstName("CACT_FirstName_Parent");
+            parent.setFirstName(TestConstants.EXISTING_FIRSTNAME + "_Parent");
             parent.setLastName(childAlertDTO.getLastName());
             parent.setEmail("CACT_email_Parent");
             parent.setPhone("CACT_phone_Parent");
@@ -277,14 +304,16 @@ class PersonControllerTest {
             childAlertDTO.setListOfOtherHouseholdMembers(householdMembers);
             listOfChildAlertDTO.add(childAlertDTO);
 
-            when(personServiceMock.getChildAlertByAddress("AddressTest"))
+            when(personServiceMock.getChildAlertByAddress(TestConstants.EXISTING_ADDRESS))
                     .thenReturn(listOfChildAlertDTO);
 
             // THEN
-            mockMvc.perform(get("/childAlert").param("address", "AddressTest"))
+            mockMvc.perform(get("/childAlert").param("address", TestConstants.EXISTING_ADDRESS))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getChildAlertByAddress(TestConstants.EXISTING_ADDRESS);
         }
 
 
@@ -294,14 +323,16 @@ class PersonControllerTest {
                 "THEN return status is 'not found' and an empty list is returned")
         public void getChildAlertByAddressTest_WithNoResults() throws Exception {
             // GIVEN
-            when(personServiceMock.getChildAlertByAddress("AddressTestNotKnown"))
+            when(personServiceMock.getChildAlertByAddress(TestConstants.ADDRESS_NOT_FOUND))
                     .thenReturn(listOfChildAlertDTO);
 
             // THEN
-            mockMvc.perform(get("/childAlert").param("address", "AddressTestNotKnown"))
+            mockMvc.perform(get("/childAlert").param("address", TestConstants.ADDRESS_NOT_FOUND))
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getChildAlertByAddress(TestConstants.ADDRESS_NOT_FOUND);
         }
 
 
@@ -311,11 +342,13 @@ class PersonControllerTest {
                 "THEN return status is 'bad request'")
         public void getChildAlertByAddressTest_WithNoNameAsInput() throws Exception {
             // GIVEN
-            when(personServiceMock.getChildAlertByAddress(anyString())).thenReturn(null);
+            when(personServiceMock.getChildAlertByAddress("")).thenReturn(null);
 
             // THEN
-            mockMvc.perform(get("/childAlert").param("address", "AddressTestNull"))
+            mockMvc.perform(get("/childAlert").param("address", ""))
                     .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1))
+                    .getChildAlertByAddress("");
         }
     }
 
@@ -352,6 +385,8 @@ class PersonControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPhoneAlertByFireStation(3);
         }
 
 
@@ -370,6 +405,8 @@ class PersonControllerTest {
                     .andExpect(status().isNotFound())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPhoneAlertByFireStation(2);
         }
 
 
@@ -385,6 +422,8 @@ class PersonControllerTest {
             mockMvc.perform(get("/phoneAlert")
                     .param("firestation", String.valueOf(999)))
                     .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1))
+                    .getPhoneAlertByFireStation(anyInt());
         }
     }
 
@@ -411,22 +450,22 @@ class PersonControllerTest {
             List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
 
             PersonCoveredContactsDTO personCoveredContactsDTO1 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO1.setFirstName("PCT_first_name_1");
-            personCoveredContactsDTO1.setLastName("PCT_last_name_1");
-            personCoveredContactsDTO1.setAddress("PCT_Address_1");
+            personCoveredContactsDTO1.setFirstName(TestConstants.EXISTING_FIRSTNAME + "_1");
+            personCoveredContactsDTO1.setLastName(TestConstants.EXISTING_LASTNAME + "_1");
+            personCoveredContactsDTO1.setAddress(TestConstants.EXISTING_ADDRESS + "_1");
             personCoveredContactsDTO1.setPhone("33 1 23 45 67 89");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO1);
 
             PersonCoveredContactsDTO personCoveredContactsDTO2 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO2.setFirstName("PCT_first_name_2");
-            personCoveredContactsDTO2.setLastName("PCT_last_name_2");
-            personCoveredContactsDTO2.setAddress("PCT_Address_2");
+            personCoveredContactsDTO2.setFirstName(TestConstants.EXISTING_FIRSTNAME + "_2");
+            personCoveredContactsDTO2.setLastName(TestConstants.EXISTING_LASTNAME + "_2");
+            personCoveredContactsDTO2.setAddress(TestConstants.EXISTING_ADDRESS + "_2");
             personCoveredContactsDTO2.setPhone("33 1 98 76 54 32");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO2);
 
             PersonCoveredContactsDTO personCoveredContactsDTO3 = new PersonCoveredContactsDTO();
-            personCoveredContactsDTO3.setFirstName("PCT_first_name_3");
-            personCoveredContactsDTO3.setLastName("PCT_last_name_3");
+            personCoveredContactsDTO3.setFirstName(TestConstants.EXISTING_FIRSTNAME + "_3");
+            personCoveredContactsDTO3.setLastName(TestConstants.EXISTING_LASTNAME + "_3");
             personCoveredContactsDTO3.setAddress(personCoveredContactsDTO2.getAddress());
             personCoveredContactsDTO3.setPhone("33 1 99 99 99 99");
             listOfPersonCoveredContactsDTO.add(personCoveredContactsDTO3);
@@ -444,6 +483,8 @@ class PersonControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
+            verify(personServiceMock, Mockito.times(1))
+                    .getFireStationCoverageByStationNumber(3);
         }
 
 
@@ -464,6 +505,8 @@ class PersonControllerTest {
                     .andExpect(jsonPath("$.numberOfChildren", is(0)))
                     .andExpect(jsonPath("$.numberOfAdults", is(0)))
                     .andExpect(jsonPath("$.personCoveredContactsDTOList", is(nullValue())));
+            verify(personServiceMock, Mockito.times(1))
+                    .getFireStationCoverageByStationNumber(2);
         }
 
 
@@ -479,6 +522,8 @@ class PersonControllerTest {
             mockMvc.perform(get("/firestation")
                     .param("stationNumber", String.valueOf(999)))
                     .andExpect(status().isBadRequest());
+            verify(personServiceMock, Mockito.times(1))
+                    .getFireStationCoverageByStationNumber(anyInt());
         }
     }
 
@@ -494,9 +539,9 @@ class PersonControllerTest {
         @BeforeEach
         private void setUpPerTest() {
             personDTOToAdd = new PersonDTO();
-            personDTOToAdd.setFirstName("PCT_first_name");
-            personDTOToAdd.setLastName("PCT_last_name");
-            personDTOToAdd.setAddress("PCT_address");
+            personDTOToAdd.setFirstName(TestConstants.NEW_FIRSTNAME);
+            personDTOToAdd.setLastName(TestConstants.NEW_LASTNAME);
+            personDTOToAdd.setAddress(TestConstants.NEW_ADDRESS);
             personDTOToAdd.setEmail("PCT_email@safety.com");
             personDTOToAdd.setPhone("PCT_phone");
             personDTOToAdd.setCity("PCT_city");
@@ -541,13 +586,16 @@ class PersonControllerTest {
             // GIVEN
             personDTOToAdd.setFirstName(null);
             when(personServiceMock.addPerson(personDTOToAdd))
-                    .thenThrow(new MissingInformationException("Firstname is missing"));
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING));
 
             // THEN
             mockMvc.perform(post("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToAdd)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING)));
+            verify(personServiceMock, Mockito.times(1)).addPerson(personDTOToAdd);
         }
 
 
@@ -558,16 +606,19 @@ class PersonControllerTest {
         public void addPersonTest_AlreadyExisting() throws Exception {
             // GIVEN
             when(personServiceMock.addPerson(personDTOToAdd))
-                    .thenThrow(new AlreadyExistsException("Person already exists"));
+                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME
+                            + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName()));
 
             // THEN
             mockMvc.perform(post("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToAdd)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME
+                                    + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName())));
             verify(personServiceMock, Mockito.times(1)).addPerson(personDTOToAdd);
         }
-
     }
 
 
@@ -582,12 +633,12 @@ class PersonControllerTest {
         @BeforeEach
         private void setUpPerTest() {
             personDTOToUpdate = new PersonDTO();
-            personDTOToUpdate.setFirstName("PCT_first_name");
-            personDTOToUpdate.setLastName("PCT_last_name");
-            personDTOToUpdate.setAddress("PCT_address");
+            personDTOToUpdate.setFirstName(TestConstants.EXISTING_FIRSTNAME);
+            personDTOToUpdate.setLastName(TestConstants.EXISTING_LASTNAME);
+            personDTOToUpdate.setAddress(TestConstants.EXISTING_ADDRESS);
             personDTOToUpdate.setEmail("PCT_email@safety.com");
             personDTOToUpdate.setPhone("PCT_phone");
-            personDTOToUpdate.setCity("PCT_city");
+            personDTOToUpdate.setCity(TestConstants.EXISTING_CITY);
             personDTOToUpdate.setZip("PCT_zip");
         }
 
@@ -630,13 +681,15 @@ class PersonControllerTest {
             personDTOToUpdate.setFirstName(null);
 
             when(personServiceMock.updatePerson(personDTOToUpdate))
-                    .thenThrow(new MissingInformationException("Firstname is missing"));
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING));
 
             // THEN
             mockMvc.perform(put("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToUpdate)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING)));
             verify(personServiceMock, Mockito.times(1)).updatePerson(personDTOToUpdate);
         }
 
@@ -648,14 +701,94 @@ class PersonControllerTest {
         public void updatePersonTest_NotExisting() throws Exception {
             // GIVEN
             when(personServiceMock.updatePerson(personDTOToUpdate))
-                    .thenThrow(new DoesNotExistException("Person does not exist"));
+                    .thenThrow(new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                            + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName()));
 
             // THEN
             mockMvc.perform(put("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToUpdate)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                                    + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName())));
             verify(personServiceMock, Mockito.times(1)).updatePerson(personDTOToUpdate);
+        }
+    }
+
+
+    /* ----------------------------------------------------------------------------------------------------------------------
+     *                  deletePersonByFirstNameAndLastName tests
+     * ----------------------------------------------------------------------------------------------------------------------*/
+    @Nested
+    @DisplayName("deletePersonByFirstNameAndLastName tests")
+    class DeletePersonByFirstNameAndLastNameTest {
+
+        @Test
+        @DisplayName("GIVEN an existing person for a given firstname+lastname " +
+                "WHEN processing a DELETE /person request for this firstname+lastname " +
+                "THEN the return status is 'No content'")
+        public void deletePersonByFirstNameAndLastNameTest_WithSuccess() throws Exception {
+            // GIVEN
+            when(personServiceMock
+                    .deletePersonByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
+                    .thenReturn(deletedPerson);
+
+            // THEN
+            mockMvc.perform(delete("/person")
+                    .param("firstName", TestConstants.EXISTING_FIRSTNAME)
+                    .param("lastName", TestConstants.EXISTING_LASTNAME))
+                    .andExpect(status().isNoContent());
+
+            verify(personServiceMock, Mockito.times(1))
+                    .deletePersonByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a missing firstname+lastname " +
+                "WHEN processing a DELETE /person request for this firstname+lastname " +
+                "THEN the returned code is 'bad request'")
+        public void deletePersonByFirstNameAndLastNameTest_WithMissingInformation() throws Exception {
+            // GIVEN
+            when(personServiceMock.deletePersonByFirstNameAndLastName("", ""))
+                    .thenThrow(new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_PERSON_WHEN_DELETING));
+
+            // THEN
+            mockMvc.perform(delete("/person")
+                    .param("firstName", "")
+                    .param("lastName", ""))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.MISSING_INFORMATION_MEDICAL_RECORD_WHEN_DELETING)));
+
+            verify(personServiceMock, Mockito.times(1))
+                    .deletePersonByFirstNameAndLastName("", "");
+        }
+
+
+        @Test
+        @DisplayName("GIVEN a person to delete with no existing firstname+lastname in repository " +
+                "WHEN processing a DELETE /person request for this firstname+lastname " +
+                "THEN the returned code is 'not found'")
+        public void deletePersonByFirstNameAndLastNameTest_WithNoExistingPersonInRepository() throws Exception {
+            // GIVEN
+            when(personServiceMock
+                    .deletePersonByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND))
+                    .thenThrow(new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                            + TestConstants.FIRSTNAME_NOT_FOUND + " " + TestConstants.LASTNAME_NOT_FOUND));
+
+            // THEN
+            mockMvc.perform(delete("/person")
+                    .param("firstName", TestConstants.FIRSTNAME_NOT_FOUND)
+                    .param("lastName", TestConstants.LASTNAME_NOT_FOUND))
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
+                            .contains(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
+                                    + TestConstants.FIRSTNAME_NOT_FOUND + " " + TestConstants.LASTNAME_NOT_FOUND)));
+
+            verify(personServiceMock, Mockito.times(1))
+                    .deletePersonByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
         }
     }
 

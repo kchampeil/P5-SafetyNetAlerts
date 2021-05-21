@@ -95,4 +95,14 @@ public interface IPersonService {
      */
     PersonDTO updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 
+    /**
+     * delete the person for the given firstname+lastname in the repository
+     *
+     * @param firstName the firstname of the person we want to delete
+     * @param lastName the lastname of the person we want to delete
+     * @return the deleted person
+     * @throws DoesNotExistException       if no person has been found for the given firstname+lastname
+     * @throws MissingInformationException if no firstname+lastname has been given
+     */
+    Person deletePersonByFirstNameAndLastName(String firstName, String lastName) throws DoesNotExistException, MissingInformationException;
 }

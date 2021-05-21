@@ -136,7 +136,7 @@ public class MedicalRecordController {
 
             if (deletedMedicalRecord != null) {
                 log.info("Medical record with id :" + deletedMedicalRecord.getMedicalRecordId()
-                        + " has been deleted for address " + deletedMedicalRecord.getFirstName()
+                        + " has been deleted for person " + deletedMedicalRecord.getFirstName()
                         + " " + deletedMedicalRecord.getLastName() + " \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
