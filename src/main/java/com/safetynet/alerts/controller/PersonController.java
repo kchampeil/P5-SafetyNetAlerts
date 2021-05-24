@@ -1,5 +1,6 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.dto.ChildAlertDTO;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -244,16 +246,21 @@ public class PersonController {
                 + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName());
 
         try {
-            PersonDTO addedPerson = personService.addPerson(personDTOToAdd);
+            Optional<PersonDTO> addedPerson = personService.addPerson(personDTOToAdd);
 
-            if (addedPerson != null) {
+            if (addedPerson.isPresent()) {
                 log.info("new person " + personDTOToAdd.getFirstName() + personDTOToAdd.getLastName() + " has been saved "
-                        + " with id: " + addedPerson.getPersonId() + "\n");
-                return new ResponseEntity<>(addedPerson, HttpStatus.CREATED);
+                        + " with id: " + addedPerson.get().getPersonId() + "\n");
+                return new ResponseEntity<>(addedPerson.get(), HttpStatus.CREATED);
             } else {
                 log.error("new person " + personDTOToAdd + " has not been saved\n");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
+        } catch (AlreadyExistsException alreadyExistsException) {
+            log.error(alreadyExistsException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, alreadyExistsException.getMessage());
+
 
         } catch (Exception e) {
             log.error(e.getMessage() + "\n");
@@ -276,16 +283,20 @@ public class PersonController {
                 + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName());
 
         try {
-            PersonDTO updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
+            Optional<PersonDTO> updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
 
-            if (updatedPersonDTO != null) {
+            if (updatedPersonDTO.isPresent()) {
                 log.info("Person " + personDTOToUpdate.getFirstName() + personDTOToUpdate.getLastName() + " has been updated "
-                        + " with id: " + updatedPersonDTO.getPersonId() + "\n");
-                return new ResponseEntity<>(updatedPersonDTO, HttpStatus.OK);
+                        + " with id: " + updatedPersonDTO.get().getPersonId() + "\n");
+                return new ResponseEntity<>(updatedPersonDTO.get(), HttpStatus.OK);
             } else {
                 log.error("Person " + personDTOToUpdate + " has not been updated \n");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
 
         } catch (Exception e) {
             log.error(e.getMessage());

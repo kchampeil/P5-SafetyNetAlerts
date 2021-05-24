@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.safetynet.alerts.constants.ChildAlertConstants.MAX_AGE_FOR_CHILD_ALERT;
@@ -408,9 +409,9 @@ public class PersonService implements IPersonService {
      * @throws MissingInformationException if there are missing properties for the person to save
      */
     @Override
-    public PersonDTO addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
+    public Optional<PersonDTO> addPerson(PersonDTO personDTOToAdd) throws AlreadyExistsException, MissingInformationException {
 
-        PersonDTO addedPersonDTO;
+        Optional<PersonDTO> addedPersonDTO;
 
         //check if the personDTOToAdd is correctly filled
         if (checkPersonDTO(personDTOToAdd)) {
@@ -429,7 +430,7 @@ public class PersonService implements IPersonService {
 
                 Person addedPerson = personRepository.save(personToAdd);
 
-                addedPersonDTO = modelMapper.map(addedPerson, PersonDTO.class);
+                addedPersonDTO = Optional.ofNullable(modelMapper.map(addedPerson, PersonDTO.class));
 
             } else {
                 throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME
@@ -453,8 +454,8 @@ public class PersonService implements IPersonService {
      * @throws MissingInformationException if there are missing properties for the person to update
      */
     @Override
-    public PersonDTO updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException {
-        PersonDTO updatedPersonDTO;
+    public Optional<PersonDTO> updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+        Optional<PersonDTO> updatedPersonDTO;
 
         //check if the personDTOToUpdate is correctly filled
         if (checkPersonDTO(personDTOToUpdate)) {
@@ -476,7 +477,7 @@ public class PersonService implements IPersonService {
                 }
 
                 Person updatedPerson = personRepository.save(personToUpdate);
-                updatedPersonDTO = modelMapper.map(updatedPerson, PersonDTO.class);
+                updatedPersonDTO = Optional.ofNullable(modelMapper.map(updatedPerson, PersonDTO.class));
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME

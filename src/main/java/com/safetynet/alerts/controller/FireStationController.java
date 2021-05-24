@@ -1,5 +1,6 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.model.FireStation;
 import com.safetynet.alerts.model.dto.FireDTO;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -140,19 +142,24 @@ public class FireStationController {
                 + fireStationDTOToAdd.getStationNumber());
 
         try {
-            FireStationDTO addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
+            Optional<FireStationDTO> addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
 
-            if (addedFireStationDTO != null) {
+            if (addedFireStationDTO.isPresent()) {
                 log.info("address/fire station mapping has been updated for fire station n°"
                         + fireStationDTOToAdd.getStationNumber()
-                        + " with id: " + addedFireStationDTO.getFireStationId() + " \n");
-                return new ResponseEntity<>(addedFireStationDTO, HttpStatus.CREATED);
+                        + " with id: " + addedFireStationDTO.get().getFireStationId() + " \n");
+                return new ResponseEntity<>(addedFireStationDTO.get(), HttpStatus.CREATED);
 
             } else {
                 log.error("address/fire station mapping has not been updated for fire station: "
                         + fireStationDTOToAdd + " \n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
+        } catch (AlreadyExistsException alreadyExistsException) {
+            log.error(alreadyExistsException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, alreadyExistsException.getMessage());
+
         } catch (Exception e) {
             log.error(e.getMessage() + " \n");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -173,19 +180,23 @@ public class FireStationController {
                 + fireStationDTOToUpdate.getAddress());
 
         try {
-            FireStationDTO updatedFireStationDTO = fireStationService.updateFireStation(fireStationDTOToUpdate);
+            Optional<FireStationDTO> updatedFireStationDTO = fireStationService.updateFireStation(fireStationDTOToUpdate);
 
-            if (updatedFireStationDTO != null) {
+            if (updatedFireStationDTO.isPresent()) {
                 log.info("new station number has been saved for address : "
                         + fireStationDTOToUpdate.getAddress()
-                        + " at id: " + updatedFireStationDTO.getFireStationId() + " \n");
-                return new ResponseEntity<>(updatedFireStationDTO, HttpStatus.OK);
+                        + " at id: " + updatedFireStationDTO.get().getFireStationId() + " \n");
+                return new ResponseEntity<>(updatedFireStationDTO.get(), HttpStatus.OK);
 
             } else {
                 log.error("new station number has not been saved for address: "
                         + fireStationDTOToUpdate.getAddress() + " \n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
+
         } catch (Exception e) {
             log.error(e.getMessage() + " \n");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());

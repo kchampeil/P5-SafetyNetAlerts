@@ -10,6 +10,7 @@ import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IPersonService {
 
@@ -83,7 +84,7 @@ public interface IPersonService {
      * @throws AlreadyExistsException      if the person to add already exists in repository
      * @throws MissingInformationException if there are missing properties for the person to save
      */
-    PersonDTO addPerson(PersonDTO personToAdd) throws Exception, AlreadyExistsException, MissingInformationException;
+    Optional<PersonDTO> addPerson(PersonDTO personToAdd) throws Exception, AlreadyExistsException, MissingInformationException;
 
     /**
      * update a person of a given firstname+lastname
@@ -93,7 +94,7 @@ public interface IPersonService {
      * @throws DoesNotExistException       if the person to update does not exist in repository
      * @throws MissingInformationException if there are missing properties for the person to update
      */
-    PersonDTO updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+    Optional<PersonDTO> updatePerson(PersonDTO personDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 
     /**
      * delete the person for the given firstname+lastname in the repository

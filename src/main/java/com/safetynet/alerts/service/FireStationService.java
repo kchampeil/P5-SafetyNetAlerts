@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -217,9 +218,9 @@ public class FireStationService implements IFireStationService {
      * @throws MissingInformationException if no address or station number has been given
      */
     @Override
-    public FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
+    public Optional<FireStationDTO> addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException {
 
-        FireStationDTO addedFireStationDTO;
+        Optional<FireStationDTO> addedFireStationDTO;
 
         //check if the fireStationDTOToAdd is correctly filled
         if (fireStationDTOToAdd != null
@@ -239,7 +240,7 @@ public class FireStationService implements IFireStationService {
                 personsToUpdate.forEach(person -> person.setFireStation(addedFireStation));
                 personRepository.saveAll(personsToUpdate);
 
-                addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
+                addedFireStationDTO = Optional.ofNullable(modelMapper.map(addedFireStation, FireStationDTO.class));
 
             } else {
                 throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS
@@ -263,8 +264,9 @@ public class FireStationService implements IFireStationService {
      * @throws MissingInformationException if no address or station number has been given
      */
     @Override
-    public FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException {
-        FireStationDTO updatedFireStationDTO;
+    public Optional<FireStationDTO> updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+
+        Optional<FireStationDTO> updatedFireStationDTO;
 
         //check if the fireStationDTOToUpdate is correctly filled
         if (fireStationDTOToUpdate != null
@@ -281,7 +283,7 @@ public class FireStationService implements IFireStationService {
 
                 FireStation updatedFireStation = fireStationRepository.save(fireStationToUpdate);
 
-                updatedFireStationDTO = modelMapper.map(updatedFireStation, FireStationDTO.class);
+                updatedFireStationDTO = Optional.ofNullable(modelMapper.map(updatedFireStation, FireStationDTO.class));
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS

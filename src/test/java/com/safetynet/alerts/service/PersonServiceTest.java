@@ -1,6 +1,5 @@
 package com.safetynet.alerts.service;
 
-import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -14,6 +13,7 @@ import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.repository.FireStationRepository;
 import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
+import com.safetynet.alerts.testconstants.TestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -649,12 +650,11 @@ class PersonServiceTest {
             when(personRepositoryMock.save(any(Person.class))).thenReturn(expectedAddedPerson);
 
             //WHEN
-            PersonDTO addedPersonDTO = personService.addPerson(personDTOToAdd);
+            Optional<PersonDTO> addedPersonDTO = personService.addPerson(personDTOToAdd);
 
             //THEN
             personDTOToAdd.setPersonId(expectedAddedPerson.getPersonId());
-            assertEquals(personDTOToAdd, addedPersonDTO);
-            assertNotNull(addedPersonDTO.getPersonId());
+            assertEquals(personDTOToAdd, addedPersonDTO.orElse(null));
             verify(personRepositoryMock, Mockito.times(1))
                     .findAllByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName());
             verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToAdd.getAddress());
@@ -790,12 +790,11 @@ class PersonServiceTest {
             when(personRepositoryMock.save(any(Person.class))).thenReturn(expectedUpdatedPerson);
 
             //WHEN
-            PersonDTO updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
+            Optional<PersonDTO> updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
 
             //THEN
             personDTOToUpdate.setPersonId(expectedUpdatedPerson.getPersonId());
-            assertEquals(personDTOToUpdate, updatedPersonDTO);
-            assertNotNull(updatedPersonDTO.getPersonId());
+            assertEquals(personDTOToUpdate, updatedPersonDTO.orElse(null));
             verify(personRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName());
             verify(fireStationRepositoryMock, Mockito.times(1)).findByAddress(personDTOToUpdate.getAddress());

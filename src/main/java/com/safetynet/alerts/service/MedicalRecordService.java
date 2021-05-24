@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -96,10 +97,10 @@ public class MedicalRecordService implements IMedicalRecordService {
      * @throws DoesNotExistException       if the person related to medical record to add does not exist in repository
      */
     @Override
-    public MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd)
+    public Optional<MedicalRecordDTO> addMedicalRecord(MedicalRecordDTO medicalRecordDTOToAdd)
             throws AlreadyExistsException, MissingInformationException, DoesNotExistException {
 
-        MedicalRecordDTO addedMedicalRecordDTO;
+        Optional<MedicalRecordDTO> addedMedicalRecordDTO;
 
         //check if the medicalRecordDTO is correctly filled
         if (checkMedicalRecordDTO(medicalRecordDTOToAdd)) {
@@ -125,7 +126,7 @@ public class MedicalRecordService implements IMedicalRecordService {
                     personRepository.save(personToUpdate);
 
                     //and map back to MedicalRecordDTO for return
-                    addedMedicalRecordDTO = modelMapper.map(addedMedicalRecord, MedicalRecordDTO.class);
+                    addedMedicalRecordDTO = Optional.ofNullable(modelMapper.map(addedMedicalRecord, MedicalRecordDTO.class));
                 } else {
                     throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
                             + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName()
@@ -154,9 +155,9 @@ public class MedicalRecordService implements IMedicalRecordService {
      * @throws MissingInformationException if there are missing properties for the medical to update
      */
     @Override
-    public MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException {
+    public Optional<MedicalRecordDTO> updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException {
 
-        MedicalRecordDTO updatedMedicalRecordDTO;
+        Optional<MedicalRecordDTO> updatedMedicalRecordDTO;
 
         //check if the medicalRecordDTOToUpdate is correctly filled
         if (checkMedicalRecordDTO(medicalRecordDTOToUpdate)) {
@@ -173,7 +174,7 @@ public class MedicalRecordService implements IMedicalRecordService {
 
                 MedicalRecord updatedMedicalRecord = medicalRecordRepository.save(medicalRecordToUpdate);
 
-                updatedMedicalRecordDTO = modelMapper.map(updatedMedicalRecord, MedicalRecordDTO.class);
+                updatedMedicalRecordDTO = Optional.ofNullable(modelMapper.map(updatedMedicalRecord, MedicalRecordDTO.class));
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_MEDICAL_RECORD_FOUND_FOR_PERSON

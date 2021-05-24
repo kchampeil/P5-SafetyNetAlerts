@@ -9,6 +9,7 @@ import com.safetynet.alerts.model.dto.FireStationDTO;
 import com.safetynet.alerts.model.dto.FloodDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IFireStationService {
 
@@ -51,7 +52,7 @@ public interface IFireStationService {
      * @throws AlreadyExistsException      if the fire station already exists in repository
      * @throws MissingInformationException if no address or station number has been given
      */
-    FireStationDTO addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException;
+    Optional<FireStationDTO> addFireStation(FireStationDTO fireStationDTOToAdd) throws AlreadyExistsException, MissingInformationException;
 
     /**
      * update the station number of a given address in the repository
@@ -61,7 +62,7 @@ public interface IFireStationService {
      * @throws DoesNotExistException       if the fire station to update does not exist in repository
      * @throws MissingInformationException if no address or station number has been given
      */
-    FireStationDTO updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+    Optional<FireStationDTO> updateFireStation(FireStationDTO fireStationDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 
     /**
      * delete the fire stations for the given address in the repository

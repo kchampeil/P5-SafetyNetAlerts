@@ -7,6 +7,7 @@ import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IMedicalRecordService {
 
@@ -34,7 +35,7 @@ public interface IMedicalRecordService {
      * @throws MissingInformationException if there are missing properties for the medical to save
      * @throws DoesNotExistException if the person related to medical record to add does not exist in repository
      */
-    MedicalRecordDTO addMedicalRecord(MedicalRecordDTO medicalRecordToAdd) throws AlreadyExistsException, MissingInformationException, DoesNotExistException;
+    Optional<MedicalRecordDTO> addMedicalRecord(MedicalRecordDTO medicalRecordToAdd) throws AlreadyExistsException, MissingInformationException, DoesNotExistException;
 
     /**
      * update a medical record of a given firstname+lastname
@@ -44,7 +45,7 @@ public interface IMedicalRecordService {
      * @throws DoesNotExistException if the medical record to update does not exist in repository
      * @throws MissingInformationException if there are missing properties for the medical to update
      */
-    MedicalRecordDTO updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException;
+    Optional<MedicalRecordDTO> updateMedicalRecord(MedicalRecordDTO medicalRecordDTOToUpdate) throws DoesNotExistException, MissingInformationException;
 
     /**
      * delete the medical record for the given firstname+lastname in the repository

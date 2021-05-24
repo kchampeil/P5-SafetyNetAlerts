@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -204,12 +205,11 @@ class MedicalRecordServiceTest {
             when(medicalRecordRepositoryMock.save(any(MedicalRecord.class))).thenReturn(expectedAddedMedicalRecord);
 
             //WHEN
-            MedicalRecordDTO addedMedicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd);
+            Optional<MedicalRecordDTO> addedMedicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd);
 
             //THEN
             medicalRecordDTOToAdd.setMedicalRecordId(expectedAddedMedicalRecord.getMedicalRecordId());
-            assertEquals(medicalRecordDTOToAdd, addedMedicalRecordDTO);
-            assertNotNull(addedMedicalRecordDTO.getMedicalRecordId());
+            assertEquals(medicalRecordDTOToAdd, addedMedicalRecordDTO.orElse(null));
             verify(medicalRecordRepositoryMock, Mockito.times(1))
                     .findAllByFirstNameAndLastName(medicalRecordDTOToAdd.getFirstName(), medicalRecordDTOToAdd.getLastName());
             verify(personRepositoryMock, Mockito.times(1))
@@ -345,12 +345,11 @@ class MedicalRecordServiceTest {
             when(medicalRecordRepositoryMock.save(any(MedicalRecord.class))).thenReturn(expectedUpdatedMedicalRecord);
 
             //WHEN
-            MedicalRecordDTO updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
+            Optional<MedicalRecordDTO> updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
 
             //THEN
             medicalRecordDTOToUpdate.setMedicalRecordId(expectedUpdatedMedicalRecord.getMedicalRecordId());
-            assertEquals(medicalRecordDTOToUpdate, updatedMedicalRecordDTO);
-            assertNotNull(updatedMedicalRecordDTO.getMedicalRecordId());
+            assertEquals(medicalRecordDTOToUpdate, updatedMedicalRecordDTO.orElse(null));
             verify(medicalRecordRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName());
             verify(medicalRecordRepositoryMock, Mockito.times(1)).save(any(MedicalRecord.class));

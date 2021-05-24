@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -565,7 +566,7 @@ class PersonControllerTest {
             addedPersonDTO.setZip(personDTOToAdd.getZip());
 
             when(personServiceMock.addPerson(personDTOToAdd))
-                    .thenReturn(addedPersonDTO);
+                    .thenReturn(Optional.of(addedPersonDTO));
 
             // THEN
             mockMvc.perform(post("/person")
@@ -613,7 +614,7 @@ class PersonControllerTest {
             mockMvc.perform(post("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToAdd)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isConflict())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME
                                     + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName())));
@@ -659,7 +660,7 @@ class PersonControllerTest {
             updatedPersonDTO.setPhone(personDTOToUpdate.getPhone());
 
             when(personServiceMock.updatePerson(personDTOToUpdate))
-                    .thenReturn(updatedPersonDTO);
+                    .thenReturn(Optional.of(updatedPersonDTO));
 
             // THEN
             mockMvc.perform(put("/person")
@@ -708,7 +709,7 @@ class PersonControllerTest {
             mockMvc.perform(put("/person")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(personDTOToUpdate)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isNotFound())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME
                                     + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName())));

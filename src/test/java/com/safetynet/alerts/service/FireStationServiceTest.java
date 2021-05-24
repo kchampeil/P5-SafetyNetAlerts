@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -399,12 +400,11 @@ class FireStationServiceTest {
             when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
 
             //WHEN
-            FireStationDTO addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
+            Optional<FireStationDTO> addedFireStationDTO = fireStationService.addFireStation(fireStationDTOToAdd);
 
             //THEN
             fireStationDTOToAdd.setFireStationId(expectedFireStation.getFireStationId());
-            assertEquals(fireStationDTOToAdd, addedFireStationDTO);
-            assertNotNull(addedFireStationDTO.getFireStationId());
+            assertEquals(fireStationDTOToAdd, addedFireStationDTO.orElse(null));
             verify(fireStationRepositoryMock, Mockito.times(1))
                     .findByAddress(fireStationDTOToAdd.getAddress());
             verify(fireStationRepositoryMock, Mockito.times(1))
@@ -520,16 +520,14 @@ class FireStationServiceTest {
             when(fireStationRepositoryMock.save(any(FireStation.class))).thenReturn(expectedFireStation);
 
             //WHEN
-            FireStationDTO updatedFireStationDTO = fireStationService.updateFireStation(fireStationDTOToUpdate);
+            Optional<FireStationDTO> updatedFireStationDTO = fireStationService.updateFireStation(fireStationDTOToUpdate);
 
             //THEN
             fireStationDTOToUpdate.setFireStationId(expectedFireStation.getFireStationId());
-            assertEquals(fireStationDTOToUpdate, updatedFireStationDTO);
-            assertNotNull(updatedFireStationDTO.getFireStationId());
+            assertEquals(fireStationDTOToUpdate, updatedFireStationDTO.orElse(null));
             verify(fireStationRepositoryMock, Mockito.times(1))
                     .findByAddress(fireStationDTOToUpdate.getAddress());
             verify(fireStationRepositoryMock, Mockito.times(1)).save(any(FireStation.class));
-
         }
 
 

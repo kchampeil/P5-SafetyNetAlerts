@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -301,7 +302,7 @@ class FireStationControllerTest {
             addedFireStationDTO.setAddress(fireStationDTOToAdd.getAddress());
 
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
-                    .thenReturn(addedFireStationDTO);
+                    .thenReturn(Optional.of(addedFireStationDTO));
 
             // THEN
 
@@ -348,7 +349,7 @@ class FireStationControllerTest {
             mockMvc.perform(post("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isConflict())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
@@ -385,7 +386,7 @@ class FireStationControllerTest {
             updatedFireStationDTO.setAddress(fireStationDTOToUpdate.getAddress());
 
             when(fireStationServiceMock.updateFireStation(fireStationDTOToUpdate))
-                    .thenReturn(updatedFireStationDTO);
+                    .thenReturn(Optional.of(updatedFireStationDTO));
 
             // THEN
 
@@ -432,7 +433,7 @@ class FireStationControllerTest {
             mockMvc.perform(put("/firestation")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(fireStationDTOToUpdate)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isNotFound())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).updateFireStation(fireStationDTOToUpdate);

@@ -1,5 +1,6 @@
 package com.safetynet.alerts.controller;
 
+import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -67,18 +69,22 @@ public class MedicalRecordController {
                 + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName());
 
         try {
-            MedicalRecordDTO addedMedicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd);
+            Optional<MedicalRecordDTO> addedMedicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTOToAdd);
 
-            if (addedMedicalRecordDTO != null) {
+            if (addedMedicalRecordDTO.isPresent()) {
                 log.info("new medical record " + medicalRecordDTOToAdd.getFirstName() + medicalRecordDTOToAdd.getLastName() + " has been saved "
-                        + " with id: " + addedMedicalRecordDTO.getMedicalRecordId() + "\n");
-                return new ResponseEntity<>(addedMedicalRecordDTO, HttpStatus.CREATED);
+                        + " with id: " + addedMedicalRecordDTO.get().getMedicalRecordId() + "\n");
+                return new ResponseEntity<>(addedMedicalRecordDTO.get(), HttpStatus.CREATED);
             } else {
                 log.error("new medical record " + medicalRecordDTOToAdd + " has not been saved \n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
-        } catch (Exception e) {
+        } catch (AlreadyExistsException alreadyExistsException) {
+            log.error(alreadyExistsException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, alreadyExistsException.getMessage());
+
+        }  catch (Exception e) {
             log.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -99,16 +105,20 @@ public class MedicalRecordController {
                 + medicalRecordDTOToUpdate.getFirstName() + " " + medicalRecordDTOToUpdate.getLastName());
 
         try {
-            MedicalRecordDTO updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
+            Optional<MedicalRecordDTO> updatedMedicalRecordDTO = medicalRecordService.updateMedicalRecord(medicalRecordDTOToUpdate);
 
-            if (updatedMedicalRecordDTO != null) {
+            if (updatedMedicalRecordDTO.isPresent()) {
                 log.info("Medical record " + medicalRecordDTOToUpdate.getFirstName() + medicalRecordDTOToUpdate.getLastName() + " has been updated "
-                        + " with id: " + updatedMedicalRecordDTO.getMedicalRecordId() + "\n");
-                return new ResponseEntity<>(updatedMedicalRecordDTO, HttpStatus.OK);
+                        + " with id: " + updatedMedicalRecordDTO.get().getMedicalRecordId() + "\n");
+                return new ResponseEntity<>(updatedMedicalRecordDTO.get(), HttpStatus.OK);
             } else {
                 log.error("Medical record " + medicalRecordDTOToUpdate + " has not been updated \n");
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
+        } catch (DoesNotExistException doesNotExistException) {
+            log.error(doesNotExistException.getMessage() + " \n");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
 
         } catch (Exception e) {
             log.error(e.getMessage());

@@ -2,13 +2,13 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.ExceptionConstants;
-import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
 import com.safetynet.alerts.model.MedicalRecord;
 import com.safetynet.alerts.model.dto.MedicalRecordDTO;
 import com.safetynet.alerts.service.IMedicalRecordService;
+import com.safetynet.alerts.testconstants.TestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
@@ -142,7 +143,7 @@ class MedicalRecordControllerTest {
             addedMedicalRecordDTO.setAllergies(medicalRecordDTO.getAllergies());
 
             when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTO))
-                    .thenReturn(addedMedicalRecordDTO);
+                    .thenReturn(Optional.of(addedMedicalRecordDTO));
 
             // THEN
             mockMvc.perform(post("/medicalRecord")
@@ -190,7 +191,7 @@ class MedicalRecordControllerTest {
             mockMvc.perform(post("/medicalRecord")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(medicalRecordDTO)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isConflict())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOR_FIRSTNAME_AND_LASTNAME
                                     + medicalRecordDTO.getFirstName() + " " + medicalRecordDTO.getLastName())));
@@ -221,7 +222,7 @@ class MedicalRecordControllerTest {
             updatedMedicalRecordDTO.setAllergies(medicalRecordDTO.getAllergies());
 
             when(medicalRecordServiceMock.updateMedicalRecord(medicalRecordDTO))
-                    .thenReturn(updatedMedicalRecordDTO);
+                    .thenReturn(Optional.of(updatedMedicalRecordDTO));
 
             // THEN
             mockMvc.perform(put("/medicalRecord")
@@ -270,7 +271,7 @@ class MedicalRecordControllerTest {
             mockMvc.perform(put("/medicalRecord")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(medicalRecordDTO)))
-                    .andExpect(status().isBadRequest())
+                    .andExpect(status().isNotFound())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
                             .contains(ExceptionConstants.NO_MEDICAL_RECORD_FOUND_FOR_PERSON
                                     + medicalRecordDTO.getFirstName() + " " + medicalRecordDTO.getLastName())));
