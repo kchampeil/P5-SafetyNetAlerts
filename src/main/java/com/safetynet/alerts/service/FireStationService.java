@@ -297,7 +297,8 @@ public class FireStationService implements IFireStationService {
 
 
     /**
-     * delete the fire stations for the given address in the repository
+     * delete the fire station for the given address in the repository
+     * (there is only one fire station by address)
      *
      * @param address the address we want to delete the fire station relationships to delete
      * @return the deleted fire station
@@ -322,9 +323,7 @@ public class FireStationService implements IFireStationService {
                     personRepository.saveAll(listOfPersons);
                 }
 
-                if (fireStationRepository.deleteByAddress(address) == 0) {
-                    fireStationToDelete = null;
-                }
+                fireStationRepository.deleteById(fireStationToDelete.getFireStationId());
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_ADDRESS + address);
@@ -348,13 +347,13 @@ public class FireStationService implements IFireStationService {
      */
     @Override
     public List<FireStation> deleteFireStationByStationNumber(Integer stationNumber) throws DoesNotExistException, MissingInformationException {
-        List<FireStation> deletedFireStations;
+        List<FireStation> fireStationsToDelete;
 
         //check if the address is correctly filled
         if (stationNumber != null) {
 
             //check if there is at least one fire station associated to this station number in the repository
-            List<FireStation> fireStationsToDelete = fireStationRepository.findAllByStationNumber(stationNumber);
+            fireStationsToDelete = fireStationRepository.findAllByStationNumber(stationNumber);
             if (fireStationsToDelete != null && !fireStationsToDelete.isEmpty()) {
 
                 //delete the fire station id for persons covered by the fire station
@@ -364,7 +363,7 @@ public class FireStationService implements IFireStationService {
                     personRepository.saveAll(listOfPersons);
                 }
 
-                deletedFireStations = fireStationRepository.deleteAllByStationNumber(stationNumber);
+                fireStationsToDelete.forEach(fireStation -> fireStationRepository.deleteById(fireStation.getFireStationId()));
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_FIRE_STATION_FOUND_FOR_STATION_NUMBER + stationNumber);
@@ -374,7 +373,7 @@ public class FireStationService implements IFireStationService {
             throw new MissingInformationException(ExceptionConstants.MISSING_INFORMATION_FIRE_STATION_STATION_NUMBER);
         }
 
-        return deletedFireStations;
+        return fireStationsToDelete;
     }
 
 

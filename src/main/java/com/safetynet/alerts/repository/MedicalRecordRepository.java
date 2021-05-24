@@ -4,7 +4,6 @@ import com.safetynet.alerts.model.MedicalRecord;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
@@ -13,7 +12,4 @@ public interface MedicalRecordRepository extends CrudRepository<MedicalRecord, L
     List<MedicalRecord> findAllByFirstNameAndLastName(String firstName, String lastName);
 
     MedicalRecord findByFirstNameAndLastName(String firstName, String lastName);
-
-    @Transactional
-    Integer deleteByFirstNameAndLastName(String firstName, String Lastname);
 }

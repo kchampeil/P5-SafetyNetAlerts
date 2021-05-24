@@ -512,13 +512,13 @@ public class PersonService implements IPersonService {
             personToDelete = personRepository.findByFirstNameAndLastName(firstName, lastName);
             if (personToDelete != null) {
 
+                //first delete the associated medical record
                 if (personToDelete.getMedicalRecord().getMedicalRecordId() != null) {
                     medicalRecordRepository.deleteById(personToDelete.getMedicalRecord().getMedicalRecordId());
                 }
 
-                if (personRepository.deleteByFirstNameAndLastName(firstName, lastName) == 0) {
-                    personToDelete = null;
-                }
+                //then delete the person
+                personRepository.deleteById(personToDelete.getPersonId());
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME

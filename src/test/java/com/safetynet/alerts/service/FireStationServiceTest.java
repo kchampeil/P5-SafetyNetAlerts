@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -621,8 +622,6 @@ class FireStationServiceTest {
             when(personRepositoryMock.findAllByAddress(TestConstants.EXISTING_ADDRESS)).thenReturn(listOfPersons);
             when(personRepositoryMock.saveAll(listOfPersons)).thenReturn(listOfPersons);
 
-            when(fireStationRepositoryMock.deleteByAddress(TestConstants.EXISTING_ADDRESS)).thenReturn(1);
-
             //WHEN
             FireStation deletedFireStation = fireStationService.deleteFireStationByAddress(TestConstants.EXISTING_ADDRESS);
 
@@ -635,7 +634,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .saveAll(listOfPersons);
             verify(fireStationRepositoryMock, Mockito.times(1))
-                    .deleteByAddress(TestConstants.EXISTING_ADDRESS);
+                    .deleteById(existingFireStation.getFireStationId());
 
         }
 
@@ -657,7 +656,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .saveAll(anyList());
             verify(fireStationRepositoryMock, Mockito.times(0))
-                    .deleteByAddress(TestConstants.ADDRESS_NOT_FOUND);
+                    .deleteById(anyLong());
         }
 
 
@@ -677,7 +676,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .saveAll(anyList());
             verify(fireStationRepositoryMock, Mockito.times(0))
-                    .deleteByAddress(null);
+                    .deleteById(anyLong());
         }
     }
 
@@ -713,14 +712,13 @@ class FireStationServiceTest {
 
             List<FireStation> expectedDeletedFireStations = new ArrayList<>();
             expectedDeletedFireStations.add(existingFireStation);
-            when(fireStationRepositoryMock.deleteAllByStationNumber(TestConstants.EXISTING_STATION_NUMBER)).thenReturn(expectedDeletedFireStations);
 
             //WHEN
             List<FireStation> deletedFireStations =
                     fireStationService.deleteFireStationByStationNumber(TestConstants.EXISTING_STATION_NUMBER);
 
             //THEN
-            assertEquals(1, deletedFireStations.size());
+            assertEquals(expectedDeletedFireStations,deletedFireStations);
             verify(fireStationRepositoryMock, Mockito.times(1))
                     .findAllByStationNumber(TestConstants.EXISTING_STATION_NUMBER);
             verify(personRepositoryMock, Mockito.times(1))
@@ -728,7 +726,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .saveAll(listOfPersons);
             verify(fireStationRepositoryMock, Mockito.times(1))
-                    .deleteAllByStationNumber(TestConstants.EXISTING_STATION_NUMBER);
+                    .deleteById(existingFireStation.getFireStationId());
 
         }
 
@@ -750,7 +748,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .saveAll(anyList());
             verify(fireStationRepositoryMock, Mockito.times(0))
-                    .deleteAllByStationNumber(TestConstants.STATION_NUMBER_NOT_FOUND);
+                    .deleteById(anyLong());
         }
 
 
@@ -770,7 +768,7 @@ class FireStationServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .saveAll(anyList());
             verify(fireStationRepositoryMock, Mockito.times(0))
-                    .deleteAllByStationNumber(null);
+                    .deleteById(anyLong());
         }
     }
 

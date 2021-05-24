@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -882,10 +883,6 @@ class PersonServiceTest {
                     .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
                     .thenReturn(person);
 
-            when(personRepositoryMock
-                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
-                    .thenReturn(1);
-
             //WHEN
             Person deletedPerson = personService
                     .deletePersonByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
@@ -895,7 +892,7 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
             verify(personRepositoryMock, Mockito.times(1))
-                    .deleteByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
+                    .deleteById(person.getPersonId());
         }
 
 
@@ -915,7 +912,7 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
             verify(personRepositoryMock, Mockito.times(0))
-                    .deleteByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
+                    .deleteById(anyLong());
         }
 
 
@@ -932,7 +929,7 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(0))
                     .findByFirstNameAndLastName(null, null);
             verify(personRepositoryMock, Mockito.times(0))
-                    .deleteByFirstNameAndLastName(null, null);
+                    .deleteById(anyLong());
         }
     }
 

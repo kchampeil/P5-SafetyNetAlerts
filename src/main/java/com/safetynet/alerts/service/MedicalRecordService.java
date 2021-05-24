@@ -216,9 +216,7 @@ public class MedicalRecordService implements IMedicalRecordService {
                     personRepository.save(person);
                 }
 
-                if (medicalRecordRepository.deleteByFirstNameAndLastName(firstName, lastName)==0) {
-                    medicalRecordToDelete = null;
-                }
+                medicalRecordRepository.deleteById(medicalRecordToDelete.getMedicalRecordId());
 
             } else {
                 throw new DoesNotExistException(ExceptionConstants.NO_MEDICAL_RECORD_FOUND_FOR_PERSON + firstName + " " + lastName);
