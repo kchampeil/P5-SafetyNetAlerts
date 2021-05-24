@@ -1,4 +1,4 @@
-package com.safetynet.alerts.constants;
+package com.safetynet.alerts.testconstants;
 
 import java.time.LocalDate;
 
@@ -7,8 +7,7 @@ public class TestConstants {
     public final static LocalDate CHILD_BIRTHDATE = LocalDate.of(2019, 1, 1);
     public final static int ADULT_AGE = 21;
     public final static int CHILD_AGE = 2;
-
-
+    
     public static final String EXISTING_FIRSTNAME = "Firstname of existing person";
     public static final String EXISTING_LASTNAME = "Lastname of existing person";
     public static final String FIRSTNAME_NOT_FOUND = "FirstName not found";

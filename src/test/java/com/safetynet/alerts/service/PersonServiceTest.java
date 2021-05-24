@@ -1,6 +1,6 @@
 package com.safetynet.alerts.service;
 
-import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;

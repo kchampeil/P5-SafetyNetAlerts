@@ -2,7 +2,7 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.ExceptionConstants;
-import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;

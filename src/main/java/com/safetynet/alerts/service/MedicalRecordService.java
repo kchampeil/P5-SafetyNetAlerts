@@ -133,7 +133,7 @@ public class MedicalRecordService implements IMedicalRecordService {
                 }
 
             } else {
-                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOUND_FOR_PERSON
+                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOR_FIRSTNAME_AND_LASTNAME
                         + medicalRecordDTOToAdd.getFirstName() + " " + medicalRecordDTOToAdd.getLastName());
             }
 

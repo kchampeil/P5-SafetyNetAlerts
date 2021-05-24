@@ -242,7 +242,7 @@ public class FireStationService implements IFireStationService {
                 addedFireStationDTO = modelMapper.map(addedFireStation, FireStationDTO.class);
 
             } else {
-                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS
+                throw new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS
                         + fireStationDTOToAdd.getAddress());
             }
 

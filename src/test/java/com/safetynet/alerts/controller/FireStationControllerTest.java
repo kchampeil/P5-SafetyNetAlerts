@@ -2,7 +2,7 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.ExceptionConstants;
-import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -342,7 +342,7 @@ class FireStationControllerTest {
         public void addFireStationTest_WithExistingFireStation() throws Exception {
             // GIVEN
             when(fireStationServiceMock.addFireStation(fireStationDTOToAdd))
-                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS));
+                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS));
 
             // THEN
             mockMvc.perform(post("/firestation")
@@ -350,7 +350,7 @@ class FireStationControllerTest {
                     .content(objectMapper.writeValueAsString(fireStationDTOToAdd)))
                     .andExpect(status().isBadRequest())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
-                            .contains(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS)));
+                            .contains(ExceptionConstants.ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS)));
             verify(fireStationServiceMock, Mockito.times(1)).addFireStation(fireStationDTOToAdd);
         }
 

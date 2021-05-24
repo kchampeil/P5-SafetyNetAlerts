@@ -18,7 +18,7 @@ public class ExceptionConstants {
     public static final String NO_PERSON_FOUND_FOR_FIRSTNAME_AND_LASTNAME = "No person found for ";
 
     //AlreadyExistException
-    public static final String ALREADY_EXIST_FIRE_STATION_FOUND_FOR_ADDRESS = "There is already one fire station assigned to address: ";
-    public static final String ALREADY_EXIST_MEDICAL_RECORD_FOUND_FOR_PERSON = "There is already one medical record assigned to person: ";
-    public static final String ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME = "There is already one person assigned to : ";
+    public static final String ALREADY_EXIST_FIRE_STATION_FOR_ADDRESS = "There is already one fire station assigned to address: ";
+    public static final String ALREADY_EXIST_MEDICAL_RECORD_FOR_FIRSTNAME_AND_LASTNAME = "There is already one medical record assigned to: ";
+    public static final String ALREADY_EXIST_PERSON_FOR_FIRSTNAME_AND_LASTNAME = "There is already one person assigned to: ";
 }

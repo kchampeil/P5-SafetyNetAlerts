@@ -2,7 +2,7 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.ExceptionConstants;
-import com.safetynet.alerts.constants.TestConstants;
+import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -183,7 +183,7 @@ class MedicalRecordControllerTest {
         public void addMedicalRecordTest_AlreadyExisting() throws Exception {
             // GIVEN
             when(medicalRecordServiceMock.addMedicalRecord(medicalRecordDTO))
-                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOUND_FOR_PERSON
+                    .thenThrow(new AlreadyExistsException(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOR_FIRSTNAME_AND_LASTNAME
                             + medicalRecordDTO.getFirstName() + " " + medicalRecordDTO.getLastName()));
 
             // THEN
@@ -192,7 +192,7 @@ class MedicalRecordControllerTest {
                     .content(objectMapper.writeValueAsString(medicalRecordDTO)))
                     .andExpect(status().isBadRequest())
                     .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage()
-                            .contains(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOUND_FOR_PERSON
+                            .contains(ExceptionConstants.ALREADY_EXIST_MEDICAL_RECORD_FOR_FIRSTNAME_AND_LASTNAME
                                     + medicalRecordDTO.getFirstName() + " " + medicalRecordDTO.getLastName())));
             verify(medicalRecordServiceMock, Mockito.times(1)).addMedicalRecord(medicalRecordDTO);
         }
