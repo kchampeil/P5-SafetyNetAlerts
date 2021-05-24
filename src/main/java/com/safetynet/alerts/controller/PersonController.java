@@ -47,17 +47,9 @@ public class PersonController {
 
         List<PersonDTO> listOfPersonsDTO = (List<PersonDTO>) personService.getAllPersons();
 
-        //TODO-review ne garder que le else (et changer tests associer)
-        if (listOfPersonsDTO.isEmpty()) {
-            log.warn("response to GET request on endpoint /persons is empty, " +
-                    "no person found \n");
-            return new ResponseEntity<>(listOfPersonsDTO, HttpStatus.NOT_FOUND);
-
-        } else {
-            log.info("response to GET request on endpoint /persons sent with "
-                    + listOfPersonsDTO.size() + " values \n");
-            return new ResponseEntity<>(listOfPersonsDTO, HttpStatus.OK);
-        }
+        log.info("response to GET request on endpoint /persons sent with "
+                + listOfPersonsDTO.size() + " values \n");
+        return new ResponseEntity<>(listOfPersonsDTO, HttpStatus.OK);
     }
 
 

@@ -102,22 +102,6 @@ class MedicalRecordControllerTest {
                     .andExpect(jsonPath("$").isNotEmpty());
             verify(medicalRecordServiceMock, Mockito.times(1)).getAllMedicalRecords();
         }
-
-
-        @Test
-        @DisplayName("GIVEN no data in DB WHEN asking for the list of medical records GET /medicalrecords " +
-                "THEN return status is 'not found' and an empty list is returned")
-        public void getAllMedicalRecordsTest_WithoutData() throws Exception {
-            //GIVEN
-            when(medicalRecordServiceMock.getAllMedicalRecords()).thenReturn(listOfMedicalRecordsDTO);
-
-            //THEN
-            mockMvc.perform(get("/medicalrecords"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$").isEmpty());
-            verify(medicalRecordServiceMock, Mockito.times(1)).getAllMedicalRecords();
-        }
     }
 
 

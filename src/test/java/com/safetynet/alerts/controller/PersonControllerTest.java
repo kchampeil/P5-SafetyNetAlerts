@@ -102,23 +102,6 @@ class PersonControllerTest {
                     .andExpect(jsonPath("$").isNotEmpty());
             verify(personServiceMock, Mockito.times(1)).getAllPersons();
         }
-
-        @Test
-        @DisplayName("GIVEN no data in DB WHEN asking for the list of fire stations GET /persons " +
-                "THEN return status is 'not found' and an empty list is returned")
-        public void getAllPersonsTest_WithoutData() throws Exception {
-            //GIVEN
-            when(personServiceMock.getAllPersons()).thenReturn(listOfPersonsDTO);
-
-            //THEN
-            mockMvc.perform(get("/persons"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$").isEmpty());
-            verify(personServiceMock, Mockito.times(1)).getAllPersons();
-        }
-
-
     }
 
 

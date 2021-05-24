@@ -80,7 +80,7 @@ class FireStationControllerTest {
      *                  getAllFireStations tests
      * ----------------------------------------------------------------------------------------------------------------------*/
     @Nested
-    @DisplayName("getFireStationCoverageByAddress tests")
+    @DisplayName("getAllFireStations tests")
     class GetAllFireStationsTest {
 
         @Test
@@ -101,23 +101,6 @@ class FireStationControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isNotEmpty());
-            verify(fireStationServiceMock, Mockito.times(1)).getAllFireStations();
-        }
-
-
-        @Test
-        @DisplayName("GIVEN no data in DB WHEN asking for the list of fire stations GET /firestations " +
-                "THEN return status is 'not found' and an empty list is returned")
-        public void getAllFireStationsTest_WithoutData() throws Exception {
-            // GIVEN
-            List<FireStationDTO> emptyListOfFireStationsDTO = new ArrayList<>();
-            when(fireStationServiceMock.getAllFireStations()).thenReturn(emptyListOfFireStationsDTO);
-
-            //THEN
-            mockMvc.perform(get("/firestations"))
-                    .andExpect(status().isNotFound())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$").isEmpty());
             verify(fireStationServiceMock, Mockito.times(1)).getAllFireStations();
         }
     }

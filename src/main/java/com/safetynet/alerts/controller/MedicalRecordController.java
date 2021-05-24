@@ -43,16 +43,9 @@ public class MedicalRecordController {
 
         List<MedicalRecordDTO> listOfMedicalRecordsDTO = (List<MedicalRecordDTO>) medicalRecordService.getAllMedicalRecords();
 
-        if (listOfMedicalRecordsDTO.isEmpty()) {
-            log.warn("response to GET request on endpoint /medicalrecords is empty, " +
-                    "no medical record found \n");
-            return new ResponseEntity<>(listOfMedicalRecordsDTO, HttpStatus.NOT_FOUND);
-
-        } else {
-            log.info("response to GET request on endpoint /medicalrecords sent with "
-                    + listOfMedicalRecordsDTO.size() + " values \n");
-            return new ResponseEntity<>(listOfMedicalRecordsDTO, HttpStatus.OK);
-        }
+        log.info("response to GET request on endpoint /medicalrecords sent with "
+                + listOfMedicalRecordsDTO.size() + " values \n");
+        return new ResponseEntity<>(listOfMedicalRecordsDTO, HttpStatus.OK);
     }
 
 
@@ -84,7 +77,7 @@ public class MedicalRecordController {
             log.error(alreadyExistsException.getMessage() + " \n");
             throw new ResponseStatusException(HttpStatus.CONFLICT, alreadyExistsException.getMessage());
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

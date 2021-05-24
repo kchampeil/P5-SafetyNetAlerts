@@ -45,17 +45,9 @@ public class FireStationController {
         log.info("GET request on endpoint /firestations received");
 
         List<FireStationDTO> listOfFireStationsDTO = (List<FireStationDTO>) fireStationService.getAllFireStations();
-
-        if (listOfFireStationsDTO.isEmpty()) {
-            log.warn("response to GET request on endpoint /firestations is empty, " +
-                    "no fire station found \n");
-            return new ResponseEntity<>(listOfFireStationsDTO, HttpStatus.NOT_FOUND);
-
-        } else {
-            log.info("response to GET request on endpoint /firestations sent with "
-                    + listOfFireStationsDTO.size() + " values \n");
-            return new ResponseEntity<>(listOfFireStationsDTO, HttpStatus.OK);
-        }
+        log.info("response to GET request on endpoint /firestations sent with "
+                + listOfFireStationsDTO.size() + " values \n");
+        return new ResponseEntity<>(listOfFireStationsDTO, HttpStatus.OK);
     }
 
 
