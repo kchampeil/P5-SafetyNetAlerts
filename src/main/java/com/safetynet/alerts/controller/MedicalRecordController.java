@@ -8,6 +8,7 @@ import com.safetynet.alerts.service.IMedicalRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +38,7 @@ public class MedicalRecordController {
      *
      * @return - An Iterable object of MedicalRecord full filled
      */
-    @GetMapping("/medicalrecords")
+    @GetMapping(value = "/medicalrecords", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Iterable<MedicalRecordDTO>> getAllMedicalRecords() {
         log.info("GET request on endpoint /medicalrecords received");
 
@@ -55,7 +56,8 @@ public class MedicalRecordController {
      * @param medicalRecordDTOToAdd to add to repository
      * @return the added MedicalRecordDTO
      */
-    @PostMapping(value = "/medicalRecord")
+    @PostMapping(value = "/medicalRecord", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MedicalRecordDTO> addMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTOToAdd) {
 
         log.info("POST request on endpoint /medicalRecord received for medical record "
@@ -91,7 +93,8 @@ public class MedicalRecordController {
      * @param medicalRecordDTOToUpdate to update in repository
      * @return the added MedicalRecordDTO
      */
-    @PutMapping(value = "/medicalRecord")
+    @PutMapping(value = "/medicalRecord", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MedicalRecordDTO> updateMedicalRecord(@RequestBody MedicalRecordDTO medicalRecordDTOToUpdate) {
 
         log.info("PUT request on endpoint /medicalRecord received for person "

@@ -11,6 +11,7 @@ import com.safetynet.alerts.service.IPersonService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class PersonController {
      *
      * @return - An Iterable object of Person
      */
-    @GetMapping("/persons")
+    @GetMapping(value = "/persons", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Iterable<PersonDTO>> getAllPersons() {
         log.info("GET request on endpoint /persons received");
 
@@ -59,7 +60,7 @@ public class PersonController {
      * @param cityName of the city we want citizens' emails
      * @return - A list of emails
      */
-    @GetMapping("/communityEmail")
+    @GetMapping(value = "/communityEmail", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> getAllEmailsByCity(@RequestParam("city") String cityName) {
 
         log.info("GET request on endpoint /communityEmail received for city " + cityName);
@@ -93,7 +94,7 @@ public class PersonController {
      * @param lastName  of the person(s) we want related information
      * @return - A list of PersonInfoDTO
      */
-    @GetMapping("/personInfo")
+    @GetMapping(value = "/personInfo", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PersonInfoDTO>> getPersonInfoByFirstNameAndLastName(
             @RequestParam String firstName, @RequestParam String lastName) {
 
@@ -127,7 +128,7 @@ public class PersonController {
      * @param address the address we want to get the child alert from
      * @return - A list of ChildAlertDTO
      */
-    @GetMapping("/childAlert")
+    @GetMapping(value = "/childAlert", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ChildAlertDTO>> getChildAlertByAddress(@RequestParam String address) {
 
         log.info("GET request on endpoint /childAlert received for address : " + address);
@@ -160,7 +161,7 @@ public class PersonController {
      * @param stationNumber of the fire station
      * @return - A list of phone numbers
      */
-    @GetMapping("/phoneAlert")
+    @GetMapping(value = "/phoneAlert", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> getPhoneAlertByFireStation(@RequestParam("firestation") Integer stationNumber) {
 
         log.info("GET request on endpoint /phoneAlert received for fire station n°: " + stationNumber + "\n");
@@ -194,7 +195,7 @@ public class PersonController {
      * @param stationNumber the station number of the fire station we want to get the information from
      * @return - A FireStationCoverageDTO filled with information
      */
-    @GetMapping("/firestation")
+    @GetMapping(value = "/firestation", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FireStationCoverageDTO> getFireStationCoverageByAddress(@RequestParam("stationNumber") Integer stationNumber) {
 
         log.info("GET request on endpoint /firestation received for fire station n°: " + stationNumber + "\n");
@@ -229,9 +230,9 @@ public class PersonController {
      * @return the added PersonDTO
      */
 
-    /*TODO-review @GetMapping(value="/apir/tartanpion",consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)*/
-    @PostMapping(value = "/person")
+
+    @PostMapping(value = "/person", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTOToAdd) {
 
         log.info("POST request on endpoint /person received for person "
@@ -245,7 +246,7 @@ public class PersonController {
                         + " with id: " + addedPerson.get().getPersonId() + "\n");
                 return new ResponseEntity<>(addedPerson.get(), HttpStatus.CREATED);
             } else {
-                log.error("new person " + personDTOToAdd + " has not been saved\n");
+                log.error("new person " + personDTOToAdd + " has not been added\n");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
@@ -268,7 +269,8 @@ public class PersonController {
      * @param personDTOToUpdate to update in repository
      * @return the added PersonDTO
      */
-    @PutMapping(value = "/person")
+    @PutMapping(value = "/person", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PersonDTO> updatePerson(@RequestBody PersonDTO personDTOToUpdate) {
 
         log.info("PUT request on endpoint /person received for person "

@@ -10,6 +10,7 @@ import com.safetynet.alerts.service.IFireStationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +41,7 @@ public class FireStationController {
      *
      * @return - An Iterable object of FireStation full filled
      */
-    @GetMapping("/firestations")
+    @GetMapping(value = "/firestations", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Iterable<FireStationDTO>> getAllFireStations() {
         log.info("GET request on endpoint /firestations received");
 
@@ -58,7 +59,7 @@ public class FireStationController {
      * @param address the address we want to get the information from
      * @return - A FireDTO filled with information
      */
-    @GetMapping("/fire")
+    @GetMapping(value = "/fire", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FireDTO> getFireStationCoverageByAddress(@RequestParam String address) {
 
         log.info("GET request on endpoint /fire received for address: " + address);
@@ -93,7 +94,7 @@ public class FireStationController {
      * @param listOfStationNumbers the address we want to get the information from
      * @return - A list of FloodDTO filled with information
      */
-    @GetMapping("/flood/stations")
+    @GetMapping(value = "/flood/stations", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FloodDTO>> getFloodByStationNumbers(@RequestParam("stations") List<Integer> listOfStationNumbers) {
 
         log.info("GET request on endpoint /flood/stations received for station numbers: " + listOfStationNumbers);
@@ -127,7 +128,8 @@ public class FireStationController {
      * @param fireStationDTOToAdd to add to repository
      * @return the added FireStationDTO
      */
-    @PostMapping(value = "/firestation")
+    @PostMapping(value = "/firestation", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FireStationDTO> addFireStation(@RequestBody FireStationDTO fireStationDTOToAdd) {
 
         log.info("POST request on endpoint /firestation received for fire station n°"
@@ -165,7 +167,8 @@ public class FireStationController {
      * @param fireStationDTOToUpdate to update in repository
      * @return the updated FireStationDTO
      */
-    @PutMapping(value = "/firestation")
+    @PutMapping(value = "/firestation", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FireStationDTO> updateFireStation(@RequestBody FireStationDTO fireStationDTOToUpdate) {
 
         log.info("PUT request on endpoint /firestation received for address: "
@@ -217,7 +220,7 @@ public class FireStationController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
             } else {
-                log.info("no fire station has been deleted for address " + address + " \n");
+                log.info("No fire station has been deleted for address " + address + " \n");
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
@@ -247,11 +250,11 @@ public class FireStationController {
             List<FireStation> deletedFireStations = fireStationService.deleteFireStationByStationNumber(stationNumber);
 
             if (deletedFireStations != null && !deletedFireStations.isEmpty()) {
-                log.info(deletedFireStations.size() + "fire stations have been deleted for station n°" + stationNumber + " \n");
+                log.info(deletedFireStations.size() + " fire stations have been deleted for station n°" + stationNumber + " \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
             } else {
-                log.info("no fire station has been deleted for station n°" + stationNumber + " \n");
+                log.info("No fire station has been deleted for station n°" + stationNumber + " \n");
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
