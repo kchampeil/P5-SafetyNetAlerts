@@ -147,14 +147,24 @@ public class PersonService implements IPersonService {
         if (firstName != null && !firstName.equals("")
                 && lastName != null && !lastName.equals("")) {
             try {
-                //get the list of persons with firstName and lastName
+                //get the list of persons with the same firstName AND lastName
                 List<Person> listOfPersons = personRepository.findAllByFirstNameAndLastName(firstName, lastName);
+
+                if (listOfPersons == null) {
+                    log.info("No person found with exactly the same firstname and lastname");
+                    listOfPersons = new ArrayList<>();
+                }
+
+                //get the list of persons with the same lastName (but different firsName)
+                // and add them all to the list of persons
+                List<Person> listOfPersonsWithSameLastName = personRepository.findAllByFirstNameNotAndLastName(firstName, lastName);
+                listOfPersons.addAll(listOfPersonsWithSameLastName);
 
                 // complete information with calculation of their age
                 // and populate the listOfPersonInfoDTO
                 List<PersonInfoDTO> listOfPersonInfoDTO = new ArrayList<>();
 
-                if (listOfPersons != null && !listOfPersons.isEmpty()) {
+                if (!listOfPersons.isEmpty()) {
                     listOfPersons.forEach(person -> {
                         person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
                         listOfPersonInfoDTO.add(mapPersonToPersonInfoDTO(person));
