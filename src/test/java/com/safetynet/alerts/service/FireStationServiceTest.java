@@ -55,7 +55,7 @@ class FireStationServiceTest {
     @Autowired
     private IFireStationService fireStationService;
 
-    private static FireStation fireStation;
+    private FireStation fireStation;
 
     private static Person adult;
     private static Person child;

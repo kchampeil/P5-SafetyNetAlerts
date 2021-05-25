@@ -21,20 +21,24 @@ import java.util.List;
 @Service
 public class JsonParserService implements IFileParserService {
 
-    @Autowired
-    private PersonService personService;
+    private final PersonService personService;
 
-    @Autowired
-    private FireStationService fireStationService;
+    private final FireStationService fireStationService;
 
-    @Autowired
-    private MedicalRecordService medicalRecordService;
+    private final MedicalRecordService medicalRecordService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Value("${data.inputFilePath}")
     private String dataInputFilePath;
+
+    @Autowired
+    public JsonParserService(PersonService personService, FireStationService fireStationService, MedicalRecordService medicalRecordService, ObjectMapper objectMapper) {
+        this.personService = personService;
+        this.fireStationService = fireStationService;
+        this.medicalRecordService = medicalRecordService;
+        this.objectMapper = objectMapper;
+    }
 
 
     /**
@@ -56,7 +60,7 @@ public class JsonParserService implements IFileParserService {
 
                     //read medical records, save medical record data in DB
                     // and get back the list of medical records with their IDs in DB
-                    log.info("  reading MedicalRecords in file");
+                    log.info("  Reading MedicalRecords in file");
                     List<MedicalRecord> listOfMedicalRecords = readMedicalRecordsFromJsonFile(rootNode);
 
                     if (!listOfMedicalRecords.isEmpty()) {
@@ -64,7 +68,7 @@ public class JsonParserService implements IFileParserService {
                         listOfMedicalRecords = (List<MedicalRecord>) medicalRecordService.saveListOfMedicalRecords(listOfMedicalRecords);
                         log.info("    " + listOfMedicalRecords.size() + " medical record(s) saved");
                     } else {
-                        log.error("no medical record data found in file " + this.dataInputFilePath);
+                        log.error("No medical record data found in file " + this.dataInputFilePath);
                     }
 
                     //read fire stations and save fire station data in DB
@@ -76,7 +80,7 @@ public class JsonParserService implements IFileParserService {
                         listOfFireStations = (List<FireStation>) fireStationService.saveListOfFireStations(listOfFireStations);
                         log.info("    " + listOfFireStations.size() + " fire station(s) saved");
                     } else {
-                        log.error("no fire station data found in file " + this.dataInputFilePath);
+                        log.error("No fire station data found in file " + this.dataInputFilePath);
                     }
 
                     //read persons in Json file
@@ -95,15 +99,15 @@ public class JsonParserService implements IFileParserService {
                         log.info("    " + listOfPersons.size() + " person(s) saved");
 
                     } else {
-                        log.error("no person data found in file " + this.dataInputFilePath);
+                        log.error("No person data found in file " + this.dataInputFilePath);
                     }
 
                     log.info("End of Reading JSON file \n");
                 } else {
-                    log.error("input data file " + this.dataInputFilePath + " is empty \n");
+                    log.error("Input data file " + this.dataInputFilePath + " is empty \n");
                 }
             } else {
-                log.error("input data file " + this.dataInputFilePath + " not found \n");
+                log.error("Input data file " + this.dataInputFilePath + " not found \n");
             }
 
         } catch (IOException e) {
@@ -210,7 +214,7 @@ public class JsonParserService implements IFileParserService {
                     .findFirst()
                     .ifPresent(person::setMedicalRecord);
             if (person.getMedicalRecord() == null) {
-                log.warn("no medical record found for "
+                log.warn("No medical record found for "
                         + person.getFirstName() + " " + person.getLastName());
             }
         });
@@ -233,12 +237,11 @@ public class JsonParserService implements IFileParserService {
                     .findFirst()
                     .ifPresent(person::setFireStation);
             if (person.getAddress() == null) {
-                log.warn("no fire station found for "
+                log.warn("No fire station found for "
                         + person.getFirstName() + " " + person.getLastName()
                         + " at " + person.getAddress());
             }
         });
         return listOfPersons;
     }
-
 }

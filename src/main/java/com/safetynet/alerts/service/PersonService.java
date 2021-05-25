@@ -161,9 +161,8 @@ public class PersonService implements IPersonService {
                     });
 
                 } else {
-                    log.error("no person found for firstname " + firstName +
-                            " and lastname " + lastName +
-                            ", list of person information is empty");
+                    log.error("No person found for firstname " + firstName +
+                            " and lastname " + lastName + ", list of person information is empty");
                 }
                 return listOfPersonInfoDTO;
 
@@ -174,7 +173,7 @@ public class PersonService implements IPersonService {
                 return null;
             }
         } else {
-            log.error("firstname AND lastname must be specified to get the list of person information");
+            log.error("Firstname AND lastname must be specified to get the list of person information");
             return null;
         }
     }
