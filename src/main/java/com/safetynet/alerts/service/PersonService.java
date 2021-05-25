@@ -511,11 +511,15 @@ public class PersonService implements IPersonService {
 
             //check if there is a person associated to this firstname+lastname in the repository
             personToDelete = personRepository.findByFirstNameAndLastName(firstName, lastName);
+
             if (personToDelete != null) {
 
-                //first delete the associated medical record
+                //first dissociate medical record from person and delete the medical record
                 if (personToDelete.getMedicalRecord().getMedicalRecordId() != null) {
-                    medicalRecordRepository.deleteById(personToDelete.getMedicalRecord().getMedicalRecordId());
+                    Long idOfMedicalRecordToDelete = personToDelete.getMedicalRecord().getMedicalRecordId();
+                    personToDelete.setMedicalRecord(null);
+                    personRepository.save(personToDelete);
+                    medicalRecordRepository.deleteById(idOfMedicalRecordToDelete);
                 }
 
                 //then delete the person

@@ -891,6 +891,10 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME);
             verify(personRepositoryMock, Mockito.times(1))
+                    .save(person);
+            verify(medicalRecordRepositoryMock, Mockito.times(1))
+                    .deleteById(anyLong());
+            verify(personRepositoryMock, Mockito.times(1))
                     .deleteById(person.getPersonId());
         }
 
@@ -911,6 +915,10 @@ class PersonServiceTest {
             verify(personRepositoryMock, Mockito.times(1))
                     .findByFirstNameAndLastName(TestConstants.FIRSTNAME_NOT_FOUND, TestConstants.LASTNAME_NOT_FOUND);
             verify(personRepositoryMock, Mockito.times(0))
+                    .save(null);
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .deleteById(anyLong());
+            verify(personRepositoryMock, Mockito.times(0))
                     .deleteById(anyLong());
         }
 
@@ -927,6 +935,10 @@ class PersonServiceTest {
                     () -> personService.deletePersonByFirstNameAndLastName(null, null));
             verify(personRepositoryMock, Mockito.times(0))
                     .findByFirstNameAndLastName(null, null);
+            verify(personRepositoryMock, Mockito.times(0))
+                    .save(null);
+            verify(medicalRecordRepositoryMock, Mockito.times(0))
+                    .deleteById(anyLong());
             verify(personRepositoryMock, Mockito.times(0))
                     .deleteById(anyLong());
         }
