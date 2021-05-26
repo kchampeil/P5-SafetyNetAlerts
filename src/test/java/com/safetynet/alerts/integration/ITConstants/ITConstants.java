@@ -11,4 +11,8 @@ public class ITConstants {
     public static final int NB_OF_MEDICAL_RECORD_RECORDS_ALL = 23;
 
     public static final int NB_OF_PERSON_RECORDS_ALL = 23;
+    public final static String FIRSTNAME_TO_UPDATE = "Firstname to update";
+    public final static String LASTNAME_TO_UPDATE = "Lastname to update";
+    public static final String FIRSTNAME_TO_DELETE = "Firstname to delete";
+    public static final String LASTNAME_TO_DELETE = "Firstname to delete";
 }
