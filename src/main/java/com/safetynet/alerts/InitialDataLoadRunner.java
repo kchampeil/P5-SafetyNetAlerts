@@ -15,12 +15,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class InitialDataLoadRunner implements CommandLineRunner {
-    
+
+    private final IFileParserService fileParserService;
+
     @Autowired
-    IFileParserService fileParserService;
+    public InitialDataLoadRunner(IFileParserService fileParserService) {
+        this.fileParserService = fileParserService;
+    }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         log.info("initial load of data");
         fileParserService.readDataFromFile();
     }
