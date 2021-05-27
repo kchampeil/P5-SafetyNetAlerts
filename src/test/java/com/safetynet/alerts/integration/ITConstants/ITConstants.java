@@ -7,6 +7,7 @@ public class ITConstants {
     public final static Integer NEW_STATION_NUMBER_FOR_FIRE_STATION_TO_UPDATE = 100;
     public final static String ADDRESS_TO_DELETE = "Address of fire station to delete by address";
     public final static Integer STATION_NUMBER_OF_STATION_TO_DELETE = 2;
+    public final static String ANOTHER_EXISTING_ADDRESS = "644 Gershwin Cir";
 
     public static final int NB_OF_MEDICAL_RECORD_RECORDS_ALL = 23;
 
