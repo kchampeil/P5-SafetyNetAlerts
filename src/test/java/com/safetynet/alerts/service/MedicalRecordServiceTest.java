@@ -442,7 +442,6 @@ class MedicalRecordServiceTest {
                     .findByFirstNameAndLastName(TestConstants.EXISTING_FIRSTNAME, TestConstants.EXISTING_LASTNAME))
                     .thenReturn(existingMedicalRecord);
 
-            //TODO-0 revoir si mutualisation person sur l'ensemble des MRST
             Person person = new Person();
             person.setFirstName(TestConstants.EXISTING_FIRSTNAME);
             person.setLastName(TestConstants.EXISTING_LASTNAME);

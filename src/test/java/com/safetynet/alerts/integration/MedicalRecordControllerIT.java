@@ -9,16 +9,14 @@ import com.safetynet.alerts.repository.MedicalRecordRepository;
 import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.testconstants.TestConstants;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MedicalRecordControllerIT {
 
     @Autowired
@@ -54,7 +51,6 @@ public class MedicalRecordControllerIT {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    @Order(1)
     @DisplayName("WHEN asking for the list of medical records GET /medicalrecords " +
             "THEN return status is OK and the list of all medical records is returned")
     public void getAllMedicalRecordsTest_WithSuccess() throws Exception {
@@ -68,7 +64,8 @@ public class MedicalRecordControllerIT {
 
     @Test
     @DisplayName("WHEN processing a POST/medicalRecord request for a new medical record for an existing person" +
-            "THEN return status is CREATED and the returned value is the medical record")
+            "THEN return status is CREATED, the returned value is the new medical record " +
+            "and the medical record has been added in DB")
     public void addMedicalRecordTest_WithSuccess() throws Exception {
         //init the database with one person
         Person person = new Person();
@@ -119,7 +116,9 @@ public class MedicalRecordControllerIT {
 
     @Test
     @DisplayName("WHEN processing a PUT /medicalRecord request for an existing medical record " +
-            "THEN return status is OK and the returned value is the updated medical record")
+            "THEN return status is OK, the returned value is the updated medical record " +
+            "and the medical record has been updated in DB")
+    @Transactional
     public void updateMedicalRecordTest_WithSuccess() throws Exception {
         //init the database with one medical record to update
         Person person = new Person();
@@ -129,8 +128,8 @@ public class MedicalRecordControllerIT {
         person = personRepository.save(person);
 
         MedicalRecord medicalRecord = new MedicalRecord();
-        medicalRecord.setFirstName(ITConstants.FIRSTNAME_TO_UPDATE);
-        medicalRecord.setLastName(ITConstants.LASTNAME_TO_UPDATE);
+        medicalRecord.setFirstName(person.getFirstName());
+        medicalRecord.setLastName(person.getLastName());
         medicalRecord.setBirthDate(TestConstants.ADULT_BIRTHDATE);
         medicalRecord = medicalRecordRepository.save(medicalRecord);
         person.setMedicalRecord(medicalRecord);
@@ -158,15 +157,16 @@ public class MedicalRecordControllerIT {
                 .andExpect(jsonPath("$.medications", is(medications)))
                 .andExpect(jsonPath("$.allergies", is(allergies)));
 
-        /*TOASK : Unable to evaluate the expression Method threw 'org.hibernate.LazyInitializationException' exception.
-        Method threw 'org.hibernate.LazyInitializationException' exception. Cannot evaluate com.safetynet.alerts.model.MedicalRecord.toString()
-
-        Optional<MedicalRecord> updatedMedicalRecord = Optional.ofNullable(medicalRecordRepository
-                .findByFirstNameAndLastName(medicalRecordDTOToUpdate.getFirstName(), medicalRecordDTOToUpdate.getLastName()));
+        Optional<MedicalRecord> updatedMedicalRecord = medicalRecordRepository.findById(medicalRecord.getMedicalRecordId());
         assertThat(updatedMedicalRecord).isNotEmpty();
         assertEquals(medicalRecordDTOToUpdate.getMedications(), updatedMedicalRecord.get().getMedications());
         assertEquals(medicalRecordDTOToUpdate.getAllergies(), updatedMedicalRecord.get().getAllergies());
-         */
+
+        //clean the database by deleting the initialized medical record and person
+        person.setMedicalRecord(null);
+        personRepository.save(person);
+        medicalRecordRepository.deleteById(medicalRecord.getMedicalRecordId());
+        personRepository.deleteById(person.getPersonId());
     }
 
 
@@ -174,7 +174,7 @@ public class MedicalRecordControllerIT {
     @DisplayName("WHEN processing a DELETE /medicalRecord request for an existing medical record " +
             "THEN the return status is 'No content' and medical record is no longer present in DB " +
             "and no longer associated to the person")
-    public void deleteMedicalRecordByAddressTest_WithSuccess() throws Exception {
+    public void deleteMedicalRecordByFirstNameAndLastNameTest_WithSuccess() throws Exception {
         //init the database with one medical record to delete
         Person person = new Person();
         person.setFirstName(ITConstants.FIRSTNAME_TO_DELETE);
@@ -196,10 +196,13 @@ public class MedicalRecordControllerIT {
                 .param("lastName", ITConstants.LASTNAME_TO_DELETE))
                 .andExpect(status().isNoContent());
 
-        Optional<MedicalRecord> foundMedicalRecordAfterDeletion = Optional.ofNullable(medicalRecordRepository
-                .findByFirstNameAndLastName(ITConstants.FIRSTNAME_TO_DELETE, ITConstants.LASTNAME_TO_DELETE));
+        Optional<MedicalRecord> foundMedicalRecordAfterDeletion = medicalRecordRepository.findById(medicalRecord.getMedicalRecordId());
         assertThat(foundMedicalRecordAfterDeletion).isEmpty();
-        person = personRepository.findByFirstNameAndLastName(ITConstants.FIRSTNAME_TO_DELETE, ITConstants.LASTNAME_TO_DELETE);
-        assertNull(person.getMedicalRecord());
+        Optional<Person> personAfterDeletion = personRepository.findById(person.getPersonId());
+        assertThat(personAfterDeletion).isNotEmpty();
+        assertNull(personAfterDeletion.get().getMedicalRecord());
+
+        //clean the database by deleting the initialized person
+        personRepository.deleteById(person.getPersonId());
     }
 }

@@ -11,10 +11,7 @@ import com.safetynet.alerts.repository.PersonRepository;
 import com.safetynet.alerts.testconstants.TestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +25,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PersonControllerIT {
 
     @Autowired
@@ -69,7 +64,6 @@ public class PersonControllerIT {
     }
 
     @Test
-    @Order(1)
     @DisplayName("WHEN asking for the list of persons GET /persons " +
             "THEN return status is OK and the list of all persons is returned")
     public void getAllPersonsTest_WithSuccess() throws Exception {
@@ -82,8 +76,9 @@ public class PersonControllerIT {
 
 
     @Test
-    @DisplayName("WHEN processing a POST/person request for a new person" +
-            "THEN return status is CREATED and the returned value is the person")
+    @DisplayName("WHEN processing a POST/person request for a new person living at an address covered by one fire station" +
+            "THEN return status is CREATED, the returned value is the added person," +
+            "the person is added in DB and his covering fire station is set")
     public void addPersonTest_WithSuccess() throws Exception {
         //test
         PersonDTO personDTOToAdd = new PersonDTO();
@@ -101,7 +96,13 @@ public class PersonControllerIT {
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.address", is(personDTOToAdd.getAddress())));
+                .andExpect(jsonPath("$.firstName", is(personDTOToAdd.getFirstName())))
+                .andExpect(jsonPath("$.lastName", is(personDTOToAdd.getLastName())))
+                .andExpect(jsonPath("$.address", is(personDTOToAdd.getAddress())))
+                .andExpect(jsonPath("$.email", is(personDTOToAdd.getEmail())))
+                .andExpect(jsonPath("$.phone", is(personDTOToAdd.getPhone())))
+                .andExpect(jsonPath("$.city", is(personDTOToAdd.getCity())))
+                .andExpect(jsonPath("$.zip", is(personDTOToAdd.getZip())));
 
         Optional<Person> addedPerson = Optional.ofNullable(personRepository
                 .findByFirstNameAndLastName(personDTOToAdd.getFirstName(), personDTOToAdd.getLastName()));
@@ -141,14 +142,17 @@ public class PersonControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isNotEmpty())
-                .andExpect(jsonPath("$.address", is(personDTOToUpdate.getAddress())));
+                .andExpect(jsonPath("$.address", is(personDTOToUpdate.getAddress())))
+                .andExpect(jsonPath("$.personId", is(person.getPersonId().intValue())));
 
-        Optional<Person> updatedPerson = Optional.ofNullable(personRepository
-                .findByFirstNameAndLastName(personDTOToUpdate.getFirstName(), personDTOToUpdate.getLastName()));
+        Optional<Person> updatedPerson = personRepository.findById(person.getPersonId());
         assertThat(updatedPerson).isNotEmpty();
         assertEquals(personDTOToUpdate.getAddress(), updatedPerson.get().getAddress());
         assertEquals(fireStationRepository.findByAddress(personDTOToUpdate.getAddress()),
                 updatedPerson.get().getFireStation());
+
+        //clean the database by deleting the initialized person
+        personRepository.deleteById(person.getPersonId());
     }
 
 
@@ -156,7 +160,7 @@ public class PersonControllerIT {
     @DisplayName("WHEN processing a DELETE /person request for an existing person " +
             "THEN the return status is 'No content' and person is no longer present in DB " +
             "and the associated medical record is also deleted")
-    public void deletePersonByAddressTest_WithSuccess() throws Exception {
+    public void deletePersonByFirstNameAndLastNameTest_WithSuccess() throws Exception {
         //init the database with one person to delete and his medical record
         person.setFirstName(ITConstants.FIRSTNAME_TO_DELETE);
         person.setLastName(ITConstants.LASTNAME_TO_DELETE);
@@ -175,10 +179,9 @@ public class PersonControllerIT {
                 .param("lastName", ITConstants.LASTNAME_TO_DELETE))
                 .andExpect(status().isNoContent());
 
-        Optional<Person> foundPersonAfterDeletion = Optional.ofNullable(personRepository
-                .findByFirstNameAndLastName(ITConstants.FIRSTNAME_TO_DELETE, ITConstants.LASTNAME_TO_DELETE));
+        Optional<Person> foundPersonAfterDeletion = personRepository.findById(person.getPersonId());
         assertThat(foundPersonAfterDeletion).isEmpty();
-        medicalRecord = medicalRecordRepository.findByFirstNameAndLastName(ITConstants.FIRSTNAME_TO_DELETE, ITConstants.LASTNAME_TO_DELETE);
-        assertNull(medicalRecord);
+        Optional<MedicalRecord> medicalRecordAfterDeletion = medicalRecordRepository.findById(medicalRecord.getMedicalRecordId());
+        assertThat(medicalRecordAfterDeletion).isEmpty();
     }
 }
