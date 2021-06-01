@@ -586,7 +586,7 @@ class PersonServiceTest {
             FireStationCoverageDTO fireStationCoverageDTO = personService.getFireStationCoverageByStationNumber(999);
 
             //THEN
-            assertNull(fireStationCoverageDTO.getPersonCoveredContactsDTOList());
+            assertThat(fireStationCoverageDTO.getPersonCoveredContactsDTOList()).isEmpty();
             assertEquals(0, fireStationCoverageDTO.getNumberOfAdults());
             assertEquals(0, fireStationCoverageDTO.getNumberOfChildren());
             verify(personRepositoryMock, Mockito.times(1)).findAllByFireStation_StationNumber(999);

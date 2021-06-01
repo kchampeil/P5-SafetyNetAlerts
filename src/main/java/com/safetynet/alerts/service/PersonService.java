@@ -171,7 +171,7 @@ public class PersonService implements IPersonService {
                     });
 
                 } else {
-                    log.error("No person found for firstname " + firstName +
+                    log.warn("No person found for firstname " + firstName +
                             " and lastname " + lastName + ", list of person information is empty");
                 }
                 return listOfPersonInfoDTO;
@@ -240,7 +240,7 @@ public class PersonService implements IPersonService {
                     }
 
                 } else {
-                    log.error("no person found for address " + address +
+                    log.warn("no person found for address " + address +
                             ", list of child alert is empty");
                 }
                 return listOfChildAlertDTO;
@@ -356,20 +356,18 @@ public class PersonService implements IPersonService {
     @Override
     public FireStationCoverageDTO getFireStationCoverageByStationNumber(Integer stationNumber) {
         if (stationNumber != null) {
+            FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
+            List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
+            int numberOfAdults = 0;
+            int numberOfChildren = 0;
             try {
-                FireStationCoverageDTO fireStationCoverageDTO = new FireStationCoverageDTO();
-                int numberOfAdults = 0;
-                int numberOfChildren = 0;
-
                 //get the list of persons living in the area of the fire station
                 List<Person> listOfPersons = personRepository.findAllByFireStation_StationNumber(stationNumber);
 
                 //for each person, contact information are added in the list (after mapping)
                 //and count of adults/children is incremented
                 if (listOfPersons != null && !listOfPersons.isEmpty()) {
-                    log.info(listOfPersons.size() + " persons found for the area covered by fire station n°: " + stationNumber);
-
-                    List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
+                    log.debug(listOfPersons.size() + " persons found for the area covered by fire station n°: " + stationNumber);
 
                     for (Person person : listOfPersons) {
                         ModelMapper modelMapper = new ModelMapper();
@@ -382,10 +380,6 @@ public class PersonService implements IPersonService {
                             numberOfAdults++;
                         }
                     }
-
-                    fireStationCoverageDTO.setPersonCoveredContactsDTOList(listOfPersonCoveredContactsDTO);
-                    fireStationCoverageDTO.setNumberOfAdults(numberOfAdults);
-                    fireStationCoverageDTO.setNumberOfChildren(numberOfChildren);
                     log.info(listOfPersonCoveredContactsDTO.size()
                             + " persons found for the area covered by fire station n°: " + stationNumber
                             + " of which " + numberOfAdults + " adults and " + numberOfChildren + " children");
@@ -394,8 +388,10 @@ public class PersonService implements IPersonService {
                             + stationNumber
                             + ", list of person information is empty");
                 }
+                fireStationCoverageDTO.setPersonCoveredContactsDTOList(listOfPersonCoveredContactsDTO);
+                fireStationCoverageDTO.setNumberOfAdults(numberOfAdults);
+                fireStationCoverageDTO.setNumberOfChildren(numberOfChildren);
                 return fireStationCoverageDTO;
-
 
             } catch (Exception exception) {
                 log.error("error when getting the list of person information for the area covered by fire station n°: "

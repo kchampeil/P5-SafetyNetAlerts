@@ -72,16 +72,9 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-            if (returnedListOfEmails.isEmpty()) {
-                log.warn("response to GET request on endpoint /communityEmail for city "
-                        + cityName + " is empty, no person found \n");
-                return new ResponseEntity<>(returnedListOfEmails, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /communityEmail sent for city "
-                        + cityName + " with " + returnedListOfEmails.size() + " values \n");
-                return new ResponseEntity<>(returnedListOfEmails, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /communityEmail sent for city "
+                    + cityName + " with " + returnedListOfEmails.size() + " values \n");
+            return new ResponseEntity<>(returnedListOfEmails, HttpStatus.OK);
         }
     }
 
@@ -107,18 +100,10 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-            if (returnedListOfPersonInfo.isEmpty()) {
-                log.warn("response to GET request on endpoint /personInfo for person "
-                        + firstName + " " + lastName + " is empty, no person information found \n");
-                return new ResponseEntity<>(returnedListOfPersonInfo, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /personInfo sent for person(s) "
-                        + firstName + " " + lastName + " with " + returnedListOfPersonInfo.size() + " values \n");
-                return new ResponseEntity<>(returnedListOfPersonInfo, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /personInfo sent for person(s) "
+                    + firstName + " " + lastName + " with " + returnedListOfPersonInfo.size() + " values \n");
+            return new ResponseEntity<>(returnedListOfPersonInfo, HttpStatus.OK);
         }
-
     }
 
 
@@ -140,18 +125,10 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-            if (returnedListOfChildAlert.isEmpty()) {
-                log.warn("response to GET request on endpoint /childAlert for address "
-                        + address + " is empty, no child found at this address \n");
-                return new ResponseEntity<>(returnedListOfChildAlert, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /childAlert sent for address "
-                        + address + " with " + returnedListOfChildAlert.size() + " values \n");
-                return new ResponseEntity<>(returnedListOfChildAlert, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /childAlert sent for address "
+                    + address + " with " + returnedListOfChildAlert.size() + " values \n");
+            return new ResponseEntity<>(returnedListOfChildAlert, HttpStatus.OK);
         }
-
     }
 
 
@@ -174,16 +151,9 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-            if (returnedListOfPhoneAlert.isEmpty()) {
-                log.warn("response to GET request on endpoint /phoneAlert for fire station n°"
-                        + stationNumber + " is empty, no phone information found \n");
-                return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /phoneAlert sent for for fire station n° "
-                        + stationNumber + " with " + returnedListOfPhoneAlert.size() + " values \n");
-                return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /phoneAlert sent for for fire station n° "
+                    + stationNumber + " with " + returnedListOfPhoneAlert.size() + " values \n");
+            return new ResponseEntity<>(returnedListOfPhoneAlert, HttpStatus.OK);
         }
     }
 
@@ -196,7 +166,7 @@ public class PersonController {
      * @return - A FireStationCoverageDTO filled with information
      */
     @GetMapping(value = "/firestation", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FireStationCoverageDTO> getFireStationCoverageByAddress(@RequestParam("stationNumber") Integer stationNumber) {
+    public ResponseEntity<FireStationCoverageDTO> getFireStationCoverageByStationNumber(@RequestParam("stationNumber") Integer stationNumber) {
 
         log.info("GET request on endpoint /firestation received for fire station n°: " + stationNumber + "\n");
 
@@ -208,17 +178,9 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-
-            if (fireStationCoverageDTO.getPersonCoveredContactsDTOList() == null) {
-                log.warn("response to GET request on endpoint /firestation for fire station n°: "
-                        + stationNumber + " is empty, no fire station coverage information found \n");
-                return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /firestation sent for for fire station n°: "
-                        + stationNumber + " with " + fireStationCoverageDTO.getPersonCoveredContactsDTOList().size() + " values \n");
-                return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /firestation sent for for fire station n°: "
+                    + stationNumber + " with " + fireStationCoverageDTO.getPersonCoveredContactsDTOList().size() + " values \n");
+            return new ResponseEntity<>(fireStationCoverageDTO, HttpStatus.OK);
         }
     }
 
@@ -242,8 +204,8 @@ public class PersonController {
             Optional<PersonDTO> addedPerson = personService.addPerson(personDTOToAdd);
 
             if (addedPerson.isPresent()) {
-                log.info("new person " + personDTOToAdd.getFirstName() + personDTOToAdd.getLastName() + " has been saved "
-                        + " with id: " + addedPerson.get().getPersonId() + "\n");
+                log.info("new person " + personDTOToAdd.getFirstName() + " " + personDTOToAdd.getLastName() +
+                        " has been saved with id: " + addedPerson.get().getPersonId() + "\n");
                 return new ResponseEntity<>(addedPerson.get(), HttpStatus.CREATED);
             } else {
                 log.error("new person " + personDTOToAdd + " has not been added\n");
@@ -280,8 +242,8 @@ public class PersonController {
             Optional<PersonDTO> updatedPersonDTO = personService.updatePerson(personDTOToUpdate);
 
             if (updatedPersonDTO.isPresent()) {
-                log.info("Person " + personDTOToUpdate.getFirstName() + personDTOToUpdate.getLastName() + " has been updated "
-                        + " with id: " + updatedPersonDTO.get().getPersonId() + "\n");
+                log.info("Person " + personDTOToUpdate.getFirstName() + " " + personDTOToUpdate.getLastName()
+                        + " has been updated with id: " + updatedPersonDTO.get().getPersonId() + "\n");
                 return new ResponseEntity<>(updatedPersonDTO.get(), HttpStatus.OK);
             } else {
                 log.error("Person " + personDTOToUpdate + " has not been updated \n");
@@ -293,7 +255,7 @@ public class PersonController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, doesNotExistException.getMessage());
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage()+ " \n");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
@@ -317,7 +279,7 @@ public class PersonController {
             Person deletedPerson = personService.deletePersonByFirstNameAndLastName(firstName, lastName);
 
             if (deletedPerson != null) {
-                log.info("Person with id :" + deletedPerson.getPersonId()
+                log.info("Person with id: " + deletedPerson.getPersonId()
                         + " has been deleted for " + deletedPerson.getFirstName()
                         + " " + deletedPerson.getLastName() + " \n");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

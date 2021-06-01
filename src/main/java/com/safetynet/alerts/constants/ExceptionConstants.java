@@ -8,7 +8,7 @@ public class ExceptionConstants {
     public static final String MISSING_INFORMATION_FIRE_STATION_ADDRESS = "Address must be specified";
     public static final String MISSING_INFORMATION_MEDICAL_RECORD_WHEN_DELETING = "Firstname AND lastname must be specified";
     public static final String MISSING_INFORMATION_MEDICAL_RECORD_WHEN_ADDING_OR_UPDATING = "Firstname, lastname AND birthdate must be specified";
-    public static final String MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING="All information must be present to add a new person";
+    public static final String MISSING_INFORMATION_PERSON_WHEN_ADDING_OR_UPDATING="All information must be specified";
     public static final String MISSING_INFORMATION_PERSON_WHEN_DELETING = "Firstname AND lastname must be specified";
 
     //DoesNotExistException

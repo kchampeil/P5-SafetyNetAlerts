@@ -2,7 +2,6 @@ package com.safetynet.alerts.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.constants.ExceptionConstants;
-import com.safetynet.alerts.testconstants.TestConstants;
 import com.safetynet.alerts.exceptions.AlreadyExistsException;
 import com.safetynet.alerts.exceptions.DoesNotExistException;
 import com.safetynet.alerts.exceptions.MissingInformationException;
@@ -14,6 +13,7 @@ import com.safetynet.alerts.model.dto.PersonCoveredContactsDTO;
 import com.safetynet.alerts.model.dto.PersonDTO;
 import com.safetynet.alerts.model.dto.PersonInfoDTO;
 import com.safetynet.alerts.service.IPersonService;
+import com.safetynet.alerts.testconstants.TestConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
@@ -141,14 +141,14 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN a city name not known in the repository" +
                 " WHEN asking for the list of emails of all citizens" +
-                " THEN return status is 'not found' but the result is empty")
+                " THEN return status is 'OK' but the result is empty")
         public void getAllEmailsByCityTest_WithNoResultsForCity() throws Exception {
             // GIVEN
             when(personServiceMock.getAllEmailsByCity(TestConstants.CITY_NOT_FOUND)).thenReturn(listOfEmails);
 
             // THEN
             mockMvc.perform(get("/communityEmail").param("city", TestConstants.CITY_NOT_FOUND))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
             verify(personServiceMock, Mockito.times(1)).getAllEmailsByCity(TestConstants.CITY_NOT_FOUND);
@@ -217,7 +217,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN firstname and lastname 'not found' in repository " +
                 "WHEN processing a GET /personInfo request on firstname+lastname " +
-                "THEN return status is 'not found' and an empty list is returned")
+                "THEN return status is 'OK' and an empty list is returned")
         public void getPersonInfoByFirstNameAndLastNameTest_WithNoResults() throws Exception {
             // GIVEN
             when(personServiceMock
@@ -228,7 +228,7 @@ class PersonControllerTest {
             mockMvc.perform(get("/personInfo")
                     .param("firstName", TestConstants.FIRSTNAME_NOT_FOUND)
                     .param("lastName", TestConstants.LASTNAME_NOT_FOUND))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
             verify(personServiceMock, Mockito.times(1))
@@ -304,7 +304,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no child found in repository for the address " +
                 "WHEN processing a GET /childAlert request on address " +
-                "THEN return status is 'not found' and an empty list is returned")
+                "THEN return status is 'OK' and an empty list is returned")
         public void getChildAlertByAddressTest_WithNoResults() throws Exception {
             // GIVEN
             when(personServiceMock.getChildAlertByAddress(TestConstants.ADDRESS_NOT_FOUND))
@@ -312,7 +312,7 @@ class PersonControllerTest {
 
             // THEN
             mockMvc.perform(get("/childAlert").param("address", TestConstants.ADDRESS_NOT_FOUND))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
             verify(personServiceMock, Mockito.times(1))
@@ -377,7 +377,7 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /phoneAlert request on fire station number " +
-                "THEN return status is 'not found' and an empty list is returned")
+                "THEN return status is 'OK' and an empty list is returned")
         public void getPhoneAlertByFireStationTest_WithNoResults() throws Exception {
             // GIVEN
             when(personServiceMock.getPhoneAlertByFireStation(2))
@@ -386,7 +386,7 @@ class PersonControllerTest {
             // THEN
             mockMvc.perform(get("/phoneAlert")
                     .param("firestation", "2"))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$").isEmpty());
             verify(personServiceMock, Mockito.times(1))
@@ -413,26 +413,26 @@ class PersonControllerTest {
 
 
     /* ----------------------------------------------------------------------------------------------------------------------
-     *                  getFireStationCoverageByAddress tests
+     *                  getFireStationCoverageByStationNumber tests
      * ----------------------------------------------------------------------------------------------------------------------*/
     @Nested
-    @DisplayName("getFireStationCoverageByAddress tests")
-    class GetFireStationCoverageByAddressTest {
+    @DisplayName("getFireStationCoverageByStationNumber tests")
+    class getFireStationCoverageByStationNumberTest {
         private FireStationCoverageDTO fireStationCoverageDTO;
+        private List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO;
 
         @BeforeEach
         private void setUpPerTest() {
             fireStationCoverageDTO = new FireStationCoverageDTO();
+            listOfPersonCoveredContactsDTO = new ArrayList<>();
         }
 
         @Test
         @DisplayName("GIVEN persons in repository living at one address covered by the requested fire station " +
                 "WHEN processing a GET /firestation request on fire station number " +
                 "THEN a list of person info + nb of adults + nb of children is returned")
-        public void getFireStationCoverageByAddressTest_WithResults() throws Exception {
+        public void getFireStationCoverageByStationNumberTest_WithResults() throws Exception {
             // GIVEN
-            List<PersonCoveredContactsDTO> listOfPersonCoveredContactsDTO = new ArrayList<>();
-
             PersonCoveredContactsDTO personCoveredContactsDTO1 = new PersonCoveredContactsDTO();
             personCoveredContactsDTO1.setFirstName(TestConstants.EXISTING_FIRSTNAME + "_1");
             personCoveredContactsDTO1.setLastName(TestConstants.EXISTING_LASTNAME + "_1");
@@ -475,20 +475,21 @@ class PersonControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire station number in repository " +
                 "WHEN processing a GET /firestation request on fire station number " +
-                "THEN return status is 'not found', the returned list is null and number of adults & children equals 0")
-        public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
+                "THEN return status is 'OK', the returned list is empty and number of adults & children equals 0")
+        public void getFireStationCoverageByStationNumberTest_WithNoResults() throws Exception {
             // GIVEN
+            fireStationCoverageDTO.setPersonCoveredContactsDTOList(listOfPersonCoveredContactsDTO);
             when(personServiceMock.getFireStationCoverageByStationNumber(2))
                     .thenReturn(fireStationCoverageDTO);
 
             // THEN
             mockMvc.perform(get("/firestation")
                     .param("stationNumber", "2"))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.numberOfChildren", is(0)))
                     .andExpect(jsonPath("$.numberOfAdults", is(0)))
-                    .andExpect(jsonPath("$.personCoveredContactsDTOList", is(nullValue())));
+                    .andExpect(jsonPath("$.personCoveredContactsDTOList", is(empty())));
             verify(personServiceMock, Mockito.times(1))
                     .getFireStationCoverageByStationNumber(2);
         }
@@ -498,7 +499,7 @@ class PersonControllerTest {
         @DisplayName("GIVEN null fire station number " +
                 "WHEN processing a GET /firestation request on fire station number " +
                 "THEN return status is 'bad request'")
-        public void getFireStationCoverageByAddressTest_WithNoStationNumberAsInput() throws Exception {
+        public void getFireStationCoverageByStationNumberTest_WithNoStationNumberAsInput() throws Exception {
             // GIVEN
             when(personServiceMock.getFireStationCoverageByStationNumber(anyInt())).thenReturn(null);
 

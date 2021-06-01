@@ -114,13 +114,13 @@ public class FireStationService implements IFireStationService {
                 List<PersonCoveredDTO> personCoveredDTOList = new ArrayList<>();
 
                 if (!listOfPersons.isEmpty()) {
-                    log.info(listOfPersons.size() + " persons found for the address : " + address);//TTR ?
+                    log.debug(listOfPersons.size() + " persons found for the address : " + address);
                     listOfPersons.forEach(person -> {
                         person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
                         personCoveredDTOList.add(mapPersonToPersonCoveredDTO(person));
                     });
 
-                    log.info(personCoveredDTOList.size() + " persons found for address : " + address); //TTR ?
+                    log.info(personCoveredDTOList.size() + " persons found for address : " + address);
                 }
 
                 fireDTO.setPersonCoveredDTOList(personCoveredDTOList);
