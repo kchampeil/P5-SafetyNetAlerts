@@ -108,28 +108,29 @@ public class FireStationService implements IFireStationService {
 
                 //get the list of persons living at the address
                 List<Person> listOfPersons = personRepository.findAllByAddress(address);
+                log.info(listOfPersons.size() + " persons found for the address : " + address);
 
                 //for each person, populate the list of persons covered
-                if (listOfPersons != null && !listOfPersons.isEmpty()) {
-                    log.info(listOfPersons.size() + " persons found for the address : " + address);
+                List<PersonCoveredDTO> personCoveredDTOList = new ArrayList<>();
 
-                    List<PersonCoveredDTO> personCoveredDTOList = new ArrayList<>();
+                if (!listOfPersons.isEmpty()) {
+                    log.info(listOfPersons.size() + " persons found for the address : " + address);//TTR ?
                     listOfPersons.forEach(person -> {
-                                person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
-                                personCoveredDTOList.add(mapPersonToPersonCoveredDTO(person));
-                            }
-                    );
+                        person.setAge(dateUtil.calculateAge(person.getMedicalRecord().getBirthDate()));
+                        personCoveredDTOList.add(mapPersonToPersonCoveredDTO(person));
+                    });
 
-                    log.info(personCoveredDTOList.size() + " persons found for address : " + address);
-                    fireDTO.setPersonCoveredDTOList(personCoveredDTOList);
-
-                } else {
-                    log.warn("no person found for address " + address + ", list of emails is empty");
+                    log.info(personCoveredDTOList.size() + " persons found for address : " + address); //TTR ?
                 }
+
+                fireDTO.setPersonCoveredDTOList(personCoveredDTOList);
 
                 //get the station number of the fire station which covers this address
                 //assuming there is only one fire station covering a given address
-                fireDTO.setStationNumber(fireStationRepository.findByAddress(address).getStationNumber());
+                FireStation coveringFireStation = fireStationRepository.findByAddress(address);
+                if (coveringFireStation != null) {
+                    fireDTO.setStationNumber(coveringFireStation.getStationNumber());
+                }
                 return fireDTO;
 
             } catch (Exception exception) {
@@ -189,7 +190,7 @@ public class FireStationService implements IFireStationService {
                                 listOfFloodDTO.add(floodDTO);
 
                             } else {
-                                log.warn("no person found for station " + station
+                                log.info("no person found for station " + station
                                         + ", list of person information is empty for this station");
                             }
                         }

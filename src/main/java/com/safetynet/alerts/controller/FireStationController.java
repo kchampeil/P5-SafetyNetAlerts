@@ -72,17 +72,9 @@ public class FireStationController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-
-            if (fireDTO.getPersonCoveredDTOList() == null) {
-                log.warn("response to GET request on endpoint /fire for address: "
-                        + address + " is empty, no fire station coverage information found \n");
-                return new ResponseEntity<>(fireDTO, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /fire sent for for address: "
-                        + address + " with " + fireDTO.getPersonCoveredDTOList().size() + " values \n");
-                return new ResponseEntity<>(fireDTO, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /fire sent for for address: "
+                    + address + " with " + fireDTO.getPersonCoveredDTOList().size() + " values \n");
+            return new ResponseEntity<>(fireDTO, HttpStatus.OK);
         }
     }
 
@@ -107,17 +99,9 @@ public class FireStationController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         } else {
-
-            if (listOfFloodDTO.isEmpty()) {
-                log.warn("response to GET request on endpoint /flood/stations for stations: "
-                        + listOfStationNumbers + " is empty, no flood information found \n");
-                return new ResponseEntity<>(listOfFloodDTO, HttpStatus.NOT_FOUND);
-
-            } else {
-                log.info("response to GET request on endpoint /flood/stations sent for for stations: "
-                        + listOfStationNumbers + " with " + listOfFloodDTO.size() + " values \n");
-                return new ResponseEntity<>(listOfFloodDTO, HttpStatus.OK);
-            }
+            log.info("response to GET request on endpoint /flood/stations sent for for stations: "
+                    + listOfStationNumbers + " with " + listOfFloodDTO.size() + " values \n");
+            return new ResponseEntity<>(listOfFloodDTO, HttpStatus.OK);
         }
     }
 

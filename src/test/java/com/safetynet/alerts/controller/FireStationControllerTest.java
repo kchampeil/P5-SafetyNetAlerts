@@ -146,16 +146,18 @@ class FireStationControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested address in repository " +
                 "WHEN processing a GET /fire request on address " +
-                "THEN return status is 'not found' and an empty coverage info is returned")
+                "THEN return status is 'OK' and an empty coverage info is returned")
         public void getFireStationCoverageByAddressTest_WithNoResults() throws Exception {
             // GIVEN
+            List<PersonCoveredDTO> emptyListOfPersonsCovered = new ArrayList<>();
+            fireDTO.setPersonCoveredDTOList(emptyListOfPersonsCovered);
             when(fireStationServiceMock.getFireStationCoverageByAddress(TestConstants.ADDRESS_NOT_FOUND))
                     .thenReturn(fireDTO);
 
             // THEN
             mockMvc.perform(get("/fire")
                     .param("address", TestConstants.ADDRESS_NOT_FOUND))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.personCoveredDTO").doesNotExist());
             verify(fireStationServiceMock, Mockito.times(1))
@@ -224,7 +226,7 @@ class FireStationControllerTest {
         @Test
         @DisplayName("GIVEN no person found for requested fire stations in repository " +
                 "WHEN processing a GET /flood/stations request on station numbers " +
-                "THEN return status is 'not found' and an empty coverage info is returned")
+                "THEN return status is 'OK' and an empty coverage info is returned")
         public void getFloodByStationNumbersTest_WithNoResults() throws Exception {
             // GIVEN
             when(fireStationServiceMock.getFloodByStationNumbers(Collections.singletonList(TestConstants.STATION_NUMBER_NOT_FOUND)))
@@ -233,7 +235,7 @@ class FireStationControllerTest {
             // THEN
             mockMvc.perform(get("/flood/stations")
                     .param("stations", TestConstants.STATION_NUMBER_NOT_FOUND.toString()))
-                    .andExpect(status().isNotFound())
+                    .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.personsCoveredByAddress").doesNotExist());
             verify(fireStationServiceMock, Mockito.times(1))

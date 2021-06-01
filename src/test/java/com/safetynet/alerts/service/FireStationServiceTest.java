@@ -240,7 +240,7 @@ class FireStationServiceTest {
         @DisplayName("GIVEN no citizens living at the requested address found in repository " +
                 "but fire station covering the requested address found in repository " +
                 "WHEN asking for fire station coverage information " +
-                "THEN in the returned information the list of persons covered is null and the station number is populated")
+                "THEN in the returned information the list of persons covered is empty and the station number is populated")
         public void getFireStationCoverageByAddressTest_WithNoPersonInRepository() {
             //GIVEN
             fireStation.setAddress(TestConstants.ADDRESS_NOT_FOUND);
@@ -254,7 +254,7 @@ class FireStationServiceTest {
             FireDTO fireDTO = fireStationService.getFireStationCoverageByAddress(TestConstants.ADDRESS_NOT_FOUND);
 
             //THEN
-            assertThat(fireDTO.getPersonCoveredDTOList()).isNull();
+            assertThat(fireDTO.getPersonCoveredDTOList()).isEmpty();
             assertEquals(fireStation.getStationNumber(), fireDTO.getStationNumber());
             verify(personRepositoryMock, Mockito.times(1))
                     .findAllByAddress(TestConstants.ADDRESS_NOT_FOUND);
